@@ -1,0 +1,171 @@
+﻿
+@model List<Helpers.Models.WebsiteViewModels.DashboardJobCardModel>
+
+
+
+@foreach (var item in Model)
+{
+    <div class="card bg-light mb-3">
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <h6><a href="../Job-Detail/@item.JobID">@item.Title</a> <b><small>@item.UserName</small></b></h6>
+                </div>
+                <div class="col-md-4">
+                    <div>
+                        
+                        <div class="float-right d-none">
+                            <b id="counter_@item.JobID"></b>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <ol class="steps">
+                @{
+                    string approvalStatus = "", dosFeeApproval = "", auction = "", auctionCompleted = "", InformalVoting = "", completed = "", FormalVoting = "";
+                }
+
+                @if (item.Status == Helpers.Constants.Enums.JobStatusTypes.AdminApprovalPending)
+                {
+                    approvalStatus = "is-active";
+                }
+                else if (item.Status == Helpers.Constants.Enums.JobStatusTypes.DoSFeePending || item.Status == Helpers.Constants.Enums.JobStatusTypes.KYCPending)
+                {
+                    approvalStatus = "is-complete";
+                    dosFeeApproval = "is-active";
+                }
+                else if (item.Status == Helpers.Constants.Enums.JobStatusTypes.InternalAuction || item.Status == Helpers.Constants.Enums.JobStatusTypes.PublicAuction)
+                {
+                    approvalStatus = dosFeeApproval = "is-complete";
+                    auction = "is-active";
+                }
+                else if (item.Status == Helpers.Constants.Enums.JobStatusTypes.AuctionCompleted)
+                {
+                    approvalStatus = dosFeeApproval = auction = "is-complete";
+                    auctionCompleted = "is-active";
+                }
+                else if (item.Status == Helpers.Constants.Enums.JobStatusTypes.InformalVoting)
+                {
+                    approvalStatus = dosFeeApproval = auction = auctionCompleted = "is-complete";
+                    InformalVoting = "is-active";
+                }
+                else if (item.Status == Helpers.Constants.Enums.JobStatusTypes.FormalVoting)
+                {
+                    approvalStatus = dosFeeApproval = auction = auctionCompleted = InformalVoting = "is-complete";
+                    FormalVoting = "is-active";
+                }
+                else if (item.Status == Helpers.Constants.Enums.JobStatusTypes.Completed)
+                {
+                    approvalStatus = dosFeeApproval = auction = auctionCompleted = InformalVoting = FormalVoting = "is-complete";
+                    completed = "is-complete";
+                }
+                else if (item.Status == Helpers.Constants.Enums.JobStatusTypes.Failed)
+                {
+                    approvalStatus = dosFeeApproval = auction = auctionCompleted = InformalVoting = "is-complete";
+                    FormalVoting = "is-inactive";
+                }
+                else if (item.Status == Helpers.Constants.Enums.JobStatusTypes.Expired)
+                {
+                    approvalStatus = dosFeeApproval = "is-complete";
+                    InformalVoting = FormalVoting = auction = auctionCompleted = "is-inactive";
+                }
+                else if (item.Status == Helpers.Constants.Enums.JobStatusTypes.Rejected)
+                {
+                    approvalStatus = "is-complete";
+                    dosFeeApproval = auction = auctionCompleted = InformalVoting = FormalVoting = "is-inactive";
+                }
+
+                <li class="@approvalStatus step text-secondary" data-step="1">
+                    Admin Approval Pending
+                </li>
+                <li class="@dosFeeApproval step text-secondary" data-step="2">
+                    DoS Fee Pending
+                </li>
+                <li class="@auction step text-secondary" data-step="3">
+                    Auction
+                </li>
+                <li class="@auctionCompleted step text-secondary" data-step="4">
+                    Auction Completed
+                </li>
+                <li class="@InformalVoting step text-secondary" data-step="5">
+                    Informal Voting
+                </li>
+                <li class="@FormalVoting step text-secondary" data-step="6">
+                    Formal Voting
+                </li>
+                @if (item.Status != Helpers.Constants.Enums.JobStatusTypes.Expired && item.Status != Helpers.Constants.Enums.JobStatusTypes.Failed && item.Status != Helpers.Constants.Enums.JobStatusTypes.Rejected)
+                {
+                    <li class="@completed step" data-step="7">
+                        Completed
+                    </li>
+                }
+                else if (item.Status == Helpers.Constants.Enums.JobStatusTypes.Expired)
+                {
+                    <li class="is-uncomplete step" data-step="7">
+                        Expired
+                    </li>
+                }
+                else if (item.Status == Helpers.Constants.Enums.JobStatusTypes.Rejected)
+                {
+                    <li class="is-uncomplete step" data-step="7">
+                        Rejected
+                    </li>
+                }
+            </ol>
+        </div>
+    </div>
+
+}
+
+
+    <script>
+
+           //Get auctions json model for time left counter
+        dataModel = @Html.Raw(Json.Serialize(Model));
+
+        var auctionCountdownDictionary = {};
+
+      
+            //Start auction countdowns
+            for (i = 0; i < dataModel.length; i++) {
+                var countDownDate = new Date(dataModel[i].endDate).getTime();
+
+                auctionCountdownDictionary[dataModel[i].jobID] = countDownDate;
+                CountDown(dataModel[i].jobID, countDownDate);
+                StartInterval(dataModel[i], 1000)
+            }
+
+        
+
+        //Send auctionIDs to CountDown function
+        function StartInterval(index, frequency) {
+            setInterval(function () {
+                CountDown(index.jobID, auctionCountdownDictionary[index.jobID]);
+            }, frequency);
+        }
+
+        //Countdown method
+        function CountDown(id, countDownDate) {
+
+            var now = new Date().getTime();
+            countDownDate = auctionCountdownDictionary[id];
+            // Find the distance between now and the count down date
+            var distance = countDownDate - now;
+
+            // Time calculations for days, hours, minutes and seconds
+            var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            // Output the result in an element with id="counter_id"
+            document.getElementById("counter_" + id).innerHTML = "<span>" + days.toString() + "</span>" + "D <span>" + hours.toString() + "</span>:<span>"
+                + minutes.toString() + "</span>:<span>" + seconds.toString() + "</span>";
+
+            // If the count down is over, write some text
+            if (distance < 0) {
+                document.getElementById("counter_" + id).innerHTML = "EXPIRED";
+            }
+        }
+    </script>

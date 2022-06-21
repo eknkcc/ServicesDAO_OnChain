@@ -1,0 +1,188 @@
+﻿@{
+    Layout = "../Shared/_MainLayout.cshtml";
+}
+@model Helpers.Models.WebsiteViewModels.DashBoardViewModelVA;
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card mb-3">
+            <div class="card-body p-2">
+                <h6 class="card-title mb-1">
+                    <i class="fas fa-star dashIcon"></i>
+                    Available Reputation
+                </h6>
+                <h3 class="text-right mb-0">
+                    @if (Model.UserReputation != null)
+                    {
+                        @String.Format("{0:0.00000}", Math.Round(Model.UserReputation.LastUsableTotal, 5))
+                    }
+                    else
+                    {
+                        <span>-</span>
+                    }
+                </h3>
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-body p-2">
+                <h6 class="card-title mb-1">
+                    <i class="fas fa-layer-group dashIcon"></i>
+                    My Jobs
+                </h6>
+                <h3 class="text-right mb-0 fw-semibold">
+                    @Model.MyJobCount
+                </h3>
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-body p-2">
+                <h6 class="card-title mb-1">
+                    <i class="fas fa-gavel dashIcon"></i>
+                    My Auctions
+                </h6>
+                <h3 class="text-right mb-0 fw-semibold">
+                    @Model.MyAuctionCount
+                </h3>
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-body p-2">
+                <h6 class="card-title mb-1">
+                    <i class="fas fa-thumbs-up dashIcon"></i>
+                    My Votes
+                </h6>
+                <h3 class="text-right mb-0 fw-semibold">
+                    @Model.MyVotesCount
+                </h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card p-0">
+            <div class="card-header">
+                Latest Comments
+            </div>
+            <div class="card-body mt-1 h-300 overflowy">
+
+                @if (Model.LastComments.Count > 0)
+                {
+                    @foreach (var item in Model.LastComments)
+                    {
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <h6 class="mb-1">
+                                    @if (item.ProfileImage.Length > 50)
+                                    {
+                                        <img class="rounded-circle dashboardAvatar" width="25" height="25" src="data:image;base64,@item.ProfileImage" onerror="this.onerror=null; this.src='../Home/images/avatars/default.png'" />
+                                    }
+                                    else
+                                    {
+                                        <img class="rounded-circle dashboardAvatar" width="25" height="25" src="../Home/images/avatars/@item.ProfileImage" alt="@item.UserName" onerror="this.onerror=null; this.src='../Home/images/avatars/default.png'">
+                                    }
+                                    @item.UserName <small class="smallDate">@item.Date</small>
+
+                                    <a class="float-right font-weight-normal cursorp" href="../Job-Detail/@item.JobID"><small>Go to job detail</small></a>
+                                </h6>
+                                <div class="comment-p mt-2 mb-0">
+                                    @Html.Raw(item.Comment)
+                                </div>
+                            </div>
+                        </div>
+
+
+                    }
+                }
+                else
+                {
+                    <partial name="../Shared/_EmptyPartial.cshtml" view-data='new ViewDataDictionary(ViewData) { { "Message", "No comments yet." } }' />
+                }
+
+            </div>
+        </div>
+
+    </div>
+    <div class="col-md-4">
+        <div class="card p-0">
+            <div class="card-header">
+                Trending Topics
+            </div>
+            <div class="card-body mt-1 h-300 overflowy">
+                @if (Model.PopularJobs.Count > 0)
+                {
+                    @foreach (var item in Model.PopularJobs)
+                    {
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <h6 class="mb-2">
+                                    <a class="cursorp" href="../Job-Detail/@item.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(item.Title, 50)</a>
+                                    <small class="smallDate float-right mt-1">@item.CreateDate</small>
+                                </h6>
+
+                                <div class="comment-p mt-2 mb-0">
+                                    @Html.Raw(item.JobDescription)
+                                </div>
+                            </div>
+                        </div>
+
+                    }
+                }
+                else
+                {
+                    <partial name="../Shared/_EmptyPartial.cshtml" view-data='new ViewDataDictionary(ViewData) { { "Message", "No popular jobs yet." } }' />
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- /.row-->
+<!--Row-->
+<div class="row mt-4">
+    <!--.col-->
+    <div class="col-lg-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                My Jobs As Owner
+            </div>
+            <div class="card-body h-300 overflowy">
+                @if (Model.MyOwnerJobs.Count() > 0)
+                {
+                    <div class="table-responsive" style="max-height:500px">
+                        <!--Table-->
+                        <partial name="../Shared/_JobTablePartial.cshtml" model="Model.MyOwnerJobs" />
+                    </div>
+                }
+                else
+                {
+                    <partial name="../Shared/_EmptyPartial.cshtml" view-data='new ViewDataDictionary(ViewData) { { "Message", "You don՚t have any jobs as owner." } }' />
+                }
+            </div>
+        </div>
+    </div>
+    <!-- /.col-->
+</div>
+
+<!--Row-->
+<div class="row">
+    <!-- /.col-->
+    <div class="col-lg-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                My Jobs As Doer
+            </div>
+            <div class="card-body h-300 overflowy">
+                @if (Model.MyDoerJobs.Count() > 0)
+                {
+                    <div class="table-responsive">
+                        <partial name="../Shared/_JobTablePartial.cshtml" model="Model.MyDoerJobs" />
+                    </div>
+                }
+                else
+                {
+                    <partial name="../Shared/_EmptyPartial.cshtml" view-data='new ViewDataDictionary(ViewData) { { "Message", "You don՚t have any jobs as doer." } }' />
+                }
+            </div>
+        </div>
+    </div>
+    <!-- /.col-->
+</div>

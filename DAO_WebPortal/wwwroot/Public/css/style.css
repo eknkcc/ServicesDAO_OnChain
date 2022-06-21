@@ -1,0 +1,50 @@
+﻿
+
+/********Scrollbar Style*******/
+
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    border-radius: 7px;
+    background-color: #F5F5F5;
+}
+
+::-webkit-scrollbar {
+    width: 7px;
+    background-color: #F5F5F5;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 7px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+    background-color: #3e4ab1;
+}
+
+
+.cursorp{
+    cursor:pointer!important
+}
+
+.fp {
+    color: #2b56f5 !important;
+}
+
+.theme-dark {
+    background: #0c195a !important;
+}
+
+.auctionsTable td {
+    padding: 10px;
+    line-height: 2rem;
+    font-size:14px
+}
+.auctionsTable th {
+    font-size: 14px
+}
+
+.h-250 {
+    height: 250px !important;
+}
+
+.h-500 {
+    height: 500px !important;
+}

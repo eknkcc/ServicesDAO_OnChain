@@ -1,0 +1,251 @@
+{
+  "ReRoutes": [
+    //DbService API
+    {
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "56753253-tyuw-5769-0921-kdsafirox29zoxqLWERMAwdv",
+        "AllowedScopes": []
+      },
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "dao_dbservice",
+          "Port": 80
+        }
+      ],
+      "DownstreamPathTemplate": "/{everything}",
+      "DownstreamScheme": "http",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "UpstreamPathTemplate": "/Db/{everything}",
+      "Priority": 1
+    },
+    //LogService API
+    {
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "56753253-tyuw-5769-0921-kdsafirox29zoxqLWERMAwdv",
+        "AllowedScopes": []
+      },
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "dao_logservice",
+          "Port": 80
+        }
+      ],
+      "DownstreamPathTemplate": "/{everything}",
+      "DownstreamScheme": "http",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "UpstreamPathTemplate": "/Log/{everything}",
+      "Priority": 1
+    },
+    //VotingEngine API
+    {
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "56753253-tyuw-5769-0921-kdsafirox29zoxqLWERMAwdv",
+        "AllowedScopes": []
+      },
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "dao_votingengine",
+          "Port": 80
+        }
+      ],
+      "DownstreamPathTemplate": "/{everything}",
+      "DownstreamScheme": "http",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "UpstreamPathTemplate": "/Voting/{everything}",
+      "Priority": 1
+    },
+    //ReputationService API
+    {
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "56753253-tyuw-5769-0921-kdsafirox29zoxqLWERMAwdv",
+        "AllowedScopes": []
+      },
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "dao_reputationservice",
+          "Port": 80
+        }
+      ],
+      "DownstreamPathTemplate": "/{everything}",
+      "DownstreamScheme": "http",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "UpstreamPathTemplate": "/Reputation/{everything}",
+      "Priority": 1
+    },
+    //IdentityService API
+    {
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "56753253-tyuw-5769-0921-kdsafirox29zoxqLWERMAwdv",
+        "AllowedScopes": []
+      },
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "dao_identityservice",
+          "Port": 80
+        }
+      ],
+      "DownstreamPathTemplate": "/{everything}",
+      "DownstreamScheme": "http",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "UpstreamPathTemplate": "/Identity/{everything}",
+      "Priority": 1
+    },
+    //Public Actions
+    {
+      "DownstreamPathTemplate": "/Identity/Login",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "dao_identityservice",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/PublicActions/Login",
+      "UpstreamHttpMethod": [ "POST" ],
+      "Priority": 2
+    },
+    {
+      "DownstreamPathTemplate": "/Identity/Register",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "dao_identityservice",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/PublicActions/Register",
+      "UpstreamHttpMethod": [ "POST" ],
+      "Priority": 2
+    },
+    {
+      "DownstreamPathTemplate": "/Identity/RegisterComplete",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "dao_identityservice",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/PublicActions/RegisterComplete",
+      "UpstreamHttpMethod": [ "POST" ],
+      "Priority": 2
+    },
+    {
+      "DownstreamPathTemplate": "/Identity/ResetPassword",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "dao_identityservice",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/PublicActions/ResetPassword",
+      "UpstreamHttpMethod": [ "POST" ],
+      "Priority": 2
+    },
+    {
+      "DownstreamPathTemplate": "/Identity/ResetPasswordComplete",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "dao_identityservice",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/PublicActions/ResetPasswordComplete",
+      "UpstreamHttpMethod": [ "POST" ],
+      "Priority": 2
+    },
+    {
+      "DownstreamPathTemplate": "/Kyc/KycCallBack",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "dao_identityservice",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/PublicActions/KycCallBack",
+      "UpstreamHttpMethod": [ "POST" ],
+      "Priority": 2
+    },
+    {
+      "DownstreamPathTemplate": "/Notification/SendPublicContactEmail",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "dao_notificationservice",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/PublicActions/Notification/SendPublicContactEmail",
+      "UpstreamHttpMethod": [ "POST" ],
+      "Priority": 2
+    },
+    {
+      "DownstreamPathTemplate": "/Website/GetAuctions",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "dao_dbservice",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/PublicActions/GetAuctions",
+      "UpstreamHttpMethod": [ "GET" ],
+      "Priority": 2
+    },
+    {
+      "DownstreamPathTemplate": "/Website/GetAuctionBids",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "dao_dbservice",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/PublicActions/GetAuctionBids",
+      "UpstreamHttpMethod": [ "GET" ],
+      "Priority": 2
+    },
+    {
+      "DownstreamPathTemplate": "/Website/GetJobDetail",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "dao_dbservice",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/PublicActions/GetJobDetail",
+      "UpstreamHttpMethod": [ "GET" ],
+      "Priority": 2
+    },
+    {
+      "DownstreamPathTemplate": "/Auction/GetId",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "dao_dbservice",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/PublicActions/GetAuctionDetail",
+      "UpstreamHttpMethod": [ "GET" ],
+      "Priority": 2
+    },
+    {
+      "DownstreamPathTemplate": "/PlatformSetting/GetLatestSetting",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "dao_dbservice",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/PublicActions/GetLatestSetting",
+      "UpstreamHttpMethod": [ "GET" ],
+      "Priority": 2
+    }
+  ]
+}
