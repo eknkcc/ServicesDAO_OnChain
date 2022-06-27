@@ -1,72 +1,72 @@
 version: '3.4'
 
 services:
-  dao_dbservice: 
+  daochain_dbservice: 
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
     ports:
       - "8889:80"
 
-  dao_db: 
+  daochain_db: 
     ports:
       - 3309:3306
  
-  dao_logsdb: 
+  daochain_logsdb: 
     ports:
       - 3310:3306
 
-  dao_votedb: 
+  daochain_votedb: 
     ports:
       - 3312:3306
  
-  dao_reputationdb: 
+  daochain_reputationdb: 
     ports:
       - 3313:3306
       
-  dao_identityservice: 
+  daochain_identityservice: 
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
     ports:
       - "8890:80"
 
-  dao_logservice: 
+  daochain_logservice: 
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
     ports:
       - "8891:80"
 
-  dao_notificationservice: 
+  daochain_notificationservice: 
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
     ports:
       - "8892:80"
 
-  dao_apigateway: 
+  daochain_apigateway: 
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
     ports:
       - "8896:80"
 
-  dao_votingengine: 
+  daochain_votingengine: 
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
     ports:
       - "8897:80"
 
-  dao_reputationservice: 
+  daochain_reputationservice: 
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
     ports:
       - "8898:80"
 
-  dao_webportal: 
+  daochain_webportal: 
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80

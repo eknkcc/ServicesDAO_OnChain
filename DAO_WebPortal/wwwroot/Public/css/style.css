@@ -48,3 +48,12 @@
 .h-500 {
     height: 500px !important;
 }
+
+.casperBg{
+    background: #ef515c;
+    border: #ef515c;
+}
+
+.casperBg:hover {
+    background: #e07d84;
+  }

@@ -186,6 +186,8 @@ namespace DAO_WebPortal.Controllers
                     HttpContext.Session.SetString("UserType", loginModel.UserType.ToString());
                     HttpContext.Session.SetString("ProfileImage", loginModel.ProfileImage);
                     HttpContext.Session.SetString("KYCStatus", loginModel.KYCStatus.ToString());
+                    HttpContext.Session.SetString("WalletAddress", loginModel.WalletAddress.ToString());
+                    HttpContext.Session.SetInt32("ChainSign", -1);
 
                     return base.Json(new SimpleResponse { Success = true, Message = Lang.SuccessLogin });
                 }
@@ -195,6 +197,46 @@ namespace DAO_WebPortal.Controllers
                     HttpContext.Session.SetInt32("FailCount", failCount);
                     return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorUsernamePassword });
                 }
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+            }
+        }
+
+
+        /// <summary>
+        ///  User login onchain function
+        /// </summary>
+        /// <param name="publicAddress">User's wallet public address</param>
+        /// <param name="reputation">User's total reputation</param>
+        /// <returns></returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult LoginChain(string publicAddress, double reputation)
+        {
+            try
+            {
+                HttpContext.Session.SetInt32("UserID", 0);
+                HttpContext.Session.SetString("Email", "");
+                HttpContext.Session.SetString("Token", "");
+                HttpContext.Session.SetString("LoginType", "user");
+                HttpContext.Session.SetString("NameSurname", "");
+                if(reputation > 0)
+                {
+                    HttpContext.Session.SetString("UserType", "VotingAssociate");
+                }
+                else
+                {
+                    HttpContext.Session.SetString("UserType", "Associate");
+                }
+                HttpContext.Session.SetString("ProfileImage", "");
+                HttpContext.Session.SetString("KYCStatus", "");
+                HttpContext.Session.SetString("PublicAddress", "");
+                HttpContext.Session.SetInt32("ChainSign", 1);
+
+                return base.Json(new SimpleResponse { Success = true, Message = Lang.SuccessLogin });
             }
             catch (Exception ex)
             {

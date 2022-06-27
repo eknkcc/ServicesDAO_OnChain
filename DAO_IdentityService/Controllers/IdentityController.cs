@@ -115,6 +115,7 @@ namespace DAO_IdentityService.Controllers
                 res.IsBanned = false;
                 res.IsBlocked = false;
                 res.KYCStatus = userObj.KYCStatus;
+                res.WalletAddress = userObj.WalletAddress;
 
                 //Post or update user session in database
                 Helpers.Request.Post(Program._settings.Service_Db_Url + "/ActiveSession/PostOrUpdate", Helpers.Serializers.SerializeJson(new ActiveSessionDto() { LoginDate = DateTime.Now, Token = token, UserID = res.UserId }));

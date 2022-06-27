@@ -66,13 +66,6 @@ namespace DAO_WebPortal.Controllers
                     string dashboardJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Website/GetDashBoardAssociate?userid=" + HttpContext.Session.GetInt32("UserID"), HttpContext.Session.GetString("Token"));
                     //Parse response
                     dashModel = Helpers.Serializers.DeserializeJson<DashBoardViewModelVA>(dashboardJson);
-
-                    //Get model from ApiGateway
-                    var ReputationUrl = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationHistory/GetLastReputation?userid=" + HttpContext.Session.GetInt32("UserID"), HttpContext.Session.GetString("Token"));
-
-                    //Parse response
-                    dashModel.UserReputation = Helpers.Serializers.DeserializeJson<UserReputationHistoryDto>(ReputationUrl);
-
                     return View("Index_Associate", dashModel);
                 }
                 //User type control for voting associate
@@ -83,13 +76,6 @@ namespace DAO_WebPortal.Controllers
                     string dashboardJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Website/GetDashBoardVA?userid=" + HttpContext.Session.GetInt32("UserID"), HttpContext.Session.GetString("Token"));
                     //Parse response
                     dashModel = Helpers.Serializers.DeserializeJson<DashBoardViewModelVA>(dashboardJson);
-
-                    //Get model from ApiGateway
-                    var reputationJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationHistory/GetLastReputation?userid=" + HttpContext.Session.GetInt32("UserID"), HttpContext.Session.GetString("Token"));
-
-                    //Parse response
-                    dashModel.UserReputation = Helpers.Serializers.DeserializeJson<UserReputationHistoryDto>(reputationJson);
-
                     return View("Index_VotingAssociate", dashModel);
                 }
 
@@ -1949,7 +1935,9 @@ namespace DAO_WebPortal.Controllers
                     }
 
                     modeluser.IBAN = ibanAddress;
-                    modeluser.WalletAddress = walletAddress;
+
+                    //It will be set from succesful onchain login
+                    //modeluser.WalletAddress = walletAddress;
 
                     //Update user  
                     var updatemodel = Helpers.Serializers.DeserializeJson<UserDto>(Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/Db/Users/Update", Helpers.Serializers.SerializeJson(modeluser), HttpContext.Session.GetString("Token")));
