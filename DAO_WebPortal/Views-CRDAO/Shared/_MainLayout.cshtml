@@ -182,7 +182,14 @@
 
             <li class="nav-item d-block d-sm-none mt-3">
                 <center>
-                    <nav>
+                    <nav>   
+                        @if(String.IsNullOrEmpty(httpContextAccessor.HttpContext.Session.GetString("WalletAddress")))
+                        {
+                            <div class="btn-group mb-3" role="group">
+                                <button type="button" onclick="LoginChain();" id="casperBtn" class="btn btn-block btn-md submitFormButton w-100 casperBg me-2 text-white font-sm"><img src="../Public/images/casper.png" style="width: 24px;" class="me-2" />Connect Wallet</button>
+                            </div>
+                        }
+
                         <div class="btn-group" role="group">
                             <input class="btn-check" id="btn-light-theme" type="radio" name="theme-switch" autocomplete="off" value="light-theme" onchange="handleThemeChange(this.value)">
                             <label class="btn btn-primary" for="btn-light-theme">
@@ -213,6 +220,13 @@
                 </button>
                 <h4 class="d-none d-md-block">@ViewBag.Title</h4>
                 <nav class="header-nav ms-auto me-4 d-none d-sm-block">
+                    @if(String.IsNullOrEmpty(httpContextAccessor.HttpContext.Session.GetString("WalletAddress")))
+                    {
+                        <div class="btn-group" role="group">
+                            <button type="button" onclick="LoginChain();" id="casperBtn" class="btn btn-block btn-md submitFormButton w-100 casperBg me-2 text-white font-sm"><img src="../Public/images/casper.png" style="width: 24px;" class="me-2" />Connect Wallet</button>
+                        </div>
+                    }
+
                     <div class="btn-group" role="group">
                         <input class="btn-check" id="btn-light-theme" type="radio" name="theme-switch" autocomplete="off" value="light-theme" onchange="handleThemeChange(this.value)">
                         <label class="btn btn-primary" for="btn-light-theme">

@@ -77,11 +77,6 @@
                     <label>IBAN</label>
                     <input type="email" class="form-control" id="ibanInput" placeholder="IBAN">
                 </div>
-
-                <div class="form-group">
-                    <label>Wallet address</label>
-                    <input type="email" class="form-control" id="walletInput" placeholder="Wallet Address">
-                </div>
             </div>
 
             <div class="d-flex justify-content-between">
@@ -117,13 +112,11 @@
             $('.cancelBtn , #paymentInfoInput ').css("display", "block");
 
             $('#ibanInput').val($('#ibanText').text());
-            $('#walletInput').val($('#walletText').text());
         }
 
         function cancelPaymentInput() {
             $('#paymentInfoText , .editBtn').css("display", "block");
             $('.cancelBtn , #paymentInfoInput ').css("display", "none");
-            $('#walletInput , #ibanInput').val("");
         }
         function SaveProfileChanges() {
 
@@ -131,7 +124,6 @@
             var iban ="";
 
             if ($('#paymentInfoInput').css("display") == "block") {
-                wallet = $('#walletInput').val();
                 iban = $('#ibanInput').val();
             }
             else
@@ -196,8 +188,7 @@
         var preview = document.getElementById("preview");
         var avatar = document.getElementById("avatar-image");
         var avatar_name = document.getElementById("name");
-        var avatar_name_change_box =
-            document.getElementById("change-name-box");
+        var avatar_name_change_box = document.getElementById("change-name-box");
 
         //METHODS
         var avatars = {

@@ -105,6 +105,19 @@
       "Priority": 2
     },
     {
+      "DownstreamPathTemplate": "/Identity/LoginChain",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "dao_identityservice",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/PublicActions/LoginChain",
+      "UpstreamHttpMethod": [ "POST" ],
+      "Priority": 2
+    },
+    {
       "DownstreamPathTemplate": "/Identity/Register",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [

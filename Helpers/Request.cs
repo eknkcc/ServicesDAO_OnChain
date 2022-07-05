@@ -33,7 +33,7 @@ namespace Helpers
                     result = reader.ReadToEnd();
                 }
             }
-            catch
+            catch (Exception ex)
             {
                
             }

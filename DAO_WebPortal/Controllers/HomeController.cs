@@ -1897,7 +1897,7 @@ namespace DAO_WebPortal.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("ProfileUpdate")]
-        public JsonResult ProfileUpdate(string image, string walletAddress, string ibanAddress, IFormFile File)
+        public JsonResult ProfileUpdate(string image, string ibanAddress, IFormFile File)
         {
 
             try

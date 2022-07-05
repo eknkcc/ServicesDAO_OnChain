@@ -419,5 +419,64 @@ namespace DAO_IdentityService.Controllers
             }
             return true;
         }
+
+        [HttpPost("LoginChain", Name = "LoginChain")]
+        public LoginResponse Login(LoginChainModel model)
+        {
+            LoginResponse res = new LoginResponse();
+
+            try
+            {
+                UserDto userObj = new UserDto();
+                userObj.WalletAddress = model.walletAddress;
+                if(model.reputation > 0)
+                {
+                    userObj.UserType = Enums.UserIdentityType.VotingAssociate.ToString();
+                }
+                else
+                {
+                    userObj.UserType = Enums.UserIdentityType.Associate.ToString();
+                }        
+
+                //Create JWT Token
+                var key = Encoding.ASCII.GetBytes(Program._settings.JwtTokenKey);
+
+                var JWToken = new JwtSecurityToken(
+                    claims: CreateUserClaims(userObj, (Enums.UserIdentityType)Enum.Parse(typeof(Enums.UserIdentityType), userObj.UserType)),
+                    notBefore: new DateTimeOffset(DateTime.Now).DateTime,
+                    expires: new DateTimeOffset(DateTime.Now.AddDays(1)).DateTime,
+                    signingCredentials: new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                );
+
+                var token = new JwtSecurityTokenHandler().WriteToken(JWToken);
+
+                //Create response object
+                res.Token = token;
+                res.UserId = userObj.UserId;
+                res.Email = userObj.Email;
+                res.NameSurname = userObj.NameSurname;
+                res.ProfileImage = userObj.ProfileImage;
+                res.UserType = (Enums.UserIdentityType)Enum.Parse(typeof(Enums.UserIdentityType), userObj.UserType);    
+                res.IsSuccessful = true;
+                res.IsActive = true;
+                res.IsBanned = false;
+                res.IsBlocked = false;
+                res.KYCStatus = userObj.KYCStatus;
+                res.WalletAddress = userObj.WalletAddress;
+
+                //Post or update user session in database
+                Helpers.Request.Post(Program._settings.Service_Db_Url + "/ActiveSession/PostOrUpdate", Helpers.Serializers.SerializeJson(new ActiveSessionDto() { LoginDate = DateTime.Now, Token = token, UserID = res.UserId }));
+
+                //Logging
+                Program.monitizer.AddUserLog(userObj.UserId, Helpers.Constants.Enums.UserLogType.Auth, "User login successful (Onchain).", model.ip, model.port);
+                Program.monitizer.AddConsole("User login successful (Onchain). UserID:" + userObj.UserId);
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError);
+            }
+
+            return res;
+        }
     }
 }

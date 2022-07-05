@@ -186,7 +186,10 @@ namespace DAO_WebPortal.Controllers
                     HttpContext.Session.SetString("UserType", loginModel.UserType.ToString());
                     HttpContext.Session.SetString("ProfileImage", loginModel.ProfileImage);
                     HttpContext.Session.SetString("KYCStatus", loginModel.KYCStatus.ToString());
-                    HttpContext.Session.SetString("WalletAddress", loginModel.WalletAddress.ToString());
+                    if(!string.IsNullOrEmpty(loginModel.WalletAddress))
+                    {
+                        HttpContext.Session.SetString("WalletAddress", loginModel.WalletAddress.ToString());
+                    }                    
                     HttpContext.Session.SetInt32("ChainSign", -1);
 
                     return base.Json(new SimpleResponse { Success = true, Message = Lang.SuccessLogin });
@@ -218,11 +221,26 @@ namespace DAO_WebPortal.Controllers
         {
             try
             {
+                //Get client Ip and Port
+                string ip = IpHelper.GetClientIpAddress(HttpContext);
+                string port = IpHelper.GetClientPort(HttpContext);
+                
+                //Create model
+                LoginChainModel LoginModelPost = new LoginChainModel() { walletAddress = publicAddress, reputation = reputation, ip = ip, port = port, application = Helpers.Constants.Enums.AppNames.DAO_WebPortal };
+
+                //Post model to ApiGateway
+                var loginJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/PublicActions/LoginChain", Helpers.Serializers.SerializeJson(LoginModelPost));
+
+                //Parse response
+                LoginResponse loginModel = Helpers.Serializers.DeserializeJson<LoginResponse>(loginJson);
+
+                string token = loginModel.Token.ToString();
+
                 HttpContext.Session.SetInt32("UserID", 0);
                 HttpContext.Session.SetString("Email", "");
-                HttpContext.Session.SetString("Token", "");
+                HttpContext.Session.SetString("Token", token);
                 HttpContext.Session.SetString("LoginType", "user");
-                HttpContext.Session.SetString("NameSurname", "");
+                HttpContext.Session.SetString("NameSurname",publicAddress.Substring(0,5) + "..." + publicAddress.Substring(publicAddress.Length - 5,5));
                 if(reputation > 0)
                 {
                     HttpContext.Session.SetString("UserType", "VotingAssociate");

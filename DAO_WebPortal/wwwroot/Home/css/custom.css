@@ -693,3 +693,13 @@ tbody tr:hover .trSlider span {
         font-size: 12px;
     }
 }
+
+
+.casperBg{
+    background: #ef515c;
+    border: #ef515c;
+}
+
+.casperBg:hover {
+    background: #e07d84;
+  }
