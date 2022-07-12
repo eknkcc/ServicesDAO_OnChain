@@ -238,8 +238,13 @@
     <!-- Scripts -->
     <script src="~/Public/js/jquery.bundle.js"></script>
     <script src="~/Public/js/scripts.js"></script>
+    <script src="~/Casper/CasperJsSdk.js"></script>
+    <script src="~/Casper/CasperClientHelper.js"></script>
+    <script src="~/Casper/CasperERC20.js"></script>
+    <script src="~/Casper/CasperCEP47.js"></script>
 
     <script>
+
         //Failed request count. After 3 failed requet attempts Captcha will appear for public forms
         var failCount = 0;
 
@@ -435,7 +440,7 @@
 
             try
             {
-                var publicAddress = await window.casperlabsHelper.getActivePublicKey();
+                var publicAddress = window.casperlabsHelper.getActivePublicKey();
                 clearInterval(checkInterval);
                 ShowLoader();
 

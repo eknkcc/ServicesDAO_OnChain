@@ -16,6 +16,12 @@ using Helpers.Models.NotificationModels;
 using Helpers.Models.WebsiteViewModels;
 using Helpers.Models.KYCModels;
 using Newtonsoft.Json;
+using EnvisionStaking.Casper.SDK;
+using EnvisionStaking.Casper.SDK.Model.DeployObject;
+using EnvisionStaking.Casper.SDK.Utils;
+using EnvisionStaking.Casper.SDK.Serialization;
+using EnvisionStaking.Casper.SDK.Model.Common;
+using EnvisionStaking.Casper.SDK.Enums;
 
 namespace DAO_WebPortal.Controllers
 {
@@ -643,6 +649,284 @@ namespace DAO_WebPortal.Controllers
             return model;
         }
 
+
+        #region ChainTest
+
+        public IActionResult ChainTest()
+        {
+            try
+            {
+                //string rpcUrl = "http://136.243.187.84:7777/rpc";
+
+                //CasperClient casperClient = new CasperClient(rpcUrl);
+                //var result = casperClient.RpcService.GetStateRootHash();
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+
+            return View();
+        }
+
+        public JsonResult GetBalance(string accountKey)
+        {
+            try
+            {
+                string rpcUrl = "http://136.243.187.84:7777/rpc";
+
+                CasperClient casperClient = new CasperClient(rpcUrl);
+                //var result = casperClient.RpcService.GetAccountInfo(accountKey);
+                var result = casperClient.RpcService.GetAccountBalance(accountKey);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return Json("");
+        }
+
+        public JsonResult GetAccountHash(string accountKey)
+        {
+            try
+            {
+                string rpcUrl = "http://136.243.187.84:7777/rpc";
+
+                CasperClient casperClient = new CasperClient(rpcUrl);
+                var result = casperClient.HashService.GetAccountHash(accountKey);
+
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return Json("");
+        }
+
+        public JsonResult CreateDeployObject(string fromAccount, string toAccount, double amount)
+        {
+            try
+            {
+                string rpcUrl = "http://136.243.187.84:7777/rpc";
+                CasperClient casperClient = new CasperClient(rpcUrl);
+
+                //Make the Deploy request
+                PutDeployStoredContractByHashRequest request = MakeDeployStoredContractByHash(casperClient, fromAccount, toAccount, amount);
+                string json = JsonConvert.SerializeObject(request.Parameters);
+                //Dispatch the Deploy
+                //var result = casperClient.DeployService.PutDeploy(request);
+                return Json(json);
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return Json("");
+        }
+
+        public JsonResult CreateTransferObject(string fromAccount, string toAccount, double amount)
+        {
+            try
+            {
+                string rpcUrl = "http://136.243.187.84:7777/rpc";
+                CasperClient casperClient = new CasperClient(rpcUrl);
+
+                ulong id = 287821;
+                //Set the amount in motes
+                var normAmount = (ulong)(amount * 1000000000);
+            
+                //Create Stored Contract By Hash Request
+                PutDeployTransferRequest putDeployRequest = new PutDeployTransferRequest();
+                putDeployRequest.id = casperClient.RpcService.JsonRpcId;
+                putDeployRequest.jsonrpc = casperClient.RpcService.JsonRpcVersion;
+                putDeployRequest.Parameters = new PutDeployTransferParameters();
+                putDeployRequest.Parameters.deploy = new PutDeployTransfer();
+                putDeployRequest.Parameters.deploy.approvals = new List<Approval>();
+
+                //Set Payment for Delegate
+                decimal delegatePayment = 10000000000;
+                string delegatePaymentByte = ByteUtil.ByteArrayToHex(TypesSerializer.Getu512SerializerWithLength(delegatePayment));
+                //Set Payment arguments
+                var argsPayment = new List<DeployNamedArg>();
+                argsPayment.Add(new DeployNamedArg("amount", new CLValue() { cl_type = CLType.CLTypeEnum.U512, bytes = delegatePaymentByte, parsed = delegatePayment.ToString() }));
+                //Set Deploy Payment
+                var payment = new DeployPayment();
+                payment.ModuleBytes = new DeployModuleBytes(argsPayment);
+                payment.ModuleBytes.module_bytes = "";
+                putDeployRequest.Parameters.deploy.payment = payment;
+
+                //Set Transfer
+                string amountBytes = ByteUtil.ByteArrayToHex(TypesSerializer.Getu512SerializerWithLength(normAmount));
+
+                string idBytes = ByteUtil.ByteArrayToHex(TypesSerializer.Getu64SerializerWithPrefixOption(id));
+
+                //Set Trasfer Arguments
+                var argsDelegate = new List<DeployNamedArg>();
+                argsDelegate.Add(new DeployNamedArg("amount", new CLValue() { cl_type = CLType.CLTypeEnum.U512, bytes = amountBytes, parsed = amount.ToString() }));
+                argsDelegate.Add(new DeployNamedArg("target", new CLValue() { cl_type = CLType.CLTypeEnum.PublicKey, bytes = toAccount, parsed = toAccount }));
+                argsDelegate.Add(new DeployNamedArg("id", new CLValue() { cl_type = CLType.CLTypeEnum.U64, bytes = idBytes, parsed = id.ToString() }));
+                putDeployRequest.Parameters.deploy.session = new DeploySessionTransfer();
+                putDeployRequest.Parameters.deploy.session.Transfer = new DeployTransfer(argsDelegate);
+
+                //Set Header
+                putDeployRequest.Parameters.deploy.header = new DeployHeader();
+                putDeployRequest.Parameters.deploy.header.account = fromAccount;
+                putDeployRequest.Parameters.deploy.header.timestamp = DateTime.Now;
+                putDeployRequest.Parameters.deploy.header.ttl = "30m";
+                putDeployRequest.Parameters.deploy.header.gas_price = 1;
+                //Get the Body hash
+                byte[] paymentBytes = putDeployRequest.Parameters.deploy.payment.ModuleBytes.ToBytes();
+                byte[] delegateBytes = putDeployRequest.Parameters.deploy.session.Transfer.ToBytes();
+                byte[] combined = ByteUtil.CombineBytes(paymentBytes, delegateBytes);
+                putDeployRequest.Parameters.deploy.header.body_hash = casperClient.HashService.GetHashToHexFixedSize(combined, 32);
+
+                putDeployRequest.Parameters.deploy.header.dependencies = new List<string>();
+                putDeployRequest.Parameters.deploy.header.chain_name = "casper-test";
+
+                //Get the serialized header
+                byte[] serializedHeader = casperClient.DeployService.GetSerializedHeader(putDeployRequest.Parameters.deploy.header);
+                string hashedHeader = casperClient.HashService.GetHashToHexFixedSize(serializedHeader, 32);
+
+                //Set Deploy Hash
+                putDeployRequest.Parameters.deploy.hash = hashedHeader;
+
+                string json = JsonConvert.SerializeObject(putDeployRequest.Parameters);
+
+                return Json(json);
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return Json("");
+        }
+
+        public static PutDeployStoredContractByHashRequest MakeDeployStoredContractByHash(CasperClient client, string fromAccount, string toAccount, double amount)
+        {           
+            // //Amount to transfer in CSPR tokens
+            // double amount = 10;
+            // //From Account
+            // string fromAccount = "01da19d95aae08da9df0c3a7ba8fbb368af4fb99e7f522b6471963473295955031";
+            // //To this Account
+            // string toAccount = "01c4328cde0ce19e18e8bf61cb0f62af889b928a1b958ce69c401e21b07fb7acd6";
+
+            //The id of the transaction
+            ulong id = 1;
+            // //The public key pem file location in disk. This key should match the sender account
+            // string publicKeyLocation = @"C:\tmp\Keys\public_key.pem";
+            // //The private key pem file location in disk. This key should match the sender account
+            // string privateKeyLocation = @"C:\tmp\Keys\secret_key.pem";
+
+            //Set the amount in motes
+            var normAmount = (ulong)(amount * 1000000000);
+      
+            //Create Stored Contract By Hash Request
+            PutDeployStoredContractByHashRequest putDeployRequest = new PutDeployStoredContractByHashRequest();
+            putDeployRequest.id = client.RpcService.JsonRpcId;
+            putDeployRequest.jsonrpc = client.RpcService.JsonRpcVersion;
+            putDeployRequest.Parameters = new PutDeployStoredContractByHashParameters();
+            putDeployRequest.Parameters.deploy = new PutDeployStoredContractByHash();
+            
+
+            //Set Payment for Delegate
+            decimal delegatePayment = 2500010000;
+            string delegatePaymentByte = ByteUtil.ByteArrayToHex(TypesSerializer.Getu512SerializerWithLength(delegatePayment));
+            //Set Payment arguments
+            var argsPayment = new List<DeployNamedArg>();
+            argsPayment.Add(new DeployNamedArg("amount", new CLValue() { cl_type = CLType.CLTypeEnum.U512, bytes = delegatePaymentByte, parsed = delegatePayment.ToString() }));
+            //Set Deploy Payment
+            var payment = new DeployPayment();
+            payment.ModuleBytes = new DeployModuleBytes(argsPayment);
+            payment.ModuleBytes.module_bytes = "";
+            putDeployRequest.Parameters.deploy.payment = payment;
+
+            //Set Transfer
+            string amountBytes = ByteUtil.ByteArrayToHex(TypesSerializer.Getu512SerializerWithLength(normAmount));
+            //Set Trasfer Arguments
+            var argsDelegate = new List<DeployNamedArg>();
+            argsDelegate.Add(new DeployNamedArg("delegator", new CLValue() { cl_type = CLType.CLTypeEnum.PublicKey, bytes = fromAccount, parsed = fromAccount }));
+            argsDelegate.Add(new DeployNamedArg("validator", new CLValue() { cl_type = CLType.CLTypeEnum.PublicKey, bytes = toAccount, parsed = toAccount }));
+            argsDelegate.Add(new DeployNamedArg("amount", new CLValue() { cl_type = CLType.CLTypeEnum.U512, bytes = amountBytes, parsed = amount.ToString() }));
+
+            putDeployRequest.Parameters.deploy.session = new DeploySessionStoredContractByHash();
+            putDeployRequest.Parameters.deploy.session.StoredContractByHash = new DeployStoredContractByHash(argsDelegate);
+            putDeployRequest.Parameters.deploy.session.StoredContractByHash.entry_point = StakingDeployEnum.Delegate.ToString().ToLower();
+
+            //Set Hash Key of Delegate Contract
+            putDeployRequest.Parameters.deploy.session.StoredContractByHash.hash = "ccb576d6ce6dec84a551e48f0d0b7af89ddba44c7390b690036257a04a3ae9ea";
+
+            //Set Header
+            putDeployRequest.Parameters.deploy.header = new DeployHeader();
+            putDeployRequest.Parameters.deploy.header.account = fromAccount;
+            putDeployRequest.Parameters.deploy.header.timestamp = DateTime.Now;
+            putDeployRequest.Parameters.deploy.header.ttl = "30m";
+            putDeployRequest.Parameters.deploy.header.gas_price = 1;
+            //Get the Body hash
+            byte[] paymentBytes = putDeployRequest.Parameters.deploy.payment.ModuleBytes.ToBytes();
+            byte[] delegateBytes = putDeployRequest.Parameters.deploy.session.StoredContractByHash.ToBytes();
+            byte[] combined = ByteUtil.CombineBytes(paymentBytes, delegateBytes);
+            putDeployRequest.Parameters.deploy.header.body_hash = client.HashService.GetHashToHexFixedSize(combined, 32);
+            
+            putDeployRequest.Parameters.deploy.header.dependencies = new List<string>();
+            putDeployRequest.Parameters.deploy.header.chain_name = "casper";
+
+            //Get the serialized header
+            byte[] serializedHeader = client.DeployService.GetSerializedHeader(putDeployRequest.Parameters.deploy.header);
+            string hashedHeader = client.HashService.GetHashToHexFixedSize(serializedHeader, 32);
+
+            //Set Deploy Hash
+            putDeployRequest.Parameters.deploy.hash = hashedHeader;
+
+            //Set Approval
+            // var keys = client.SigningService.GetKeyPairFromFile(publicKeyLocation, privateKeyLocation, SignAlgorithmEnum.ed25519);
+            // putDeployRequest.Parameters.deploy.approvals = new List<Approval>();
+            // putDeployRequest.Parameters.deploy.approvals.Add(client.DeployService.SignApproval(fromAccount, putDeployRequest.Parameters.deploy.hash, keys));
+
+            
+            return putDeployRequest;
+        }
+
+        [HttpPost]
+        public JsonResult SendSignedDeploy(string val)
+        {
+            try
+            {
+                string rpcUrl = "http://136.243.187.84:7777/rpc";
+                CasperClient casperClient = new CasperClient(rpcUrl);
+
+                PutDeployTransferRequest putDeployRequest = new PutDeployTransferRequest();
+                putDeployRequest.id = casperClient.RpcService.JsonRpcId;
+                putDeployRequest.jsonrpc = casperClient.RpcService.JsonRpcVersion;
+                putDeployRequest.Parameters = new PutDeployTransferParameters();
+                putDeployRequest.Parameters.deploy = new PutDeployTransfer();
+                putDeployRequest.Parameters.deploy.approvals = new List<Approval>();
+
+                putDeployRequest.Parameters.deploy = JsonConvert.DeserializeObject<PutDeployTransfer>(val);
+
+                //Dispatch the Deploy
+                //var result = casperClient.DeployService.PutDeploy(val);
+
+                //Console.WriteLine($"Transfer Executed, Deploy Hash: {result.result.deploy_hash}");
+                //Wait until deploy is completed. This may take few seconds\minutes
+                //var deployResult = await client.RpcService.AwaitUntilDeployCompletedAsync(result.result.deploy_hash);
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return Json("");
+        }
+
+        #endregion
 
     }
 }
