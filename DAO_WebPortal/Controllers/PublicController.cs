@@ -214,61 +214,6 @@ namespace DAO_WebPortal.Controllers
             }
         }
 
-
-        /// <summary>
-        ///  User login onchain function
-        /// </summary>
-        /// <param name="publicAddress">User's wallet public address</param>
-        /// <param name="reputation">User's total reputation</param>
-        /// <returns></returns>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public JsonResult LoginChain(string publicAddress, double reputation)
-        {
-            try
-            {
-                //Get client Ip and Port
-                string ip = IpHelper.GetClientIpAddress(HttpContext);
-                string port = IpHelper.GetClientPort(HttpContext);
-                
-                //Create model
-                LoginChainModel LoginModelPost = new LoginChainModel() { walletAddress = publicAddress, reputation = reputation, ip = ip, port = port, application = Helpers.Constants.Enums.AppNames.DAO_WebPortal };
-
-                //Post model to ApiGateway
-                var loginJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/PublicActions/LoginChain", Helpers.Serializers.SerializeJson(LoginModelPost));
-
-                //Parse response
-                LoginResponse loginModel = Helpers.Serializers.DeserializeJson<LoginResponse>(loginJson);
-
-                string token = loginModel.Token.ToString();
-
-                HttpContext.Session.SetInt32("UserID", 0);
-                HttpContext.Session.SetString("Email", "");
-                HttpContext.Session.SetString("Token", token);
-                HttpContext.Session.SetString("LoginType", "user");
-                HttpContext.Session.SetString("NameSurname",publicAddress.Substring(0,5) + "..." + publicAddress.Substring(publicAddress.Length - 5,5));
-                if(reputation > 0)
-                {
-                    HttpContext.Session.SetString("UserType", "VotingAssociate");
-                }
-                else
-                {
-                    HttpContext.Session.SetString("UserType", "Associate");
-                }
-                HttpContext.Session.SetString("ProfileImage", "");
-                HttpContext.Session.SetString("KYCStatus", "");
-                HttpContext.Session.SetString("PublicAddress", "");
-                HttpContext.Session.SetInt32("ChainSign", 1);
-
-                return base.Json(new SimpleResponse { Success = true, Message = Lang.SuccessLogin });
-            }
-            catch (Exception ex)
-            {
-                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
-                return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
-            }
-        }
-
         /// <summary>
         ///  New user registration function
         /// </summary>

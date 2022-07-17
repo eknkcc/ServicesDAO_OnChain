@@ -1,5 +1,7 @@
-﻿@using Microsoft.AspNetCore.Http
+﻿@using DAO_WebPortal.Resources
+@using Microsoft.AspNetCore.Http
 @inject IHttpContextAccessor httpContextAccessor
+
 @{
     string theme = httpContextAccessor.HttpContext.Request.Cookies["theme"];
 }
@@ -35,8 +37,8 @@
     <meta name="theme-color" content="#ffffff">
 
     <!-- Main styles for this application-->
-    <link href="~/Home/css/style.css?v=1.0.1" rel="stylesheet" />
-    <link href="~/Home/css/custom.css?v=1.0.4" rel="stylesheet" />
+    <link href="~/Home/css/style.css?v=1.0.3" rel="stylesheet" />
+    <link href="~/Home/css/custom.css?v=1.0.6" rel="stylesheet" />
 
     <!-- Library styles -->
     <link href="~/Home/lib/chartjs/css/coreui-chartjs.css" rel="stylesheet" />
@@ -49,12 +51,12 @@
 
     <div class="sidebar sidebar-dark sidebar-fixed" id="sidebar">
         <div class="sidebar-brand d-none d-md-flex">
-            <img src="~/Public/images/crdao-logo-light.png" class="sidebar-brand-full" width="118" height="46" alt="Services DAO" />
-            <img src="~/Public/images/crdao-logo-single.png" class="sidebar-brand-narrow" width="46" height="46" alt="Services DAO" />
+            <img src="~/Public/images/crdao-newlogo-light.png" class="sidebar-brand-full" width="150" height="43" alt="Services DAO" />
+            <img src="~/Public/images/crdao-newlogo-light.png" class="sidebar-brand-narrow" width="46" height="46" alt="Services DAO" />
         </div>
         <ul class="sidebar-nav" data-coreui="navigation" data-simplebar="">
             <li class="nav-item">
-                <a class="nav-link" href="../Home">
+                <a class="nav-link link-load" href="../Home">
                     <svg class="nav-icon">
                         <use xlink:href="/Home/images/svg/free.svg#cil-home"></use>
                     </svg> Dashboard
@@ -63,35 +65,35 @@
             <li class="nav-title">MENU</li>
 
             <li class="nav-item">
-                <a class="nav-link" href="../All-Jobs">
+                <a class="nav-link link-load" href="../All-Jobs">
                     <svg class="nav-icon">
                         <use xlink:href="/Home/images/svg/free.svg#cil-library"></use>
                     </svg> All Jobs
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="../My-Jobs">
+                <a class="nav-link link-load" href="../My-Jobs">
                     <svg class="nav-icon">
                         <use xlink:href="/Home/images/svg/free.svg#cil-library-add"></use>
                     </svg>My Jobs
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="../Auctions">
+                <a class="nav-link link-load" href="../Auctions">
                     <svg class="nav-icon">
                         <use xlink:href="/Home/images/svg/free.svg#cil-auction"></use>
                     </svg> Auctions
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="../My-Bids">
+                <a class="nav-link link-load" href="../My-Bids">
                     <svg class="nav-icon">
                         <use xlink:href="/Home/images/svg/free.svg#cil-tag"></use>
                     </svg> My Bids
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="../Votings">
+                <a class="nav-link link-load" href="../Votings">
                     <svg class="nav-icon">
                         <use xlink:href="/Home/images/svg/free.svg#cil-thumb-up"></use>
                     </svg> Voting
@@ -101,7 +103,7 @@
             @if (httpContextAccessor.HttpContext.Session.GetString("UserType") == Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString() || httpContextAccessor.HttpContext.Session.GetString("UserType") == Helpers.Constants.Enums.UserIdentityType.Admin.ToString())
             {
                 <li class="nav-item">
-                    <a class="nav-link" href="../VA-Directory">
+                    <a class="nav-link link-load" href="../VA-Directory">
                         <svg class="nav-icon">
                             <use xlink:href="/Home/images/svg/free.svg#cil-address-book"></use>
                         </svg> VA Directory
@@ -110,7 +112,7 @@
             }
 
             <li class="nav-item">
-                <a class="nav-link" href="../Reputation-History">
+                <a class="nav-link link-load" href="../Reputation-History">
                     <svg class="nav-icon">
                         <use xlink:href="/Home/images/svg/free.svg#cil-star"></use>
                     </svg> Reputation History
@@ -120,7 +122,7 @@
             @if (httpContextAccessor.HttpContext.Session.GetString("UserType") != Helpers.Constants.Enums.UserIdentityType.Admin.ToString())
             {
                 <li class="nav-item">
-                    <a class="nav-link" href="../Payment-History">
+                    <a class="nav-link link-load" href="../Payment-History">
                         <svg class="nav-icon">
                             <use xlink:href="/Home/images/svg/free.svg#cil-wallet"></use>
                         </svg> Payment History
@@ -129,7 +131,7 @@
             }
 
             <li class="nav-item">
-                <a class="nav-link" href="../User-Profile">
+                <a class="nav-link link-load" href="../User-Profile">
                     <svg class="nav-icon">
                         <use xlink:href="/Home/images/svg/free.svg#cil-user"></use>
                     </svg> User Profile
@@ -141,7 +143,7 @@
                 <li class="nav-title">ADMIN PAGES</li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="../Payment-History-Admin">
+                    <a class="nav-link link-load" href="../Payment-History-Admin">
                         <svg class="nav-icon">
                             <use xlink:href="/Home/images/svg/free.svg#cil-wallet"></use>
                         </svg> Payment History
@@ -182,8 +184,8 @@
 
             <li class="nav-item d-block d-sm-none mt-3">
                 <center>
-                    <nav>   
-                        @if(String.IsNullOrEmpty(httpContextAccessor.HttpContext.Session.GetString("WalletAddress")))
+                    <nav>
+                        @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign")  < 0 && Program._settings.UseChain == true)
                         {
                             <div class="btn-group mb-3" role="group">
                                 <button type="button" onclick="LoginChain();" id="casperBtn" class="btn btn-block btn-md submitFormButton w-100 casperBg me-2 text-white font-sm"><img src="../Public/images/casper.png" style="width: 24px;" class="me-2" />Connect Wallet</button>
@@ -220,7 +222,7 @@
                 </button>
                 <h4 class="d-none d-md-block">@ViewBag.Title</h4>
                 <nav class="header-nav ms-auto me-4 d-none d-sm-block">
-                    @if(String.IsNullOrEmpty(httpContextAccessor.HttpContext.Session.GetString("WalletAddress")))
+                    @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") < 0 && Program._settings.UseChain == true)
                     {
                         <div class="btn-group" role="group">
                             <button type="button" onclick="LoginChain();" id="casperBtn" class="btn btn-block btn-md submitFormButton w-100 casperBg me-2 text-white font-sm"><img src="../Public/images/casper.png" style="width: 24px;" class="me-2" />Connect Wallet</button>
@@ -246,14 +248,20 @@
                 <ul class="header-nav">
                     <li class="nav-item dropdown d-md-down-none">
                         <a class="nav-link" data-coreui-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
-
                             <div class="avatar avatar-md d-inline-block" style="vertical-align:top">
                                 <img class="avatar-img" src="@Url.Action("GetProfileImage", "Home")">
                             </div>
                             <div class="d-inline-block">
                                 <small class="mb-0">@httpContextAccessor.HttpContext.Session.GetString("NameSurname")</small><br />
-                                <small><b>Type:</b> @httpContextAccessor.HttpContext.Session.GetString("UserType")</small>
+                                <small><b>@httpContextAccessor.HttpContext.Session.GetString("UserType")</b></small>                               
                             </div>
+                            @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") > 0 && Program._settings.UseChain == true)
+                            {
+                                <div class="d-inline-block reputationHeaderDiv">
+                                    <small class="mb-0"><i class="fas fa-star"></i> <span class="text-right">@httpContextAccessor.HttpContext.Session.GetString("Reputation")</span></small><br />
+                                    <small><i class="fas fa-coins"></i> <span class="text-right">@httpContextAccessor.HttpContext.Session.GetString("Balance")</span></small>
+                                </div>
+                            }
                         </a>
                         <div class="dropdown-menu dropdown-menu-end dropdown-menu-lg pt-0">
 
@@ -280,6 +288,9 @@
             <div class="container-lg">
 
                 @RenderBody()
+
+                <!-- Loading Spinner -->
+                <div style="display:none" class="preloader preloader-alt no-split"><span class="spinner spinner-alt"><img class="spinner-brand" src="../Public/images/crdao-newlogo-light.png" alt=""></span></div>
 
             </div>
         </div>
@@ -321,8 +332,8 @@
     <script src="~/Home/js/daofunctions.js?v=1.0.4"></script>
 
     <script>
-
         $(document).ready(function () {
+
             $('[data-toggle="tooltip"]').tooltip();
 
             //Toastr options
@@ -373,6 +384,10 @@
                     toastr.success(toastrMessage);
                 }
             }
+
+             $('.link-load').click(function(){
+                ShowLoader();
+            });
         });
 
         document.querySelectorAll('[data-coreui-toggle="popover"]').forEach(element => {
@@ -397,6 +412,83 @@
 
         function changeThemeCookie(src) {
             $.ajax({ type: "GET", url: './Home/SetCookie', data: { "src": src }, cache: false, async: true });
+        }
+
+        var checkInterval;
+        async function LoginChain() {
+
+            window.casperlabsHelper.requestConnection();
+
+            clearInterval(checkInterval);
+            checkInterval = setInterval(function(){ 
+                CheckPublicKey();
+            }, 1000);
+
+        }
+
+        async function CheckPublicKey(){
+
+            try
+            {
+                const isConnected = await window.casperlabsHelper.isConnected();
+                if(isConnected){
+
+                    var publicAddress = await window.casperlabsHelper.getActivePublicKey();
+                    clearInterval(checkInterval);
+                    ShowLoader();
+
+                    var token = $('input[name="__RequestVerificationToken"]', token).val();
+
+                    //Ajax post action
+                    $.ajax({
+                        type: "POST",
+                        url: "../Chain/ConnectWallet",
+                        data: { "publicAddress": publicAddress, "__RequestVerificationToken": token },
+                        async: true,
+                        success: function (result) {
+                            HideLoader();
+                            if (result.success) {
+                                toastr.success(result.message);
+                            }
+                            else {
+                                toastr.warning(result.message);                         
+                            }
+                        },
+                        failure: function (response) {
+                            toastr.warning("@Lang.ConnectionError");
+                            HideLoader();
+                        },
+                        error: function (response) {
+                            toastr.error("@Lang.UnexpectedError");
+                            HideLoader();
+                        }
+                    });
+                }
+            }
+            catch
+            {
+                return "";
+            }
+
+        }
+
+        //Shows spinner and disables submit buttons
+        function ShowLoader() {
+            //Disable submit buttons
+            $('.submitFormButton').prop('disabled', true);
+            //Display loading
+            $(".spinner").removeClass("load-done");
+            $('.spinner').fadeIn(300);
+            $('.preloader').fadeIn(300);
+        }
+
+        //Hides spinner and enables submit buttons
+        function HideLoader() {
+            //Hide loading
+            $('.spinner').fadeOut(300);
+            $('.preloader').delay(300).fadeOut(300);
+            //Enable submit button
+            $('.submitFormButton').removeAttr("disabled");
         }
     </script>
 

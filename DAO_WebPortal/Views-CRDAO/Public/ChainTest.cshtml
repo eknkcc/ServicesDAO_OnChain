@@ -65,7 +65,7 @@
 
                 $.ajax({
                     type: "GET",
-                    url: "../Public/GetBalance?accountKey=" + publicKey,
+                    url: "../Chain/GetBalance?accountKey=" + publicKey,
                     success: function (result) {
                         console.log(result);   
                         $("#textBalance").html($("#textBalance").html()+" "+ result.result.balance_value);    
@@ -198,11 +198,12 @@
   
             //Create contract arguments
             const valueBytes = new TextEncoder().encode("abc");
-            const activation = CLValueBuilder.u64(0);
+            const activationtime = new CLU64(123);
+            console.log(activationtime);
             const runtimeArgs = RuntimeArgs.fromMap({
                 key: CLValueBuilder.string("hello"),
                 value: CLValueBuilder.byteArray(valueBytes),
-                //activation_time: CLValueBuilder.option(activationtime, activationtime.clType())
+                activation_time: CLValueBuilder.option(activationtime)
             });
 
             //Create deploy object

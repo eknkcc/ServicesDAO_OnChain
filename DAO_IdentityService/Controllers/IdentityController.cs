@@ -421,7 +421,7 @@ namespace DAO_IdentityService.Controllers
         }
 
         [HttpPost("LoginChain", Name = "LoginChain")]
-        public LoginResponse Login(LoginChainModel model)
+        public LoginResponse LoginChain(LoginChainModel model)
         {
             LoginResponse res = new LoginResponse();
 
@@ -429,7 +429,7 @@ namespace DAO_IdentityService.Controllers
             {
                 UserDto userObj = new UserDto();
                 userObj.WalletAddress = model.walletAddress;
-                if(model.reputation > 0)
+                if(model.isVA)
                 {
                     userObj.UserType = Enums.UserIdentityType.VotingAssociate.ToString();
                 }

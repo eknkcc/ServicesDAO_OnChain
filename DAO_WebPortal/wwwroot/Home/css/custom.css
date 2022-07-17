@@ -115,7 +115,7 @@
     }
 
 .comment-info {
-    margin-left: 10px;
+    margin-left: 15px;
 }
 
 .comment-author {
@@ -702,4 +702,10 @@ tbody tr:hover .trSlider span {
 
 .casperBg:hover {
     background: #e07d84;
+  }
+
+  .reputationHeaderDiv{
+    border-left: 1px solid;
+    margin-left: 7px;
+    padding-left: 9px;
   }

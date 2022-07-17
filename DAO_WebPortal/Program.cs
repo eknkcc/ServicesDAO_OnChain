@@ -83,6 +83,11 @@ namespace DAO_WebPortal
             //STRIPE PAYMENT INTEGRATION KEYS
             public string StripePublicKey { get; set; }
             public string StripePrivateKey { get; set; }
+
+            //CHAIN SETTINGS
+            public bool UseChain { get; set; }
+            public string NodeUrl { get; set; }
+            public string ChainName { get; set; }
         }
 
         public static Settings _settings { get; set; } = new Settings();
