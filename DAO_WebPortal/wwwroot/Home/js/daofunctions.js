@@ -122,6 +122,7 @@ function PayDosFee() {
 }
 
 function GoToJobDetail(jobid) {
+    ShowLoader();
     window.location.href = '../Job-Detail/' + jobid;
 }
 

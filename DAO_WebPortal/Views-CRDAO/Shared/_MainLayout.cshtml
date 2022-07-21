@@ -185,10 +185,10 @@
             <li class="nav-item d-block d-sm-none mt-3">
                 <center>
                     <nav>
-                        @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign")  < 0 && Program._settings.UseChain == true)
+                        @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") < 0 && Program._settings.UseChain == true)
                         {
                             <div class="btn-group mb-3" role="group">
-                                <button type="button" onclick="LoginChain();" id="casperBtn" class="btn btn-block btn-md submitFormButton w-100 casperBg me-2 text-white font-sm"><img src="../Public/images/casper.png" style="width: 24px;" class="me-2" />Connect Wallet</button>
+                                <button type="button" onclick="LoginChain();" class="btn btn-block btn-md submitFormButton w-100 casperBg me-2 text-white font-sm"><img src="../Public/images/casper.png" style="width: 24px;" class="me-2" />Connect Wallet</button>
                             </div>
                         }
 
@@ -225,7 +225,7 @@
                     @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") < 0 && Program._settings.UseChain == true)
                     {
                         <div class="btn-group" role="group">
-                            <button type="button" onclick="LoginChain();" id="casperBtn" class="btn btn-block btn-md submitFormButton w-100 casperBg me-2 text-white font-sm"><img src="../Public/images/casper.png" style="width: 24px;" class="me-2" />Connect Wallet</button>
+                            <button type="button" onclick="LoginChain();" class="btn btn-block btn-md submitFormButton w-100 casperBg me-2 text-white font-sm"><img src="../Public/images/casper.png" style="width: 24px;" class="me-2" />Connect Wallet</button>
                         </div>
                     }
 
@@ -329,7 +329,7 @@
     <script src="~/Home/lib/jquery-confirm/jquery-confirm.js"></script>
     <script src="~/Home/js/sorttable.js"></script>
     <script src="~/Home/lib/ckeditor/ckeditor.js"></script>
-    <script src="~/Home/js/daofunctions.js?v=1.0.4"></script>
+    <script src="~/Home/js/daofunctions.js?v=1.0.5"></script>
 
     <script>
         $(document).ready(function () {
@@ -445,13 +445,13 @@
                         url: "../Chain/ConnectWallet",
                         data: { "publicAddress": publicAddress, "__RequestVerificationToken": token },
                         async: true,
-                        success: function (result) {
-                            HideLoader();
+                        success: function (result) {                 
                             if (result.success) {
-                                toastr.success(result.message);
+                                window.location.reload();
                             }
                             else {
-                                toastr.warning(result.message);                         
+                                toastr.warning(result.message);                    
+                                HideLoader();     
                             }
                         },
                         failure: function (response) {

@@ -121,7 +121,10 @@ namespace DAO_WebPortal.Controllers
                 
                 var updatemodel = Helpers.Serializers.DeserializeJson<UserDto>(Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/Db/Users/Update", Helpers.Serializers.SerializeJson(userModel), HttpContext.Session.GetString("Token")));
 
-                return base.Json(new SimpleResponse { Success = true, Message = "Your wallet is connected to your account successfully" });
+                TempData["toastr-message"] = "Your wallet is connected to your account successfully";
+                TempData["toastr-type"] = "success";
+
+                return base.Json(new SimpleResponse { Success = true, Message = "" });
             }
             catch (Exception ex)
             {

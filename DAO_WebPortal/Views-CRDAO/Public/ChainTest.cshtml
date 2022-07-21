@@ -86,7 +86,8 @@
         function SendTransaction(){
             //sendTransactionC();
             //sendTransactionJS();
-            contractCallJS();
+            //contractCallJS();
+            contractCallJS2();
         }
 
         async function sendTransactionC(){
@@ -146,7 +147,7 @@
             const publicKeyHex = await window.casperlabsHelper.getActivePublicKey();
             const publicKey = CLPublicKey.fromHex(publicKeyHex)
             
-            let deployParams = new DeployUtil.DeployParams(publicKey,"casper-test",gasPrice,ttl );
+            let deployParams = new DeployUtil.DeployParams(publicKey,"integration-test",gasPrice,ttl );
             
             // We create a public key from account-address (it is the hex representation of the public-key with an added prefix).
             const toPublicKey = CLPublicKey.fromHex(to);
@@ -202,8 +203,8 @@
             console.log(activationtime);
             const runtimeArgs = RuntimeArgs.fromMap({
                 key: CLValueBuilder.string("hello"),
-                value: CLValueBuilder.byteArray(valueBytes),
-                activation_time: CLValueBuilder.option(activationtime)
+                value: CLValueBuilder.list([new CLU8(255), new CLU8(254)]),
+                activation_time: CLValueBuilder.option(tsresult.None, new CLU64Type)
             });
 
             //Create deploy object
@@ -234,6 +235,53 @@
             const tx = document.getElementById("tx")
             tx.textContent = `tx: ${signed}`
 
+        }
+
+        async function contractCallJS2(){
+            // Create a CLPublicKey of a caller.
+            const publicKeyHex = await window.casperlabsHelper.getActivePublicKey();
+            let publicKeyBytes = CLPublicKey.fromHex(publicKeyHex);
+            let publicKey = new CLPublicKey(publicKeyBytes.data, CLPublicKeyTag.ED25519);
+
+            // Define a hash of a variable repository contract.
+            let contractHash = CasperClientHelper.utils.contractHashToByteArray("e0341dd5461ffa24d659550cbb5bfd4525f733d3f5a8b8aa7c06a842359bc01d");
+
+            // Build arguments.
+            let runtimeArgs = RuntimeArgs.fromMap({
+                key: CLValueBuilder.string("hello"),
+                value: CLValueBuilder.list([new CLU8(255), new CLU8(254)]),
+                activation_time: CLValueBuilder.option(tsresult.None, new CLU64Type)
+            });
+
+            // To use activation time this can be used instead.
+            // activation_time: CLValueBuilder.option(new Some(new CLU64(22)))
+
+            // Build a deploy
+            let session = DeployUtil.ExecutableDeployItem.newStoredContractByHash(
+                contractHash, "update_at", runtimeArgs
+            );
+            let payment = DeployUtil.standardPayment("1000000000");
+            let params = new DeployUtil.DeployParams(publicKey, "integration-test", 1, undefined, undefined);
+            let deploy = DeployUtil.makeDeploy(params, session, payment);
+
+            // At this point the deploy needs to be signed and send to the network.
+            // Instead it is printed to the stdout.
+            console.log(JSON.stringify(DeployUtil.deployToJson(deploy), null, 4));
+
+             // Turn your transaction data to format JSON
+            const json = DeployUtil.deployToJson(deploy)
+            console.log(json);
+
+            // Sign transcation using casper-signer.
+            const signature = await window.casperlabsHelper.sign(json,publicKeyHex,document.getElementById("Recipient").value)
+            const deployObject = DeployUtil.deployFromJson(signature)
+
+            // Here we are sending the signed deploy.
+            const signed = await casperClient.putDeploy(deployObject.val);
+            
+            // Display transaction address
+            const tx = document.getElementById("tx")
+            tx.textContent = `tx: ${signed}`
         }
     </script>
 }
