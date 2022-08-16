@@ -17,5 +17,6 @@ namespace Helpers.Models.WebsiteViewModels
         public List<LastCommentsDto> LastComments { get; set; }
         public List<PopularJobsDto> PopularJobs { get; set; }
         public UserReputationHistoryDto UserReputation { get; set; }
+        public List<double> CoinPrices { get; set; }
     }
 }

@@ -37,17 +37,6 @@
         <div class="card mb-3">
             <div class="card-body p-2">
                 <h6 class="card-title mb-1">
-                    <i class="fas fa-gavel dashIcon"></i>
-                    My Auctions
-                </h6>
-                <h3 class="text-right mb-0 fw-semibold">
-                    @Model.MyAuctionCount
-                </h3>
-            </div>
-        </div>
-        <div class="card mb-3">
-            <div class="card-body p-2">
-                <h6 class="card-title mb-1">
                     <i class="fas fa-thumbs-up dashIcon"></i>
                     My Votes
                 </h6>
@@ -56,6 +45,24 @@
                 </h3>
             </div>
         </div>
+        <div class="card mb-3">
+            <div class="card-body p-0">
+                <h6 class="card-title mb-1" style="position:absolute;top:9px; left: 9px">
+                    <img src="../Public/images/casper.png" class="dashIcon" width="22" style="left: 0px;top: 35px;" />
+                    CSPR Price
+                </h6>
+                <h3 class="text-right mb-0 fw-semibold">
+                
+                   <small style="position:absolute;bottom:7px; right: 7px">@Model.CoinPrices.Last()</small>
+
+
+                    <div style="width:100%;height:76px;border-radius:7px;z-index:1">
+                        <canvas class="chart" id="price-chart" height="100"></canvas>
+                    </div>
+                </h5>
+            </div>
+        </div>
+
     </div>
     <div class="col-md-5">
         <div class="card p-0">
@@ -194,3 +201,86 @@
     </div>
     <!-- /.col-->
 </div>
+
+
+
+@section Scripts{
+
+    <script>
+        var coinPrices = @Newtonsoft.Json.JsonConvert.SerializeObject(Model.CoinPrices);
+
+        $(document).ready(function () {
+
+        var priceLabels = [];
+
+        for (var i = 0; i < coinPrices.length; i++) {
+            priceLabels.push((i+1).toString());
+        }
+
+        var fill = "rgba(46, 184, 92, 0.25)";
+        if(coinPrices[0] > coinPrices[coinPrices.length - 1])
+        {
+            fill = "rgba(199, 113, 113, 0.25)";
+        }
+        
+
+        const priceChart = new Chart(document.getElementById('price-chart'), {
+            type: 'line',
+            data: {
+                labels: priceLabels,
+                datasets: [
+                {
+                    label: 'Price',
+                    borderColor: fill,
+                    borderWidth: 2,
+                    data: coinPrices
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                tooltips: {enabled: false},
+                hover: {mode: null},
+                 events: [],
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            display:false
+                        },
+                        grid: {
+                            display:false,
+                            drawBorder: false
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            display:false
+                        },
+                        grid: {
+                            display:false,
+                            drawBorder: false
+                        }
+                    }
+                },
+                elements: {
+                    line: {
+                        tension: 0.4
+                    },
+                    point: {
+                        radius: 0,
+                        hitRadius: 10,
+                        hoverRadius: 4,
+                        hoverBorderWidth: 3
+                    }
+                }
+            }
+        });
+        });
+
+    </script>
+
+}

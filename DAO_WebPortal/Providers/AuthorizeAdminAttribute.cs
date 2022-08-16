@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace DAO_WebPortal.Providers
 {
+    /// <summary>
+    ///  Authorization attribute for admin views and methods
+    /// </summary>
     public class AuthorizeAdminAttribute : ActionFilterAttribute
     {
         public AuthorizeAdminAttribute()

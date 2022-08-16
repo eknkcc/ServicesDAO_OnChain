@@ -70,10 +70,14 @@ namespace DAO_WebPortal.Controllers
                 HttpContext.Session.SetString("Email", "");
                 HttpContext.Session.SetString("Token", token);
                 HttpContext.Session.SetString("LoginType", "user");
-                HttpContext.Session.SetString("NameSurname",publicAddress.Substring(0,5) + "..." + publicAddress.Substring(publicAddress.Length - 5,5));
+                HttpContext.Session.SetString("NameSurname", publicAddress.Substring(0, 5) + "..." + publicAddress.Substring(publicAddress.Length - 5, 5));
                 HttpContext.Session.SetString("ProfileImage", "");
                 HttpContext.Session.SetString("KYCStatus", "");
                 HttpContext.Session.SetString("PublicAddress", publicAddress);
+                if (!string.IsNullOrEmpty(loginModel.WalletAddress))
+                {
+                    HttpContext.Session.SetString("WalletAddress", loginModel.WalletAddress.ToString());
+                }
                 HttpContext.Session.SetInt32("ChainSign", 1);
 
                 return base.Json(new SimpleResponse { Success = true, Message = Lang.SuccessLogin });
@@ -108,7 +112,7 @@ namespace DAO_WebPortal.Controllers
 
                 //Get user balance, reputation and VA Status from chain
                 var chainProfile = GetUserChainProfile(publicAddress);
-                if(chainProfile.IsVA)
+                if (chainProfile.IsVA)
                 {
                     HttpContext.Session.SetString("UserType", "VotingAssociate");
                 }
@@ -118,7 +122,7 @@ namespace DAO_WebPortal.Controllers
                 }
                 HttpContext.Session.SetString("Balance", chainProfile.Balance.ToString());
                 HttpContext.Session.SetString("Reputation", chainProfile.Reputation.ToString());
-                
+
                 var updatemodel = Helpers.Serializers.DeserializeJson<UserDto>(Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/Db/Users/Update", Helpers.Serializers.SerializeJson(userModel), HttpContext.Session.GetString("Token")));
 
                 TempData["toastr-message"] = "Your wallet is connected to your account successfully";
@@ -144,7 +148,7 @@ namespace DAO_WebPortal.Controllers
                 CasperClient casperClient = new CasperClient(rpcUrl);
                 var result = casperClient.RpcService.GetAccountBalance(publicAddress);
                 double balanceParsed = Convert.ToInt64(result.result.balance_value) / (double)1000000000;
-                profile.Balance = balanceParsed.ToString("N2");                
+                profile.Balance = balanceParsed.ToString("N2");
             }
             catch (Exception ex)
             {

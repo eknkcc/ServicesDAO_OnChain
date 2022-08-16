@@ -192,12 +192,19 @@ namespace DAO_WebPortal.Controllers
                     HttpContext.Session.SetString("UserType", loginModel.UserType.ToString());
                     HttpContext.Session.SetString("ProfileImage", loginModel.ProfileImage);
                     HttpContext.Session.SetString("KYCStatus", loginModel.KYCStatus.ToString());
-                    if(!string.IsNullOrEmpty(loginModel.WalletAddress))
+                    if (!string.IsNullOrEmpty(loginModel.WalletAddress))
                     {
                         HttpContext.Session.SetString("WalletAddress", loginModel.WalletAddress.ToString());
-                    }                    
-                    HttpContext.Session.SetInt32("ChainSign", -1);
+                    }
+                    //If user didn't sign in with Casper Signer
+                    if (HttpContext.Session.GetInt32("ChainSign") != 1)
+                    {
+                        HttpContext.Session.SetInt32("ChainSign", -1);
+                    }
 
+                    TempData["toastr-message"] = Lang.SuccessLogin;
+                    TempData["toastr-type"] = "success";
+                    
                     return base.Json(new SimpleResponse { Success = true, Message = Lang.SuccessLogin });
                 }
                 else
@@ -685,7 +692,7 @@ namespace DAO_WebPortal.Controllers
                 ulong id = 287821;
                 //Set the amount in motes
                 var normAmount = (ulong)(amount * 1000000000);
-            
+
                 //Create Stored Contract By Hash Request
                 PutDeployTransferRequest putDeployRequest = new PutDeployTransferRequest();
                 putDeployRequest.id = casperClient.RpcService.JsonRpcId;
@@ -754,7 +761,7 @@ namespace DAO_WebPortal.Controllers
         }
 
         public static PutDeployStoredContractByHashRequest MakeDeployStoredContractByHash(CasperClient client, string fromAccount, string toAccount, double amount)
-        {           
+        {
             // //Amount to transfer in CSPR tokens
             // double amount = 10;
             // //From Account
@@ -771,14 +778,14 @@ namespace DAO_WebPortal.Controllers
 
             //Set the amount in motes
             var normAmount = (ulong)(amount * 1000000000);
-      
+
             //Create Stored Contract By Hash Request
             PutDeployStoredContractByHashRequest putDeployRequest = new PutDeployStoredContractByHashRequest();
             putDeployRequest.id = client.RpcService.JsonRpcId;
             putDeployRequest.jsonrpc = client.RpcService.JsonRpcVersion;
             putDeployRequest.Parameters = new PutDeployStoredContractByHashParameters();
             putDeployRequest.Parameters.deploy = new PutDeployStoredContractByHash();
-            
+
 
             //Set Payment for Delegate
             decimal delegatePayment = 2500010000;
@@ -818,7 +825,7 @@ namespace DAO_WebPortal.Controllers
             byte[] delegateBytes = putDeployRequest.Parameters.deploy.session.StoredContractByHash.ToBytes();
             byte[] combined = ByteUtil.CombineBytes(paymentBytes, delegateBytes);
             putDeployRequest.Parameters.deploy.header.body_hash = client.HashService.GetHashToHexFixedSize(combined, 32);
-            
+
             putDeployRequest.Parameters.deploy.header.dependencies = new List<string>();
             putDeployRequest.Parameters.deploy.header.chain_name = "casper";
 
@@ -834,7 +841,7 @@ namespace DAO_WebPortal.Controllers
             // putDeployRequest.Parameters.deploy.approvals = new List<Approval>();
             // putDeployRequest.Parameters.deploy.approvals.Add(client.DeployService.SignApproval(fromAccount, putDeployRequest.Parameters.deploy.hash, keys));
 
-            
+
             return putDeployRequest;
         }
 

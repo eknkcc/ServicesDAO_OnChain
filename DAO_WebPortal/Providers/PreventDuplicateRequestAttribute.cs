@@ -3,6 +3,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Filters;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+
+    /// <summary>
+    ///  This attributes prevents double post actions by mistake (Eg. Double click on a button)
+    /// </summary>
 public class PreventDuplicateRequestAttribute : ActionFilterAttribute {
     public override void OnActionExecuting(ActionExecutingContext context) {
         if (context.HttpContext.Request.HasFormContentType && context.HttpContext.Request.Form.ContainsKey("__RequestVerificationToken")) {

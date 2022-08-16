@@ -28,6 +28,6 @@ namespace Helpers.Models.WebsiteViewModels
         public List<DashboardGraphModel> VotingCardGraph { get; set; }
         public List<AdminDashboardCardModel> AuctionGraph { get; set; }
         public List<AdminDashboardCardModel> VotingGraph { get; set; }
-
+        public List<double> CoinPrices { get; set; }
     }
 }

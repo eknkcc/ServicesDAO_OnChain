@@ -6,11 +6,11 @@ using Microsoft.AspNetCore.Mvc.Filters;
 namespace DAO_WebPortal.Providers
 {
     /// <summary>
-    ///  Authorization attribute for generic user sign-in (Onchain or offchain)
+    ///  Authorization attribute for off-chain methods such as forum, auctions etc.
     /// </summary>
-    public class AuthorizeUserAttribute : ActionFilterAttribute
+    public class AuthorizeDbUserAttribute : ActionFilterAttribute
     {
-        public AuthorizeUserAttribute()
+        public AuthorizeDbUserAttribute()
         {
         }
 
@@ -20,20 +20,19 @@ namespace DAO_WebPortal.Providers
             {
                 bool control = true;
 
-
-                if (context.HttpContext.Session.GetInt32("UserID") == null)
+                if (context.HttpContext.Session.GetInt32("UserID") == null || context.HttpContext.Session.GetInt32("UserID") <= 0)
                 {
                     control = false;
                 }
 
                 if (!control)
                 {
-                    context.Result = new RedirectResult("../");
+                    context.Result = new JsonResult("Unauthorized");
                 }
             }
             catch
             {
-                context.Result = new RedirectResult("../");
+                context.Result = new JsonResult("Unauthorized");
             }
 
         }

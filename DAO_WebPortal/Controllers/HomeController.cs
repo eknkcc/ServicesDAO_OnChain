@@ -56,6 +56,9 @@ namespace DAO_WebPortal.Controllers
                     string dashboardJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Website/GetDashBoardAdmin?userid=" + HttpContext.Session.GetInt32("UserID"), HttpContext.Session.GetString("Token"));
                     //Parse response
                     dashModel = Helpers.Serializers.DeserializeJson<DashBoardViewModelAdmin>(dashboardJson);
+                    //Get coin price list
+                    dashModel.CoinPrices = GetCandleSticks("cspr_usdt").Select(x=>x.Close).ToList();
+
                     return View("Index_Admin", dashModel);
                 }
                 //User type control for associate
@@ -66,6 +69,9 @@ namespace DAO_WebPortal.Controllers
                     string dashboardJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Website/GetDashBoardAssociate?userid=" + HttpContext.Session.GetInt32("UserID"), HttpContext.Session.GetString("Token"));
                     //Parse response
                     dashModel = Helpers.Serializers.DeserializeJson<DashBoardViewModelVA>(dashboardJson);
+                    //Get coin price list
+                    dashModel.CoinPrices = GetCandleSticks("cspr_usdt").Select(x=>x.Close).ToList();
+
                     return View("Index_Associate", dashModel);
                 }
                 //User type control for voting associate
@@ -76,6 +82,9 @@ namespace DAO_WebPortal.Controllers
                     string dashboardJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Website/GetDashBoardVA?userid=" + HttpContext.Session.GetInt32("UserID"), HttpContext.Session.GetString("Token"));
                     //Parse response
                     dashModel = Helpers.Serializers.DeserializeJson<DashBoardViewModelVA>(dashboardJson);
+                    //Get coin price list
+                    dashModel.CoinPrices = GetCandleSticks("cspr_usdt").Select(x=>x.Close).ToList();
+
                     return View("Index_VotingAssociate", dashModel);
                 }
 
@@ -163,6 +172,13 @@ namespace DAO_WebPortal.Controllers
         {
             ViewBag.Title = "Post A New Job";
 
+            // Check if user signed with traditional db account. If not opens signin popup.
+            if(CheckDbSignIn() == "Unauthorized")
+            {
+                TempData["DbSignRequired"] = "true";
+                TempData["ReloadPage"] = "true";
+            }
+
             return View();
         }
 
@@ -177,6 +193,7 @@ namespace DAO_WebPortal.Controllers
         [HttpPost]
         [PreventDuplicateRequest]
         [ValidateAntiForgeryToken]
+        [AuthorizeDbUser]
         public JsonResult New_Job_Post(string title, double amount, string time, string description, string tags, string codeurl)
         {
             // if (!ModelState.IsValid)
@@ -244,6 +261,13 @@ namespace DAO_WebPortal.Controllers
         {
             ViewBag.Title = "Edit Job";
 
+            // Check if user signed with traditional db account. If not opens signin popup.
+            if(CheckDbSignIn() == "Unauthorized")
+            {
+                TempData["DbSignRequired"] = "true";
+                TempData["ReloadPage"] = "true";
+            }
+
             JobPostDto jobDetailModel = new JobPostDto();
 
             try
@@ -274,6 +298,7 @@ namespace DAO_WebPortal.Controllers
         /// <param name="Model">JobPostDto Model</param>
         /// <returns></returns>
         [HttpPut]
+        [AuthorizeDbUser]
         public JsonResult My_Job_Update(JobPostDto Model)
         {
             SimpleResponse result = new SimpleResponse();
@@ -398,6 +423,7 @@ namespace DAO_WebPortal.Controllers
         [HttpPost]
         [PreventDuplicateRequest]
         [ValidateAntiForgeryToken]
+        [AuthorizeDbUser]
         public JsonResult AddNewComment(int JobId, int CommentId, string Comment)
         {
             if (!ModelState.IsValid)
@@ -497,6 +523,7 @@ namespace DAO_WebPortal.Controllers
         /// <param name="CommentId">JobPostCommentID</param>
         /// <returns></returns>
         [HttpDelete]
+        [AuthorizeDbUser]
         public JsonResult DeleteComment(int CommentId)
         {
             SimpleResponse result = new SimpleResponse();
@@ -569,6 +596,7 @@ namespace DAO_WebPortal.Controllers
         /// <param name="JobPostCommentId">JobPostCommentId</param>
         /// <returns></returns>
         [HttpGet]
+        [AuthorizeDbUser]
         public JsonResult UpVote(int JobPostCommentId)
         {
 
@@ -661,6 +689,7 @@ namespace DAO_WebPortal.Controllers
         /// <param name="JobPostCommentId">JobPostCommentId</param>
         /// <returns></returns>
         [HttpGet]
+        [AuthorizeDbUser]
         public JsonResult DownVote(int JobPostCommentId)
         {
             SimpleResponse result = new SimpleResponse();
@@ -751,6 +780,7 @@ namespace DAO_WebPortal.Controllers
         /// <param name="jobid">Job id</param>
         /// <returns></returns>
         [HttpGet]
+        [AuthorizeDbUser]
         public JsonResult FlagJob(int jobid, string flagreason)
         {
             SimpleResponse result = new SimpleResponse();
@@ -822,6 +852,7 @@ namespace DAO_WebPortal.Controllers
         /// <param name="jobid">Job id</param>
         /// <returns></returns>
         [HttpGet]
+        [AuthorizeDbUser]
         public JsonResult RemoveFlag(int jobid)
         {
             SimpleResponse result = new SimpleResponse();
@@ -853,6 +884,7 @@ namespace DAO_WebPortal.Controllers
         /// <param name="jobid">Job id</param>
         /// <returns></returns>
         [HttpGet]
+        [AuthorizeDbUser]
         public JsonResult RestartJob(int jobid)
         {
             SimpleResponse result = new SimpleResponse();
@@ -1062,6 +1094,7 @@ namespace DAO_WebPortal.Controllers
         /// <param name="Model">AuctionBidDto Model</param>
         /// <returns></returns>
         [HttpPost]
+        [AuthorizeDbUser]
         public JsonResult Auction_Bid_Add(AuctionBidDto Model)
         {
             SimpleResponse result = new SimpleResponse();
@@ -1190,6 +1223,7 @@ namespace DAO_WebPortal.Controllers
         /// <param name="id">Auction Bid ID</param>
         /// <returns></returns>
         [HttpGet]
+        [AuthorizeDbUser]
         public JsonResult Auction_Bid_Delete(int id)
         {
             SimpleResponse result = new SimpleResponse();
@@ -1245,6 +1279,7 @@ namespace DAO_WebPortal.Controllers
         /// <param name="jobid"></param>
         /// <returns></returns>
         [HttpGet]
+        [AuthorizeDbUser]
         public JsonResult ChooseWinnerBid(int bidId)
         {
             SimpleResponse result = new SimpleResponse();
@@ -1512,6 +1547,8 @@ namespace DAO_WebPortal.Controllers
         /// <param name="Job">Job Id</param>     
         /// <returns></returns>
         [Route("StartInformalVoting/{jobid}")]
+        [AuthorizeChainUser]
+        [AuthorizeDbUser]
         public IActionResult StartInformalVoting(int jobid)
         {
             SimpleResponse res = new SimpleResponse();
@@ -1615,6 +1652,7 @@ namespace DAO_WebPortal.Controllers
         /// <param name="ReputationStake"></param>
         /// <returns></returns>
         [HttpPost]
+        [AuthorizeChainUser]
         public JsonResult SubmitVote(int VotingID, StakeType Direction, double? ReputationStake)
         {
             SimpleResponse result = new SimpleResponse();
@@ -1682,6 +1720,7 @@ namespace DAO_WebPortal.Controllers
         /// </summary>
         /// <returns></returns>
         [Route("New-Simple-Vote")]
+        [AuthorizeChainUser]
         public IActionResult New_Simple_Vote()
         {
             ViewBag.Title = "Start A New Simple Vote";
@@ -1696,6 +1735,7 @@ namespace DAO_WebPortal.Controllers
         /// <param name="description">Description</param>
         /// <returns></returns>
         [HttpPost]
+        [AuthorizeChainUser]
         public JsonResult New_SimpleVote_Post(NewSimpleVoteModel model)
         {
             SimpleResponse result = new SimpleResponse();
@@ -1867,6 +1907,7 @@ namespace DAO_WebPortal.Controllers
         /// </summary>
         /// <returns></returns>
         [Route("User-Profile")]
+        [AuthorizeDbUser]
         public IActionResult User_Profile()
         {
             ViewBag.Title = "User Profile";
@@ -1897,6 +1938,8 @@ namespace DAO_WebPortal.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("ProfileUpdate")]
+        [AuthorizeDbUser]
+
         public JsonResult ProfileUpdate(string image, string ibanAddress, IFormFile File)
         {
 
@@ -1968,6 +2011,52 @@ namespace DAO_WebPortal.Controllers
         }
 
         /// <summary>
+        ///  Update user's wallet info
+        /// </summary>
+        /// <param name="wallet">Wallet address</param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("WalletUpdate")]
+        [AuthorizeDbUser]
+
+        public JsonResult WalletUpdate(string walletAddress)
+        {
+
+            try
+            {
+                //Get user
+                UserDto modeluser = Helpers.Serializers.DeserializeJson<UserDto>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Users/GetId?id=" + HttpContext.Session.GetInt32("UserID"), HttpContext.Session.GetString("Token")));
+
+                if (modeluser != null && modeluser.UserId > 0)
+                {
+
+                    modeluser.WalletAddress = walletAddress;
+
+                    //Update user  
+                    var updatemodel = Helpers.Serializers.DeserializeJson<UserDto>(Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/Db/Users/Update", Helpers.Serializers.SerializeJson(modeluser), HttpContext.Session.GetString("Token")));
+
+                    if (updatemodel != null && updatemodel.UserId > 0)
+                    {
+                        TempData["toastr-message"] = "Save changes successful.";
+                        TempData["toastr-type"] = "success";
+
+                        HttpContext.Session.SetString("WalletAddress", walletAddress);
+                        
+                        return Json(new SimpleResponse { Success = true, Message = "Save changes successful." });
+                    }
+                }
+
+                return Json(new SimpleResponse { Success = false, Message = "Profile Updated Failed." });
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+            }
+
+            return Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+        }
+
+        /// <summary>
         ///  Resize uploaded profile image
         /// </summary>
         /// <param name="data">Image as byte array</param>
@@ -2005,6 +2094,7 @@ namespace DAO_WebPortal.Controllers
         /// <returns></returns>
 
         [Route("KYC-Verification")]
+        [AuthorizeDbUser]
         public IActionResult KYC_Verification()
         {
             KYCViewModel model = new KYCViewModel();
@@ -2037,6 +2127,7 @@ namespace DAO_WebPortal.Controllers
         /// <param>User information</param>
         /// <returns>Generic Simple Response class</returns>
         [Route("UploadKYCDoc")]
+        [AuthorizeDbUser]
         public JsonResult UploadKYCDoc(KYCFileUpload File)
         {
             SimpleResponse model = new SimpleResponse();
@@ -2861,6 +2952,48 @@ namespace DAO_WebPortal.Controllers
         #endregion
 
         #region Utility
+
+        public string CheckOnchainSignIn()
+        {  
+            if (HttpContext.Session.GetInt32("UserID") == null || HttpContext.Session.GetInt32("UserID") <= 0)
+            {
+                return "Unauthorized";
+            }
+
+            return "";
+        }
+        
+        public string CheckDbSignIn()
+        {
+            if (HttpContext.Session.GetInt32("UserID") == null || HttpContext.Session.GetInt32("UserID") <= 0)
+            {
+                return "Unauthorized";
+            }
+
+            return "";
+        }
+
+        public List<CandleStick> GetCandleSticks(string symbol)
+        {
+            List<CandleStick> res = new List<CandleStick>();
+
+            try
+            {         
+                //Get candle data from GateIO Api
+                var jsonResult = Helpers.Request.Get("https://data.gateapi.io/api2/1/candlestick2/"+ symbol + "?group_sec=3600&range_hour=72");
+                dynamic result = JsonConvert.DeserializeObject(jsonResult);
+                foreach(dynamic item in result.data) 
+                {
+                    res.Add(new CandleStick() { Date = item[0], Volume = item[1], Open = item[2], High = item[3], Low = item[4], Close = item[5] });
+                }
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+            }
+
+            return res;
+        }
 
         [HttpGet]
         public JsonResult SetCookie(string src)

@@ -1,4 +1,5 @@
-﻿//Share Job Post
+﻿
+//Share Job Post
 function ShareJobPost() {
     ComingSoon();
 }
@@ -7,7 +8,7 @@ function ShareJobPost() {
 function StartInformalVoting(JobId) {
     $.confirm({
         title: 'Confirmation',
-        content: '<b>Are you confirming that you submitted a valid evidence for job completion and start informal voting process ?</b>' +           
+        content: '<b>Are you confirming that you submitted a valid evidence for job completion and start informal voting process ?</b>' +
             '<div class="form-check m-2"><input class="form-check-input" type="checkbox" value="" id="checkConfirm1"><label class="form-check-label text-justify" for="flexCheckDefault">I hereby declare that all results, work product, etc. associated with my bid and associated work product will be made available under an open-source license. I acknowledge that I am legally responsible to ensure that all parts of this project are open-source. </label></div>' +
             '<div class="form-check m-2"><input class="form-check-input" type="checkbox" value="" id="checkConfirm2"><label class="form-check-label text-justify" for="flexCheckDefault">     I hereby declare that my bid and associated work product will benefit decentralization and open-source projects generally, pursuant to the mission statement of OSSA, which is to support open source and transparent scientific research of emerging technologies for community building by way of submitting grants to developers and scientists in Switzerland and abroad. </label></div>' +
             '<div class="form-check m-2"><input class="form-check-input" type="checkbox" value="" id="checkConfirm3"><label class="form-check-label text-justify" for="flexCheckDefault">I hereby declare that my bid and associated work product is in line with international transparency standards; will be published on Github under the CRDAO repo, and my team and I have sufficient qualifications, experience and capacity to actually finish my bid and associated work product. </label></div>' +
@@ -24,7 +25,7 @@ function StartInformalVoting(JobId) {
             confirm: {
                 text: 'Continue',
                 btnClass: 'btn btn-primary',
-                action: function() {
+                action: function () {
 
                     var confirmationControl = true;
 
@@ -52,12 +53,12 @@ function StartInformalVoting(JobId) {
                     }
 
                     var comment = '<div><b>Recommendation: ' + $('#revResult option:selected').text() + '</b><p>Pull Request Link: <a target="_blank" href="' + $('#prLink').val() + '">' + $('#prLink').val() + '</a></p></div>';
-  
+
                     $.ajax({
                         type: "POST",
                         url: "../Home/AddNewComment",
                         data: { "JobId": JobId, "CommentId": 0, "Comment": comment, "__RequestVerificationToken": token },
-                        success: function (result) {                   
+                        success: function (result) {
                         },
                         failure: function (response) {
                         },
@@ -69,17 +70,17 @@ function StartInformalVoting(JobId) {
                         url: "../StartInformalVoting/" + JobId,
                         type: "GET",
                         dataType: 'json',
-                        success: function(result) {
+                        success: function (result) {
                             if (result.success) {
                                 window.location.reload();
                             } else {
                                 toastr.warning(result.message);
                             }
                         },
-                        failure: function(response) {
+                        failure: function (response) {
                             toastr.warning("Connection error");
                         },
-                        error: function(response) {
+                        error: function (response) {
                             toastr.error("Unexpected error");
                         }
                     });
@@ -103,19 +104,19 @@ function PayDosFee() {
         url: "../PayDosFee/" + selectedJobId,
         type: "GET",
         dataType: 'json',
-        success: function(result) {
+        success: function (result) {
             if (result.success) {
                 toastr.success(result.message);
                 $("#DosFeeModal").modal("toggle");
-                setTimeout(function() { window.location.reload() }, 5000)
+                setTimeout(function () { window.location.reload() }, 5000)
             } else {
                 toastr.warning(result.message);
             }
         },
-        failure: function(response) {
+        failure: function (response) {
             toastr.warning("Connection error");
         },
-        error: function(response) {
+        error: function (response) {
             toastr.error("Unexpected error");
         }
     });
@@ -143,7 +144,7 @@ function OpenFlagModal(jobid) {
             formSubmit: {
                 text: 'Submit',
                 btnClass: 'btn-primary btn-submit',
-                action: function() {
+                action: function () {
                     var flagreason = this.$content.find('.flagreason').val();
                     if (!flagreason) {
                         toastr.warning("Please provide a flag reason");
@@ -156,7 +157,7 @@ function OpenFlagModal(jobid) {
                         url: "../Home/FlagJob?jobid=" + jobid + "&flagreason=" + flagreason,
                         type: "GET",
                         dataType: 'json',
-                        success: function(result) {
+                        success: function (result) {
                             if (result.success) {
                                 window.location.reload();
                             } else {
@@ -165,11 +166,11 @@ function OpenFlagModal(jobid) {
                                 $(".btn-submit").removeClass("d-none");
                             }
                         },
-                        failure: function(response) {
+                        failure: function (response) {
                             toastr.warning("Connection error");
                             $(".btn-submit").removeClass("d-none");
                         },
-                        error: function(response) {
+                        error: function (response) {
                             toastr.error("Unexpected error");
                             $(".btn-submit").removeClass("d-none");
                         }
@@ -178,7 +179,7 @@ function OpenFlagModal(jobid) {
                     return false;
                 }
             },
-            cancel: function() {
+            cancel: function () {
                 //close
             },
         }
@@ -196,7 +197,7 @@ function RemoveFlag(jobid) {
             confirm: {
                 text: 'Continue',
                 btnClass: 'btn btn-primary',
-                action: function() {
+                action: function () {
 
                     $.ajax({
                         type: "GET",
@@ -204,7 +205,7 @@ function RemoveFlag(jobid) {
                         data: {
                             "jobid": jobid,
                         },
-                        success: function(result) {
+                        success: function (result) {
                             if (result.success) {
                                 window.location.reload();
                             } else {
@@ -229,7 +230,7 @@ function getQueryParameter(name, url = window.location.href) {
     return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
 
-function RestartJob(jobid){
+function RestartJob(jobid) {
     $.confirm({
         title: 'Confirmation',
         content: 'A new job record will be created and job flow will be restarted.',
@@ -240,7 +241,7 @@ function RestartJob(jobid){
             confirm: {
                 text: 'Continue',
                 btnClass: 'btn btn-primary',
-                action: function() {
+                action: function () {
 
                     $.ajax({
                         type: "GET",
@@ -248,7 +249,7 @@ function RestartJob(jobid){
                         data: {
                             "jobid": jobid,
                         },
-                        success: function(result) {
+                        success: function (result) {
                             if (result.success) {
                                 window.location.href = "../Auctions";
                             } else {
@@ -260,10 +261,37 @@ function RestartJob(jobid){
                 }
             }
         }
-    });    
+    });
 }
 
 //Input mask for number inputs
-$('input.number').on("input", function(e) {
+$('input.number').on("input", function (e) {
     $(this).val($(this).val().replace(/[^0-9\.]/g, ''));
 })
+
+async function ChangeUserWallet(response)
+{
+    if(response == 1)
+    {
+        window.casperlabsHelper.requestConnection();
+
+        var publicAddress = await window.casperlabsHelper.getActivePublicKey();
+
+        $.ajax({
+            type: "GET",
+            url: "../WalletUpdate?walletAddress="+publicAddress,
+            success: function (result) {
+                if (result.success) {
+                    ShowLoader();
+                    location.reload();
+                } else {
+                    toastr.warning(result.message);
+                }
+            }
+        });
+    }
+    else
+    {
+        $("#modal-walletchange").modal("toggle");
+    }
+}

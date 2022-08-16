@@ -8,6 +8,7 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -47,12 +48,15 @@
     <link href="~/Home/lib/jquery-confirm/jquery-confirm.css" rel="stylesheet" />
 
 </head>
+
 <body class="@theme">
 
     <div class="sidebar sidebar-dark sidebar-fixed" id="sidebar">
         <div class="sidebar-brand d-none d-md-flex">
-            <img src="~/Public/images/crdao-newlogo-light.png" class="sidebar-brand-full" width="150" height="43" alt="Services DAO" />
-            <img src="~/Public/images/crdao-newlogo-light.png" class="sidebar-brand-narrow" width="46" height="46" alt="Services DAO" />
+            <img src="~/Public/images/crdao-newlogo-light.png" class="sidebar-brand-full" width="150" height="43"
+                alt="Services DAO" />
+            <img src="~/Public/images/crdao-newlogo-light.png" class="sidebar-brand-narrow" width="46" height="46"
+                alt="Services DAO" />
         </div>
         <ul class="sidebar-nav" data-coreui="navigation" data-simplebar="">
             <li class="nav-item">
@@ -100,7 +104,10 @@
                 </a>
             </li>
 
-            @if (httpContextAccessor.HttpContext.Session.GetString("UserType") == Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString() || httpContextAccessor.HttpContext.Session.GetString("UserType") == Helpers.Constants.Enums.UserIdentityType.Admin.ToString())
+            @if (httpContextAccessor.HttpContext.Session.GetString("UserType") ==
+            Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString() ||
+            httpContextAccessor.HttpContext.Session.GetString("UserType") ==
+            Helpers.Constants.Enums.UserIdentityType.Admin.ToString())
             {
                 <li class="nav-item">
                     <a class="nav-link link-load" href="../VA-Directory">
@@ -119,7 +126,8 @@
                 </a>
             </li>
 
-            @if (httpContextAccessor.HttpContext.Session.GetString("UserType") != Helpers.Constants.Enums.UserIdentityType.Admin.ToString())
+            @if (httpContextAccessor.HttpContext.Session.GetString("UserType") !=
+            Helpers.Constants.Enums.UserIdentityType.Admin.ToString())
             {
                 <li class="nav-item">
                     <a class="nav-link link-load" href="../Payment-History">
@@ -138,7 +146,8 @@
                 </a>
             </li>
 
-            @if (httpContextAccessor.HttpContext.Session.GetString("UserType") == Helpers.Constants.Enums.UserIdentityType.Admin.ToString())
+            @if (httpContextAccessor.HttpContext.Session.GetString("UserType") ==
+            Helpers.Constants.Enums.UserIdentityType.Admin.ToString())
             {
                 <li class="nav-title">ADMIN PAGES</li>
 
@@ -185,21 +194,27 @@
             <li class="nav-item d-block d-sm-none mt-3">
                 <center>
                     <nav>
-                        @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") < 0 && Program._settings.UseChain == true)
+                        @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") < 0 &&
+                        Program._settings.UseChain == true)
                         {
                             <div class="btn-group mb-3" role="group">
-                                <button type="button" onclick="LoginChain();" class="btn btn-block btn-md submitFormButton w-100 casperBg me-2 text-white font-sm"><img src="../Public/images/casper.png" style="width: 24px;" class="me-2" />Connect Wallet</button>
+                                <button type="button" onclick="LoginChain();"
+                                class="btn btn-block btn-md submitFormButton w-100 casperBg me-2 text-white font-sm"><img
+                                    src="../Public/images/casper.png" style="width: 24px;" class="me-2" />Connect
+                                    Wallet</button>
                             </div>
                         }
 
                         <div class="btn-group" role="group">
-                            <input class="btn-check" id="btn-light-theme" type="radio" name="theme-switch" autocomplete="off" value="light-theme" onchange="handleThemeChange(this.value)">
+                            <input class="btn-check" id="btn-light-theme" type="radio" name="theme-switch"
+                                autocomplete="off" value="light-theme" onchange="handleThemeChange(this.value)">
                             <label class="btn btn-primary" for="btn-light-theme">
                                 <svg class="icon">
                                     <use xlink:href="/Home/images/svg/free.svg#cil-sun"></use>
                                 </svg>
                             </label>
-                            <input class="btn-check" id="btn-dark-theme" type="radio" name="theme-switch" autocomplete="off" value="dark-theme" onchange="handleThemeChange(this.value)">
+                            <input class="btn-check" id="btn-dark-theme" type="radio" name="theme-switch"
+                                autocomplete="off" value="dark-theme" onchange="handleThemeChange(this.value)">
                             <label class="btn btn-primary" for="btn-dark-theme">
                                 <svg class="icon">
                                     <use xlink:href="/Home/images/svg/free.svg#cil-moon"></use>
@@ -215,28 +230,35 @@
     <div class="wrapper d-flex flex-column min-vh-100 bg-light dark:bg-transparent">
         <header class="header header-sticky mb-4">
             <div class="container-fluid">
-                <button class="header-toggler px-md-0 me-md-3" type="button" onclick="coreui.Sidebar.getInstance(document.querySelector('#sidebar')).toggle()">
+                <button class="header-toggler px-md-0 me-md-3" type="button"
+                    onclick="coreui.Sidebar.getInstance(document.querySelector('#sidebar')).toggle()">
                     <svg class="icon icon-lg">
                         <use xlink:href="/Home/images/svg/free.svg#cil-menu"></use>
                     </svg>
                 </button>
                 <h4 class="d-none d-md-block">@ViewBag.Title</h4>
                 <nav class="header-nav ms-auto me-4 d-none d-sm-block">
-                    @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") < 0 && Program._settings.UseChain == true)
+                    @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") < 0 && Program._settings.UseChain
+                    == true)
                     {
                         <div class="btn-group" role="group">
-                            <button type="button" onclick="LoginChain();" class="btn btn-block btn-md submitFormButton w-100 casperBg me-2 text-white font-sm"><img src="../Public/images/casper.png" style="width: 24px;" class="me-2" />Connect Wallet</button>
+                            <button type="button" onclick="LoginChain();"
+                            class="btn btn-block btn-md submitFormButton w-100 casperBg me-2 text-white font-sm"><img
+                                src="../Public/images/casper.png" style="width: 24px;" class="me-2" />Connect
+                                Wallet</button>
                         </div>
                     }
 
                     <div class="btn-group" role="group">
-                        <input class="btn-check" id="btn-light-theme" type="radio" name="theme-switch" autocomplete="off" value="light-theme" onchange="handleThemeChange(this.value)">
+                        <input class="btn-check" id="btn-light-theme" type="radio" name="theme-switch"
+                            autocomplete="off" value="light-theme" onchange="handleThemeChange(this.value)">
                         <label class="btn btn-primary" for="btn-light-theme">
                             <svg class="icon">
                                 <use xlink:href="/Home/images/svg/free.svg#cil-sun"></use>
                             </svg>
                         </label>
-                        <input class="btn-check" id="btn-dark-theme" type="radio" name="theme-switch" autocomplete="off" value="dark-theme" onchange="handleThemeChange(this.value)">
+                        <input class="btn-check" id="btn-dark-theme" type="radio" name="theme-switch" autocomplete="off"
+                            value="dark-theme" onchange="handleThemeChange(this.value)">
                         <label class="btn btn-primary" for="btn-dark-theme">
                             <svg class="icon">
                                 <use xlink:href="/Home/images/svg/free.svg#cil-moon"></use>
@@ -247,19 +269,24 @@
 
                 <ul class="header-nav">
                     <li class="nav-item dropdown d-md-down-none">
-                        <a class="nav-link" data-coreui-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
+                        <a class="nav-link" data-coreui-toggle="dropdown" href="#" role="button" aria-haspopup="true"
+                            aria-expanded="false">
                             <div class="avatar avatar-md d-inline-block" style="vertical-align:top">
                                 <img class="avatar-img" src="@Url.Action("GetProfileImage", "Home")">
                             </div>
                             <div class="d-inline-block">
-                                <small class="mb-0">@httpContextAccessor.HttpContext.Session.GetString("NameSurname")</small><br />
-                                <small><b>@httpContextAccessor.HttpContext.Session.GetString("UserType")</b></small>                               
+                                <small
+                                    class="mb-0">@httpContextAccessor.HttpContext.Session.GetString("NameSurname")</small><br />
+                                <small><b>@httpContextAccessor.HttpContext.Session.GetString("UserType")</b></small>
                             </div>
-                            @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") > 0 && Program._settings.UseChain == true)
+                            @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") > 0 &&
+                            Program._settings.UseChain == true)
                             {
                                 <div class="d-inline-block reputationHeaderDiv">
-                                    <small class="mb-0"><i class="fas fa-star"></i> <span class="text-right">@httpContextAccessor.HttpContext.Session.GetString("Reputation")</span></small><br />
-                                    <small><i class="fas fa-coins"></i> <span class="text-right">@httpContextAccessor.HttpContext.Session.GetString("Balance")</span></small>
+                                    <small class="mb-0"><i class="fas fa-star me-1"></i><small>Rep: </small> <span
+                                        class="text-right">@httpContextAccessor.HttpContext.Session.GetString("Reputation")</span></small><br />
+                                    <small><i class="fas fa-coins me-1"></i><small>Cspr: </small> <span
+                                        class="text-right">@httpContextAccessor.HttpContext.Session.GetString("Balance")</span></small>
                                 </div>
                             }
                         </a>
@@ -290,7 +317,9 @@
                 @RenderBody()
 
                 <!-- Loading Spinner -->
-                <div style="display:none" class="preloader preloader-alt no-split"><span class="spinner spinner-alt"><img class="spinner-brand" src="../Public/images/crdao-newlogo-light.png" alt=""></span></div>
+                <div style="display:none" class="preloader preloader-alt no-split"><span
+                        class="spinner spinner-alt"><img class="spinner-brand"
+                            src="../Public/images/crdao-newlogo-light.png" alt=""></span></div>
 
             </div>
         </div>
@@ -320,6 +349,214 @@
         </div>
     </div>
 
+
+    <!-- Modal Login -->
+    <div class="modal fade" id="modal-login">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><b>Sign In Required</b></h5>
+                </div>
+
+                <div class="modal-body" id="logindiv">
+
+                    <h6><span class="tc-default">Sign in with your CRDAO account to access off-chain features</span>
+                    </h6>
+                    <div id="loginForm" class="my-3">
+                        @Html.AntiForgeryToken()
+
+                        <input type="text" id="email" class="form-control mb-2" placeholder="Email or username">
+
+                        <input type="password" id="pass" class="form-control mb-3" placeholder="Password">
+
+
+                        <div>
+                            <div class="forget-link fz-6">
+                                <a class="cursorp fp float-right forgotPass">@Lang.Login_ForgotPassword</a>
+                            </div>
+                        </div>
+
+                        <button type="button" onclick="Login();"
+                            class="btn btn-primary btn-block btn-md submitFormButton mt-3 w-100">Sign In</button>
+                    </div>
+
+                    <div class="input-group inpcapthca mt-2 captchaDiv d-none">
+                        <div class="input-group-prepend">
+                            <img id="img-captcha-login" src="../get-captcha-image?code=securityCodeLogin"
+                                style="width: 120px; height: 40px;" />
+                        </div>
+                        <input oninput="this.value = this.value.toUpperCase()" autocomplete="off" type="text"
+                            name="code2" class="form-control frmcapthca" id="securityCodeLogin"
+                            placeholder="@Lang.SecureNote" maxlength="5" style="margin-left: 10px; height:40px;" />
+                    </div>
+
+                    <div class="text-center mt-5 mb-2">
+                        Don’t have an account? <a class="cursorp signUp fp"> <strong>Sign up here</strong></a>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Sign Up -->
+    <div class="modal fade" id="modal-signUp">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><b>Sign Up</b></h5>
+                </div>
+                <div class="modal-body">
+
+                    <h5 class="mb-3"><small class="tc-default">Create new CRDAO account</small></h5>
+                    <div id="registerForm">
+                        @Html.AntiForgeryToken()
+                        <div class="field-item mb-2">
+                            <div class="field-wrap">
+                                <input type="text" id="nameregister" class="form-control" placeholder="Your Name">
+                            </div>
+                        </div>
+                        <div class="field-item mb-2">
+                            <div class="field-wrap">
+                                <input type="text" id="emailregister" class="form-control" placeholder="Your Email">
+                            </div>
+                        </div>
+                        <div class="field-item mb-2">
+                            <div class="field-wrap">
+                                <input type="text" id="usernameregister" class="form-control"
+                                    placeholder="Your User Name">
+                            </div>
+                        </div>
+                        <div class="field-item mb-2">
+                            <div class="field-wrap">
+                                <input type="password" id="passregister" class="form-control" placeholder="Password">
+                            </div>
+                        </div>
+                        <div class="field-item mb-3">
+                            <div class="field-wrap">
+                                <input type="password" id="passregister2" class="form-control"
+                                    placeholder="Repeat Password">
+                            </div>
+                        </div>
+
+                        <!-- Legal Check -->
+                        <div class="field-item">
+                            <div class="form-check d-flex align-items-center text-center">
+                                <input type="checkbox" class="form-check-input mt-0 mr-3" id="chcTerms">
+                                <label class="form-check-label small ps-2"
+                                    for="exampleCheck1">@Html.Raw(Lang.Login_AggreeTerms)</label>
+                            </div>
+                        </div>
+                        <!-- Captcha -->
+                        <div class="input-group inpcapthca mt-2 captchaDiv d-none">
+                            <div class="input-group-prepend">
+                                <img id="img-captcha-register" src="../get-captcha-image?code=securityCodeRegister"
+                                    style="width: 120px; height: 40px;" />
+                            </div>
+                            <input oninput="this.value = this.value.toUpperCase()" autocomplete="off" type="text"
+                                name="code2" class="form-control frmcapthca" id="securityCodeRegister"
+                                @*placeholder="@Lang.SecureNote"*@ maxlength="5"
+                                style="margin-left: 10px; height:40px;" />
+                        </div>
+
+                        <button type="button" onclick="Register();"
+                            class="btn btn-primary btn-block btn-md submitFormButton mt-3 w-100">Sign
+                            Up</button>
+
+                        <div class="text-center mt-5 mb-2">
+                            Do you have an account? <a class="cursorp signIn fp"> <strong>Sign in here</strong></a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Forgot Pass -->
+    <div class="modal fade" id="modal-forgotpass">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><b>Forgot Password</b></h5>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <h5><small class="tc-default">Get password reset link to your registered email</small></h5>
+                        <div class="login-signup-form" id="forgotPassForm">
+                            @Html.AntiForgeryToken()
+                            <div class="field-item">
+                                <div class="field-wrap">
+                                    <input type="text" id="emailforgot" class="form-control"
+                                        placeholder="Registered email">
+                                </div>
+                            </div>
+
+                            <!-- Captcha -->
+                            <div class="input-group inpcapthca mt-2 captchaDiv d-none">
+                                <div class="input-group-prepend">
+                                    <img id="img-captcha-resetpass"
+                                        src="../get-captcha-image?code=securityCodeResetPass"
+                                        style="width: 120px; height: 40px;" />
+                                </div>
+                                <input oninput="this.value = this.value.toUpperCase()" autocomplete="off" type="text"
+                                    name="code2" class="form-control frmcapthca" id="securityCodeResetPass"
+                                    placeholder="@Lang.SecureNote" maxlength="5"
+                                    style="margin-left: 10px; height:40px;" />
+                            </div>
+
+                            <div style="width: 100%;height: 50px;">
+                                <button type="button" onclick="ResetPassword();"
+                                    class="btn btn-primary btn-block btn-md float-right submitFormButton mt-3 2-100"
+                                    style="width: 100%;">Reset Password</button>
+                            </div>
+
+
+
+                            <div class="text-center mt-5 mb-2">
+                                Remembered your password ? <a class="cursorp signIn fp"> <strong>Sign in
+                                        here</strong></a>
+                            </div>
+                        </div>
+
+
+                        <!--<div class="card-footer bg-transparent border-top px-md-5">-->
+                        @*<a href="#" class="small" onclick="OpenSection('login')"> Open Section</a>*@
+                        <!--</div>-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wallet Change Detected Modal -->
+    <!-- If user connected a different wallet for the user -->
+    <div class="modal fade" id="modal-walletchange">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><b>New Wallet Detected</b></h5>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <h5 class="mb-3"><small class="tc-default">You connected a new wallet for this user. Do you want to set
+                                current wallet address as your default wallet for your profile ?</small></h5>
+
+                        <div class="col-md-6">
+                            <input class="btn-check mr-3" id="btn-check-outlined" type="radio" autocomplete="off" name="btnradio" onclick="ChangeUserWallet(1)">
+                            <label class="btn btn-outline-success w-100 mb-3" for="btn-check-outlined">YES</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input class="btn-check" id="btn-check-outlined2" type="radio" autocomplete="off" name="btnradio" onclick="ChangeUserWallet(-1)">
+                            <label class="btn btn-outline-danger w-100 mb-3" for="btn-check-outlined2">NO</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="~/Home/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/Home/js/coreui.bundle.min.js"></script>
     <script src="~/Home/lib/chartjs/js/coreui-chartjs.js"></script>
@@ -329,31 +566,43 @@
     <script src="~/Home/lib/jquery-confirm/jquery-confirm.js"></script>
     <script src="~/Home/js/sorttable.js"></script>
     <script src="~/Home/lib/ckeditor/ckeditor.js"></script>
-    <script src="~/Home/js/daofunctions.js?v=1.0.5"></script>
+    <script src="~/Home/js/daofunctions.js?v=1.0.6"></script>
+    <partial name="../Shared/_SharedFunctionsPartial.cshtml" />
 
     <script>
         $(document).ready(function () {
 
             $('[data-toggle="tooltip"]').tooltip();
 
-            //Toastr options
-            toastr.options = {
-                "closeButton": true,
-                "debug": false,
-                "newestOnTop": true,
-                "progressBar": true,
-                "positionClass": "toast-bottom-right",
-                "preventDuplicates": false,
-                "onclick": null,
-                "showDuration": "300",
-                "hideDuration": "1000",
-                "timeOut": "5000",
-                "extendedTimeOut": "1000",
-                "showEasing": "swing",
-                "hideEasing": "linear",
-                "showMethod": "fadeIn",
-                "hideMethod": "fadeOut"
-            };
+            //Display forget pass modal event
+            $(".forgotPass").on("click", function () {
+                $("#modal-login").modal("toggle");
+
+                setTimeout(function () {
+                    $("#modal-forgotpass").modal({ show: false, backdrop: 'static' });
+                    $("#modal-forgotpass").modal("show");
+                }, 500);
+            })
+
+            //Display sign up modal event
+            $(".signIn").on("click", function () {
+                $("#modal-forgotpass").modal("hide");
+                $("#modal-signUp").modal("hide");
+
+                setTimeout(function () {
+                    $("#modal-login").modal({ show: false, backdrop: 'static' });
+                    $("#modal-login").modal("show");
+                }, 500);
+            })
+
+            //Display sign up modal event
+            $(".signUp").on("click", function () {
+                $("#modal-login").modal("toggle");
+                setTimeout(function () {
+                    $("#modal-signUp").modal({ show: false, backdrop: 'static' });
+                    $("#modal-signUp").modal("show");
+                }, 500);
+            })
 
             //Dark theme toggle check
             if (document.body.classList.contains('dark-theme')) {
@@ -385,9 +634,25 @@
                 }
             }
 
-             $('.link-load').click(function(){
+            $('.link-load').click(function () {
                 ShowLoader();
             });
+
+            //Display traditional signin popup if required
+            var dbSignRequired = '@TempData["DbSignRequired"]';
+            if (dbSignRequired == "true") {
+                OpenSignInModal();
+            }
+
+            //Display wallet change message if user connected with a different wallet
+            if('@httpContextAccessor.HttpContext.Session.GetString("WalletAddress")' != '' && '@httpContextAccessor.HttpContext.Session.GetString("PublicAddress")' != '')
+            {
+                if('@httpContextAccessor.HttpContext.Session.GetString("WalletAddress")' != '@httpContextAccessor.HttpContext.Session.GetString("PublicAddress")')
+                {
+                    $("#modal-walletchange").modal({ show: false, backdrop: 'static' });
+                    $("#modal-walletchange").modal("show");
+                }
+            }
         });
 
         document.querySelectorAll('[data-coreui-toggle="popover"]').forEach(element => {
@@ -420,18 +685,17 @@
             window.casperlabsHelper.requestConnection();
 
             clearInterval(checkInterval);
-            checkInterval = setInterval(function(){ 
+            checkInterval = setInterval(function () {
                 CheckPublicKey();
             }, 1000);
 
         }
 
-        async function CheckPublicKey(){
+        async function CheckPublicKey() {
 
-            try
-            {
+            try {
                 const isConnected = await window.casperlabsHelper.isConnected();
-                if(isConnected){
+                if (isConnected) {
 
                     var publicAddress = await window.casperlabsHelper.getActivePublicKey();
                     clearInterval(checkInterval);
@@ -445,13 +709,13 @@
                         url: "../Chain/ConnectWallet",
                         data: { "publicAddress": publicAddress, "__RequestVerificationToken": token },
                         async: true,
-                        success: function (result) {                 
+                        success: function (result) {
                             if (result.success) {
                                 window.location.reload();
                             }
                             else {
-                                toastr.warning(result.message);                    
-                                HideLoader();     
+                                toastr.warning(result.message);
+                                HideLoader();
                             }
                         },
                         failure: function (response) {
@@ -472,26 +736,14 @@
 
         }
 
-        //Shows spinner and disables submit buttons
-        function ShowLoader() {
-            //Disable submit buttons
-            $('.submitFormButton').prop('disabled', true);
-            //Display loading
-            $(".spinner").removeClass("load-done");
-            $('.spinner').fadeIn(300);
-            $('.preloader').fadeIn(300);
-        }
-
-        //Hides spinner and enables submit buttons
-        function HideLoader() {
-            //Hide loading
-            $('.spinner').fadeOut(300);
-            $('.preloader').delay(300).fadeOut(300);
-            //Enable submit button
-            $('.submitFormButton').removeAttr("disabled");
+        //Displays traditional sign in popup
+        function OpenSignInModal() {
+            $("#modal-login").modal({ show: false, backdrop: 'static' });
+            $("#modal-login").modal("show");
         }
     </script>
 
     @RenderSection("Scripts", required: false)
 </body>
+
 </html>
