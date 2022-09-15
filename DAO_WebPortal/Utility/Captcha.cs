@@ -51,7 +51,7 @@ namespace DAO_WebPortal.Utility
             context.Session.Remove(code);
             return isValid;
         }
-
+        
         public static CaptchaResult GenerateCaptchaImage(int width, int height, string captchaCode)
         {
             using (Bitmap baseMap = new Bitmap(width, height))

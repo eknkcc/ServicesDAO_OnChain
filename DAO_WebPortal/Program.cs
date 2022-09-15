@@ -88,6 +88,7 @@ namespace DAO_WebPortal
             public bool UseChain { get; set; }
             public string NodeUrl { get; set; }
             public string ChainName { get; set; }
+            public string ChainAssetsPath { get; set; }
         }
 
         public static Settings _settings { get; set; } = new Settings();
@@ -97,6 +98,7 @@ namespace DAO_WebPortal
         public static void Main(string[] args)
         {
             CreateHostBuilder(args).Build().Run();
+
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

@@ -471,7 +471,7 @@ else if (!Model.Status.Verified && Model.Status.KYCStatus == "completed")
                 toastr.warning("Please fill in all required inputs.");
             }
             if (control) {
-
+                ShowLoader();
                 $.ajax({
                     method: 'POST',
                     url: "../UploadKYCDoc",
@@ -480,6 +480,7 @@ else if (!Model.Status.Verified && Model.Status.KYCStatus == "completed")
                     contentType: false, // required for FormData with jQuery
                     success: function (result) {
                         console.log(result);
+                        HideLoader();
                         if (result.success) {
                             toastr.success(result.message);
                             setTimeout(function () {
@@ -491,10 +492,12 @@ else if (!Model.Status.Verified && Model.Status.KYCStatus == "completed")
                         }
                     },
                     failure: function (response) {
-                            toastr.warning("@Lang.ConnectionError");
+                        HideLoader();
+                        toastr.warning("@Lang.ConnectionError");
                     },
                     error: function (response) {
-                         toastr.error("@Lang.UnexpectedError");
+                        HideLoader();
+                        toastr.error("@Lang.UnexpectedError");
                     }
                 });
             }

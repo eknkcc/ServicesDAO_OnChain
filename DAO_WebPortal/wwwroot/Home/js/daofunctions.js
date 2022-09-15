@@ -59,29 +59,35 @@ function StartInformalVoting(JobId) {
                         url: "../Home/AddNewComment",
                         data: { "JobId": JobId, "CommentId": 0, "Comment": comment, "__RequestVerificationToken": token },
                         success: function (result) {
-                        },
-                        failure: function (response) {
-                        },
-                        error: function (response) {
-                        }
-                    });
-
-                    $.ajax({
-                        url: "../StartInformalVoting/" + JobId,
-                        type: "GET",
-                        dataType: 'json',
-                        success: function (result) {
-                            if (result.success) {
-                                window.location.reload();
-                            } else {
-                                toastr.warning(result.message);
+                            if(result.success)
+                            {
+                                $.ajax({
+                                    url: "../StartInformalVoting/" + JobId,
+                                    type: "GET",
+                                    dataType: 'json',
+                                    success: function(result) {
+                                        if (result.success) {
+                                            window.location.reload();
+                                        } else {
+                                            toastr.warning(result.message);
+                                        }
+                                    },
+                                    failure: function(response) {
+                                        toastr.warning("Connection error");
+                                    },
+                                    error: function(response) {
+                                        toastr.error("Unexpected error");
+                                    }
+                                });  
                             }
+                            else
+                            {
+                                toastr.error("Unexpected error, please try again.");
+                            }    
                         },
                         failure: function (response) {
-                            toastr.warning("Connection error");
                         },
                         error: function (response) {
-                            toastr.error("Unexpected error");
                         }
                     });
 

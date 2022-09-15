@@ -421,16 +421,9 @@ namespace DAO_WebPortal.Controllers
         /// <param name="Comment">Comment</param>
         /// <returns></returns>
         [HttpPost]
-        [PreventDuplicateRequest]
-        [ValidateAntiForgeryToken]
         [AuthorizeDbUser]
         public JsonResult AddNewComment(int JobId, int CommentId, string Comment)
         {
-            if (!ModelState.IsValid)
-            {
-                return Json(new SimpleResponse { Success = false, Message = "Double post action prevented." });
-            }
-
             SimpleResponse result = new SimpleResponse();
 
             try

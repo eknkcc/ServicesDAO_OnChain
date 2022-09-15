@@ -15,10 +15,13 @@ using Helpers.Models.IdentityModels;
 using Helpers.Models.SharedModels;
 using DAO_WebPortal.Resources;
 using static Helpers.Constants.Enums;
-using EnvisionStaking.Casper.SDK;
 using DAO_WebPortal.Providers;
 using Helpers.Models.DtoModels.MainDbDto;
 using Helpers.Models.WebsiteViewModels;
+using Casper.Network.SDK;
+using Casper.Network.SDK.Types;
+using System.Threading;
+using Casper.Network.SDK.Utils;
 
 namespace DAO_WebPortal.Controllers
 {
@@ -144,11 +147,20 @@ namespace DAO_WebPortal.Controllers
 
             try
             {
-                string rpcUrl = Program._settings.NodeUrl + ":7777/rpc";
-                CasperClient casperClient = new CasperClient(rpcUrl);
-                var result = casperClient.RpcService.GetAccountBalance(publicAddress);
-                double balanceParsed = Convert.ToInt64(result.result.balance_value) / (double)1000000000;
+                var hex = publicAddress;
+                var publicKey = PublicKey.FromHexString(hex);
+                var casperSdk = new NetCasperClient(Program._settings.NodeUrl + ":7777/rpc");
+                var rpcResponse = casperSdk.GetAccountBalance(publicKey).Result;
+
+                double balanceParsed = Convert.ToInt64(rpcResponse.Parse().BalanceValue.ToString()) / (double)1000000000;
                 profile.Balance = balanceParsed.ToString("N2");
+
+                Console.WriteLine("Public Key Balance: " + rpcResponse.Parse().BalanceValue);
+
+                // CasperClient casperClient = new CasperClient(rpcUrl);
+                // var result = casperClient.RpcService.GetAccountBalance(publicAddress);
+                // double balanceParsed = Convert.ToInt64(result.result.balance_value) / (double)1000000000;
+                // profile.Balance = balanceParsed.ToString("N2");
             }
             catch (Exception ex)
             {
@@ -158,22 +170,50 @@ namespace DAO_WebPortal.Controllers
             return profile;
         }
 
-        public JsonResult GetBalance(string accountKey)
+        #region KYC 
+
+        public async void StartKYCVote()
         {
             try
             {
-                string rpcUrl = Program._settings.NodeUrl + ":7777/rpc";
-                CasperClient casperClient = new CasperClient(rpcUrl);
-                //var result = casperClient.RpcService.GetAccountInfo(accountKey);
-                var result = casperClient.RpcService.GetAccountBalance(accountKey);
-                return Json(result);
+                var subjectAddress = new AccountHashKey("account-hash-6d87e1a98e9122460573b8bc6a4cf93c0fd2736b51d388ab28155f881e5d3c81");
+
+                var namedArgs = new List<NamedArg>()
+                {
+                    new NamedArg("subject_address", CLValue.Key(subjectAddress)),
+                    new NamedArg("document_hash", CLValue.U256(43)),
+                    new NamedArg("stake", CLValue.U256(1000))
+                };
+
+                NetCasperClient casperSdk = new NetCasperClient(Program._settings.NodeUrl + ":7777/rpc");
+
+                KeyPair myAccount = KeyPair.FromPem(Program._settings.ChainAssetsPath + "/integration_kyctoken_secret_key.cer");
+                PublicKey myAccountPK = PublicKey.FromPem(Program._settings.ChainAssetsPath + "/integration_kyctoken_public_key.cer");
+
+                HashKey contractHash = new HashKey("hash-fb3c8edbfffbd3ff7bb294457f9682ab391e7fb181799ee7a8fb8f264f2e19fc");
+                var deploy = DeployTemplates.ContractCall(contractHash,
+                       "create_voting",
+                       namedArgs,
+                       myAccountPK,
+                       5_000_000_000,
+                       Program._settings.ChainName);
+                deploy.Sign(myAccount);
+
+                var response = await casperSdk.PutDeploy(deploy);
+                var deployHash = response.GetDeployHash();
+
+                var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+                var deployResponse = await casperSdk.GetDeploy(deployHash, tokenSource.Token);
+
+                Console.WriteLine(deployResponse.Result.GetRawText());
             }
             catch (Exception ex)
             {
 
             }
 
-            return Json("");
         }
+
+        #endregion
     }
 }
