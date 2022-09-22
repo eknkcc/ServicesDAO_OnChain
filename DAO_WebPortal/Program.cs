@@ -80,15 +80,13 @@ namespace DAO_WebPortal
             //If true -> All VAs get payment from completed jobs according to their total reputation without participation to the vote
             public bool DistributePaymentWithoutVote { get; set; }
 
-            //STRIPE PAYMENT INTEGRATION KEYS
-            public string StripePublicKey { get; set; }
-            public string StripePrivateKey { get; set; }
 
             //CHAIN SETTINGS
             public bool UseChain { get; set; }
             public string NodeUrl { get; set; }
             public string ChainName { get; set; }
             public string ChainAssetsPath { get; set; }
+            public string KYCVoterContract { get; set; }
         }
 
         public static Settings _settings { get; set; } = new Settings();

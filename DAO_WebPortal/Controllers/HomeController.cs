@@ -57,7 +57,7 @@ namespace DAO_WebPortal.Controllers
                     //Parse response
                     dashModel = Helpers.Serializers.DeserializeJson<DashBoardViewModelAdmin>(dashboardJson);
                     //Get coin price list
-                    dashModel.CoinPrices = GetCandleSticks("cspr_usdt").Select(x=>x.Close).ToList();
+                    dashModel.CoinPrices = GetCandleSticks("cspr_usdt").Select(x => x.Close).ToList();
 
                     return View("Index_Admin", dashModel);
                 }
@@ -70,7 +70,7 @@ namespace DAO_WebPortal.Controllers
                     //Parse response
                     dashModel = Helpers.Serializers.DeserializeJson<DashBoardViewModelVA>(dashboardJson);
                     //Get coin price list
-                    dashModel.CoinPrices = GetCandleSticks("cspr_usdt").Select(x=>x.Close).ToList();
+                    dashModel.CoinPrices = GetCandleSticks("cspr_usdt").Select(x => x.Close).ToList();
 
                     return View("Index_Associate", dashModel);
                 }
@@ -83,7 +83,7 @@ namespace DAO_WebPortal.Controllers
                     //Parse response
                     dashModel = Helpers.Serializers.DeserializeJson<DashBoardViewModelVA>(dashboardJson);
                     //Get coin price list
-                    dashModel.CoinPrices = GetCandleSticks("cspr_usdt").Select(x=>x.Close).ToList();
+                    dashModel.CoinPrices = GetCandleSticks("cspr_usdt").Select(x => x.Close).ToList();
 
                     return View("Index_VotingAssociate", dashModel);
                 }
@@ -173,7 +173,7 @@ namespace DAO_WebPortal.Controllers
             ViewBag.Title = "Post A New Job";
 
             // Check if user signed with traditional db account. If not opens signin popup.
-            if(CheckDbSignIn() == "Unauthorized")
+            if (CheckDbSignIn() == "Unauthorized")
             {
                 TempData["DbSignRequired"] = "true";
                 TempData["ReloadPage"] = "true";
@@ -262,7 +262,7 @@ namespace DAO_WebPortal.Controllers
             ViewBag.Title = "Edit Job";
 
             // Check if user signed with traditional db account. If not opens signin popup.
-            if(CheckDbSignIn() == "Unauthorized")
+            if (CheckDbSignIn() == "Unauthorized")
             {
                 TempData["DbSignRequired"] = "true";
                 TempData["ReloadPage"] = "true";
@@ -999,7 +999,7 @@ namespace DAO_WebPortal.Controllers
                         auction.UsersBidId = bid.AuctionBidID;
                     }
                 }
-           
+
                 //Get user's available reputation and save it to session to show in vote modal
                 var reputationJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationHistory/GetLastReputation?userid=" + HttpContext.Session.GetInt32("UserID"), HttpContext.Session.GetString("Token"));
                 if (!string.IsNullOrEmpty(reputationJson))
@@ -1713,7 +1713,6 @@ namespace DAO_WebPortal.Controllers
         /// </summary>
         /// <returns></returns>
         [Route("New-Simple-Vote")]
-        [AuthorizeChainUser]
         public IActionResult New_Simple_Vote()
         {
             ViewBag.Title = "Start A New Simple Vote";
@@ -2022,7 +2021,6 @@ namespace DAO_WebPortal.Controllers
 
                 if (modeluser != null && modeluser.UserId > 0)
                 {
-
                     modeluser.WalletAddress = walletAddress;
 
                     //Update user  
@@ -2034,7 +2032,22 @@ namespace DAO_WebPortal.Controllers
                         TempData["toastr-type"] = "success";
 
                         HttpContext.Session.SetString("WalletAddress", walletAddress);
-                        
+
+                        Program.monitizer.AddUserLog(modeluser.UserId, UserLogType.Request, "User updated the wallet address. OldValue:" + modeluser.WalletAddress + " || New Value:" + walletAddress, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+
+                        ChainController chain = new ChainController();
+                        var chainProfile = chain.GetUserChainProfile(walletAddress);
+                        if (chainProfile.IsVA)
+                        {
+                            HttpContext.Session.SetString("UserType", "VotingAssociate");
+                        }
+                        else
+                        {
+                            HttpContext.Session.SetString("UserType", "Associate");
+                        }
+                        HttpContext.Session.SetString("Balance", chainProfile.Balance.ToString());
+                        HttpContext.Session.SetString("Reputation", chainProfile.Reputation.ToString());
+
                         return Json(new SimpleResponse { Success = true, Message = "Save changes successful." });
                     }
                 }
@@ -2291,7 +2304,7 @@ namespace DAO_WebPortal.Controllers
                 //Get payment history data from ApiGateway
                 string url = Program._settings.Service_ApiGateway_Url + "/Db/PaymentHistory/ExportPaymentHistoryByDate?userid=" + HttpContext.Session.GetInt32("UserID") + "&start=" + start.ToString() + "&end=" + end.ToString();
                 //Get all users payments if user type is admin
-                if(HttpContext.Session.GetString("UserType") == Enums.UserIdentityType.Admin.ToString())
+                if (HttpContext.Session.GetString("UserType") == Enums.UserIdentityType.Admin.ToString())
                 {
                     url = Program._settings.Service_ApiGateway_Url + "/Db/PaymentHistory/ExportPaymentHistoryByDate?start=" + start.ToString() + "&end=" + end.ToString();
                 }
@@ -2303,7 +2316,7 @@ namespace DAO_WebPortal.Controllers
                 sb.AppendLine("JobID;Job Name;Job Post Date;Payment Date;Job Poster;Job Doer;Bid Price;Payment User;Payment Amount");
                 foreach (var item in model.OrderByDescending(x => x.paymentHistory.CreateDate))
                 {
-                    sb.AppendLine(item.job.JobID + ";" + item.job.Title + ";" + item.job.CreateDate + ";" + item.paymentHistory.CreateDate + ";" + item.JobPosterUsername + ";" + item.JobDoerUsername + ";" + item.winnerBid.Price+ ";" + item.PaymentUsername + ";" + item.paymentHistory.Amount);
+                    sb.AppendLine(item.job.JobID + ";" + item.job.Title + ";" + item.job.CreateDate + ";" + item.paymentHistory.CreateDate + ";" + item.JobPosterUsername + ";" + item.JobDoerUsername + ";" + item.winnerBid.Price + ";" + item.PaymentUsername + ";" + item.paymentHistory.Amount);
                 }
 
                 byte[] fileBytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString()); ;
@@ -2855,7 +2868,7 @@ namespace DAO_WebPortal.Controllers
             try
             {
                 //Post model to ApiGateway
-                string jsonResult = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Db/PaymentHistory/ChangeStatusMulti?status="+Enums.PaymentType.Completed, Helpers.Serializers.SerializeJson(idList), HttpContext.Session.GetString("Token"));
+                string jsonResult = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Db/PaymentHistory/ChangeStatusMulti?status=" + Enums.PaymentType.Completed, Helpers.Serializers.SerializeJson(idList), HttpContext.Session.GetString("Token"));
                 //Parse result
                 List<PaymentHistoryDto> resultParsed = Helpers.Serializers.DeserializeJson<List<PaymentHistoryDto>>(jsonResult);
 
@@ -2888,7 +2901,7 @@ namespace DAO_WebPortal.Controllers
 
             return Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
         }
-        
+
         /// <summary>
         ///  Export completed jobs as CSV
         /// </summary>
@@ -2947,7 +2960,7 @@ namespace DAO_WebPortal.Controllers
         #region Utility
 
         public string CheckOnchainSignIn()
-        {  
+        {
             if (HttpContext.Session.GetInt32("UserID") == null || HttpContext.Session.GetInt32("UserID") <= 0)
             {
                 return "Unauthorized";
@@ -2955,7 +2968,7 @@ namespace DAO_WebPortal.Controllers
 
             return "";
         }
-        
+
         public string CheckDbSignIn()
         {
             if (HttpContext.Session.GetInt32("UserID") == null || HttpContext.Session.GetInt32("UserID") <= 0)
@@ -2971,11 +2984,11 @@ namespace DAO_WebPortal.Controllers
             List<CandleStick> res = new List<CandleStick>();
 
             try
-            {         
+            {
                 //Get candle data from GateIO Api
-                var jsonResult = Helpers.Request.Get("https://data.gateapi.io/api2/1/candlestick2/"+ symbol + "?group_sec=3600&range_hour=72");
+                var jsonResult = Helpers.Request.Get("https://data.gateapi.io/api2/1/candlestick2/" + symbol + "?group_sec=3600&range_hour=72");
                 dynamic result = JsonConvert.DeserializeObject(jsonResult);
-                foreach(dynamic item in result.data) 
+                foreach (dynamic item in result.data)
                 {
                     res.Add(new CandleStick() { Date = item[0], Volume = item[1], Open = item[2], High = item[3], Low = item[4], Close = item[5] });
                 }

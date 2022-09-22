@@ -709,3 +709,13 @@ tbody tr:hover .trSlider span {
     margin-left: 7px;
     padding-left: 9px;
   }
+
+  #loaderExplanation{
+    color: #d8d8d8;
+    display: block;
+    position: relative;
+    top: 54%;
+    width: 100%;
+    z-index: 1001;
+    text-align: center;
+  }

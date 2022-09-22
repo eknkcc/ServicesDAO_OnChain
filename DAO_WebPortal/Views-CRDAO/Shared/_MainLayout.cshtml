@@ -317,10 +317,10 @@
                 @RenderBody()
 
                 <!-- Loading Spinner -->
-                <div style="display:none" class="preloader preloader-alt no-split"><span
-                        class="spinner spinner-alt"><img class="spinner-brand"
-                            src="../Public/images/crdao-newlogo-light.png" alt=""></span></div>
-
+                <div style="display:none" class="preloader preloader-alt no-split">
+                    <span class="spinner spinner-alt"><img class="spinner-brand" src="../Public/images/crdao-newlogo-light.png" alt=""></span>
+                    <div id="loaderExplanation"></div>
+                </div>
             </div>
         </div>
 
@@ -644,21 +644,28 @@
                 OpenSignInModal();
             }
 
-            //Display wallet change message if user connected with a different wallet
-            if('@httpContextAccessor.HttpContext.Session.GetString("WalletAddress")' != '' && '@httpContextAccessor.HttpContext.Session.GetString("PublicAddress")' != '')
-            {
-                if('@httpContextAccessor.HttpContext.Session.GetString("WalletAddress")' != '@httpContextAccessor.HttpContext.Session.GetString("PublicAddress")')
-                {
-                    $("#modal-walletchange").modal({ show: false, backdrop: 'static' });
-                    $("#modal-walletchange").modal("show");
-                }
-            }
+            DetectUserWalletChange();
+
         });
 
         document.querySelectorAll('[data-coreui-toggle="popover"]').forEach(element => {
             // eslint-disable-next-line no-new
             new coreui.Popover(element);
         });
+
+        async function DetectUserWalletChange(){
+            //Display wallet change message if user connected with a different wallet
+            if('@httpContextAccessor.HttpContext.Session.GetInt32("ChainSign")' == 1)
+            {
+                var publicAddress = await window.casperlabsHelper.getActivePublicKey();
+
+                if('@httpContextAccessor.HttpContext.Session.GetString("WalletAddress")' != publicAddress)
+                {
+                    $("#modal-walletchange").modal({ show: false, backdrop: 'static' });
+                    $("#modal-walletchange").modal("show");
+                }
+            }
+        }
 
         function handleThemeChange(src) {
             var event = document.createEvent('Event');

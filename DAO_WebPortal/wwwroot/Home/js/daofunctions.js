@@ -301,3 +301,29 @@ async function ChangeUserWallet(response)
         $("#modal-walletchange").modal("toggle");
     }
 }
+
+
+async function SendSignedDeploy(deploy) {
+    //Ajax post action
+    $.ajax({
+        type: "POST",
+        url: "../Chain/SendSignedDeploy",
+        data: {
+            "deployObj": JSON.stringify(deploy)
+        },
+        success: function (result) {
+            if (result.success) {
+                toastr.success(result.message);
+            }
+            else {
+                toastr.warning(result.message);
+            }
+        },
+        failure: function (response) {
+            toastr.warning("@Lang.ConnectionError");
+        },
+        error: function (response) {
+            toastr.error("@Lang.UnexpectedError");
+        }
+    });
+}

@@ -12,6 +12,8 @@ namespace Helpers.Models.WebsiteViewModels
         public string description { get; set; }
         public string type { get; set; }
         public string vausername { get; set; }
+        public string documentHash { get; set; }
+        public string kycUserName { get; set; }
         public PlatformSettingDto settings { get; set; }
     }
 

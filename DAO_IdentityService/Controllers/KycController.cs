@@ -208,16 +208,19 @@ namespace DAO_IdentityService.Controllers
                         }
                         else
                         {
-                            User.KYCStatus = true;
-                            var UserUpdate = Helpers.Serializers.DeserializeJson<UserDto>(Helpers.Request.Put(Program._settings.Service_Db_Url + "/Users/Update", Helpers.Serializers.SerializeJson(User)));
-                            if (UserUpdate != null && UserUpdate.UserId > 0)
-                            {
-                                return new SimpleResponse() { Success = true };
-                            }
-                            else
-                            {
-                                return new SimpleResponse() { Success = false, Message = "User failed to update" };
-                            }
+                             return new SimpleResponse() { Success = true };
+                             
+                            //WAIT FOR BLOCKCHAIN VOTE APPROVAL
+                            // User.KYCStatus = true;
+                            // var UserUpdate = Helpers.Serializers.DeserializeJson<UserDto>(Helpers.Request.Put(Program._settings.Service_Db_Url + "/Users/Update", Helpers.Serializers.SerializeJson(User)));
+                            // if (UserUpdate != null && UserUpdate.UserId > 0)
+                            // {
+                            //     return new SimpleResponse() { Success = true };
+                            // }
+                            // else
+                            // {
+                            //     return new SimpleResponse() { Success = false, Message = "User failed to update" };
+                            // }
                         }
                     }
                 }

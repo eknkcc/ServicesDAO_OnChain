@@ -2,6 +2,14 @@
 @using Microsoft.AspNetCore.Http
 @inject IHttpContextAccessor httpContextAccessor
 
+<script src="~/Casper/tsresult.js"></script>
+<script src="~/Casper/CasperClientHelper.js"></script>
+<script src="~/Casper/CasperJsSdk.js"></script>
+<script src="~/Casper/daocontracts.js"></script>
+@* <script src="~/Casper/CasperClientHelper.js"></script>
+    <script src="~/Casper/CasperERC20.js"></script>
+    <script src="~/Casper/CasperCEP47.js"></script> *@
+
 <script>
 
     $(document).ready(function () {
@@ -25,34 +33,34 @@
 
         //Create Captcha after failed request attempts for all public inputs
         @if (httpContextAccessor.HttpContext.Session.GetInt32("FailCount") > 3)
-        {
-            @Html.Raw("resetCaptchaImage(\"#img-captcha-login\", \"securityCodeLogin\");")
-            @Html.Raw("resetCaptchaImage(\"#img-captcha-register\", \"securityCodeRegister\");")
-            @Html.Raw("resetCaptchaImage(\"#img-img-captcha-resetpass\", \"securityCodeResetPass\");")
-            @Html.Raw("resetCaptchaImage(\"#img-captcha-resetpasscomplete\", \"securityCodeResetPassComplete\");")
-            @Html.Raw("$(\".captchaDiv\").removeClass(\"d-none\");")
-            @Html.Raw("failCount=" + httpContextAccessor.HttpContext.Session.GetInt32("FailCount"))
-            ;
-        }
+    {
+        @Html.Raw("resetCaptchaImage(\"#img-captcha-login\", \"securityCodeLogin\");")
+        @Html.Raw("resetCaptchaImage(\"#img-captcha-register\", \"securityCodeRegister\");")
+        @Html.Raw("resetCaptchaImage(\"#img-img-captcha-resetpass\", \"securityCodeResetPass\");")
+        @Html.Raw("resetCaptchaImage(\"#img-captcha-resetpasscomplete\", \"securityCodeResetPassComplete\");")
+        @Html.Raw("$(\".captchaDiv\").removeClass(\"d-none\");")
+        @Html.Raw("failCount=" + httpContextAccessor.HttpContext.Session.GetInt32("FailCount"))
+        ;
+    }
 
-        //Toastr library options
+            //Toastr library options
             toastr.options = {
-                "closeButton": true,
+            "closeButton": true,
                 "debug": false,
-                "newestOnTop": true,
-                "progressBar": false,
-                "positionClass": "toast-bottom-right",
-                "preventDuplicates": false,
-                "onclick": null,
-                "showDuration": "300",
-                "hideDuration": "1000",
-                "timeOut": "5000",
-                "extendedTimeOut": "1000",
-                "showEasing": "swing",
-                "hideEasing": "linear",
-                "showMethod": "fadeIn",
-                "hideMethod": "fadeOut"
-            };
+                    "newestOnTop": true,
+                        "progressBar": false,
+                            "positionClass": "toast-bottom-right",
+                                "preventDuplicates": false,
+                                    "onclick": null,
+                                        "showDuration": "300",
+                                            "hideDuration": "1000",
+                                                "timeOut": "5000",
+                                                    "extendedTimeOut": "1000",
+                                                        "showEasing": "swing",
+                                                            "hideEasing": "linear",
+                                                                "showMethod": "fadeIn",
+                                                                    "hideMethod": "fadeOut"
+        };
 
     });
 
@@ -90,14 +98,12 @@
             async: true,
             success: function (result) {
                 if (result.success) {
-                    if('@TempData["ReloadPage"]' != '')
-                    {
+                    if ('@TempData["ReloadPage"]' != '') {
                         location.reload();
                     }
-                    else
-                    {
+                    else {
                         window.location.href = "../Home";
-                    }                                        
+                    }
                 }
                 else {
                     failCount++;
@@ -332,7 +338,14 @@
     }
 
     //Shows spinner and disables submit buttons
-    function ShowLoader() {
+    function ShowLoader(explanation = "") {
+        $("#loaderExplanation").addClass("d-none");
+        if(explanation.length > 0)
+        {
+            $("#loaderExplanation").html(explanation);
+            $("#loaderExplanation").removeClass("d-none");
+        }
+
         //Disable submit button
         $('.submitFormButton').prop('disabled', true);
         //Display loading
