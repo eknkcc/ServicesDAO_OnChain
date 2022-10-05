@@ -239,7 +239,7 @@
 
                             ShowLoader("Sending signed deploy. This may take few minutes..."); 
 
-                            SendSignedDeploy(signature.deploy);
+                            await SendSignedDeploy(signature.deploy);
 
                             HideLoader();
                         }

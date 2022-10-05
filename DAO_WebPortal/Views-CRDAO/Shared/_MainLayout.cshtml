@@ -194,14 +194,10 @@
             <li class="nav-item d-block d-sm-none mt-3">
                 <center>
                     <nav>
-                        @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") < 0 &&
-                        Program._settings.UseChain == true)
+                        @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") < 0 && Program._settings.UseChain == true)
                         {
                             <div class="btn-group mb-3" role="group">
-                                <button type="button" onclick="LoginChain();"
-                                class="btn btn-block btn-md submitFormButton w-100 casperBg me-2 text-white font-sm"><img
-                                    src="../Public/images/casper.png" style="width: 24px;" class="me-2" />Connect
-                                    Wallet</button>
+                                <button type="button" onclick="LoginChain();" class="btn btn-block btn-md submitFormButton w-100 casperBg me-2 text-white font-sm"><img src="../Public/images/casper.png" style="width: 24px;" class="me-2" />Connect Wallet</button>
                             </div>
                         }
 
@@ -269,36 +265,54 @@
 
                 <ul class="header-nav">
                     <li class="nav-item dropdown d-md-down-none">
-                        <a class="nav-link" data-coreui-toggle="dropdown" href="#" role="button" aria-haspopup="true"
+                        <div class="top-menu-item" data-coreui-toggle="dropdown" href="#" role="button" aria-haspopup="true"
                             aria-expanded="false">
                             <div class="avatar avatar-md d-inline-block" style="vertical-align:top">
                                 <img class="avatar-img" src="@Url.Action("GetProfileImage", "Home")">
                             </div>
                             <div class="d-inline-block">
-                                <small
-                                    class="mb-0">@httpContextAccessor.HttpContext.Session.GetString("NameSurname")</small><br />
+                                <small class="mb-0">@httpContextAccessor.HttpContext.Session.GetString("NameSurname")</small><br />
                                 <small><b>@httpContextAccessor.HttpContext.Session.GetString("UserType")</b></small>
                             </div>
-                            @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") > 0 &&
-                            Program._settings.UseChain == true)
+                            @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") > 0 && Program._settings.UseChain == true)
                             {
-                                <div class="d-inline-block reputationHeaderDiv">
-                                    <small class="mb-0"><i class="fas fa-star me-1"></i><small>Rep: </small> <span
-                                        class="text-right">@httpContextAccessor.HttpContext.Session.GetString("Reputation")</span></small><br />
-                                    <small><i class="fas fa-coins me-1"></i><small>Cspr: </small> <span
-                                        class="text-right">@httpContextAccessor.HttpContext.Session.GetString("Balance")</span></small>
-                                </div>
+                                if(Program.chainQue.Count(x=>x.WalletAddress == httpContextAccessor.HttpContext.Session.GetString("WalletAddress")) > 0)
+                                {
+                                    <span class="spinner spinner-alt smallSpinner"><i class="fas fa-circle-notch fa-link"></i></span>
+                                }
+                                else
+                                {
+                                    <div class="d-inline-block reputationHeaderDiv">
+                                        <small class="mb-0"><i class="fas fa-star me-1"></i><small>Rep: </small> <span
+                                            class="text-right">@httpContextAccessor.HttpContext.Session.GetString("Reputation")</span></small><br />
+                                        <small><i class="fas fa-coins me-1"></i><small>Cspr: </small> <span
+                                            class="text-right">@httpContextAccessor.HttpContext.Session.GetString("Balance")</span></small>
+                                    </div>             
+                                }
                             }
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end dropdown-menu-lg pt-0">
+                        </div>
+                        <div class="dropdown-menu dropdown-menu-end dropdown-menu-lg dropdown-big mt-1">
 
-                            <div class="message">
-                                <div class="dropdown-header bg-light py-2">
-                                    <strong>Account</strong>
-                                </div>
-                                <a class="dropdown-item" href="../User-Profile">
-                                    Profile
-                                </a>
+                            <div>
+                        
+                                    @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") > 0 && Program._settings.UseChain == true)
+                                    {
+                                        <div class="dropdown-header py-2"><strong>Pending blockchain actions: @Program.chainQue.Count(x=>x.WalletAddress == httpContextAccessor.HttpContext.Session.GetString("WalletAddress"))</strong></div>
+                                        <div class="dropdown-header">
+                                            @foreach (var item in Program.chainQue.Where(x=>x.WalletAddress == httpContextAccessor.HttpContext.Session.GetString("WalletAddress")))
+                                            {
+                                                <div>@item.ActionType</div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="dropdown-header py-2"><strong>Pending blockchain actions: 0</strong></div>
+                                        <div class="dropdown-header">
+                                            <i>Please connect your wallet to use onchain features.</i>
+                                        </div>
+                                    }
+                               
                                 <a class="dropdown-item" href="../Public/Logout">
                                     Logout
                                 </a>
@@ -544,12 +558,10 @@
                                 current wallet address as your default wallet for your profile ?</small></h5>
 
                         <div class="col-md-6">
-                            <input class="btn-check mr-3" id="btn-check-outlined" type="radio" autocomplete="off" name="btnradio" onclick="ChangeUserWallet(1)">
-                            <label class="btn btn-outline-success w-100 mb-3" for="btn-check-outlined">YES</label>
+                            <input class="btn btn-success w-100 text-white mr-3" type="button" onclick="ChangeUserWallet(1)" value="YES" />
                         </div>
                         <div class="col-md-6">
-                            <input class="btn-check" id="btn-check-outlined2" type="radio" autocomplete="off" name="btnradio" onclick="ChangeUserWallet(-1)">
-                            <label class="btn btn-outline-danger w-100 mb-3" for="btn-check-outlined2">NO</label>
+                            <input class="btn btn-danger w-100 text-white" type="button" onclick="ChangeUserWallet(-1)" value="NO" />
                         </div>
                     </div>
                 </div>
@@ -684,63 +696,6 @@
 
         function changeThemeCookie(src) {
             $.ajax({ type: "GET", url: './Home/SetCookie', data: { "src": src }, cache: false, async: true });
-        }
-
-        var checkInterval;
-        async function LoginChain() {
-
-            window.casperlabsHelper.requestConnection();
-
-            clearInterval(checkInterval);
-            checkInterval = setInterval(function () {
-                CheckPublicKey();
-            }, 1000);
-
-        }
-
-        async function CheckPublicKey() {
-
-            try {
-                const isConnected = await window.casperlabsHelper.isConnected();
-                if (isConnected) {
-
-                    var publicAddress = await window.casperlabsHelper.getActivePublicKey();
-                    clearInterval(checkInterval);
-                    ShowLoader();
-
-                    var token = $('input[name="__RequestVerificationToken"]', token).val();
-
-                    //Ajax post action
-                    $.ajax({
-                        type: "POST",
-                        url: "../Chain/ConnectWallet",
-                        data: { "publicAddress": publicAddress, "__RequestVerificationToken": token },
-                        async: true,
-                        success: function (result) {
-                            if (result.success) {
-                                window.location.reload();
-                            }
-                            else {
-                                toastr.warning(result.message);
-                                HideLoader();
-                            }
-                        },
-                        failure: function (response) {
-                            toastr.warning("@Lang.ConnectionError");
-                            HideLoader();
-                        },
-                        error: function (response) {
-                            toastr.error("@Lang.UnexpectedError");
-                            HideLoader();
-                        }
-                    });
-                }
-            }
-            catch
-            {
-                return "";
-            }
-
         }
 
         //Displays traditional sign in popup

@@ -20,6 +20,7 @@
     <PackageReference Include="Casper.Network.SDK" Version="1.1.0" />
     <PackageReference Include="Casper.Network.SDK.Web" Version="1.1.0" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+    <PackageReference Include="Casper.Network.SDK.Clients" Version="1.1.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -169,6 +170,7 @@
     <None Remove="Portable.BouncyCastle" />
     <None Remove="Casper.Network.SDK" />
     <None Remove="System.Drawing.Common" />
+    <None Remove="Casper.Network.SDK.Clients" />
   </ItemGroup>
   <ItemGroup>
     <None Include="wwwroot\Home\lib\ckeditor\adapters\jquery.js" />

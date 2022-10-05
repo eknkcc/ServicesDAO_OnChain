@@ -21,6 +21,9 @@ using static DAO_WebPortal.Program;
 using static Helpers.Constants.Enums;
 using System.Timers;
 using Westwind.AspNetCore.Markdown;
+using Casper.Network.SDK.Web;
+using Casper.Network.SDK.Clients;
+using Casper.Network.SDK;
 
 namespace DAO_WebPortal
 {
@@ -225,7 +228,23 @@ namespace DAO_WebPortal
             });
 
             services.AddMarkdown();
-            
+
+            services.AddCasperRPCService(Configuration);
+            services.AddCasperSSEService(Configuration);
+            services.AddCasperSignerInterop();
+            services.AddCasperLedgerInterop();
+
+            services.AddTransient<ICEP47Client, CEP47Client>(provider =>
+            {
+                if (provider.GetService(typeof(ICasperClient)) is not ICasperClient rpcService)
+                    throw new Exception("Not able to get an ICasperClient instance to boot up.");
+
+                if (provider.GetService(typeof(IConfiguration)) is not IConfiguration configService)
+                    throw new Exception("Not able to get an IConfiguration instance to boot up.");
+
+                return new CEP47Client(rpcService, configService["Casper.Network.SDK.Web:ChainName"]);
+            });
+
             //services.AddHsts(options =>
             //{
             //    //options.MaxAge = TimeSpan.FromDays(100);

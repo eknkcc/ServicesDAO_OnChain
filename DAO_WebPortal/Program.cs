@@ -1,4 +1,6 @@
 using Helpers;
+using Helpers.Models.DtoModels.MainDbDto;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -92,11 +94,11 @@ namespace DAO_WebPortal
         public static Settings _settings { get; set; } = new Settings();
         public static Helpers.RabbitMQ rabbitMq = new Helpers.RabbitMQ();
         public static Monitizer monitizer;
+        public static List<ChainActionDto> chainQue = new List<ChainActionDto>();
 
         public static void Main(string[] args)
         {
             CreateHostBuilder(args).Build().Run();
-
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

@@ -38,6 +38,8 @@ namespace DAO_DbService.Mapping
             CreateMap<PlatformSetting, PlatformSettingDto>();
             CreateMap<PlatformSettingDto, PlatformSetting>();
 
+            CreateMap<ChainAction, ChainActionDto>();
+            CreateMap<ChainActionDto, ChainAction>();
         }
     }
 }

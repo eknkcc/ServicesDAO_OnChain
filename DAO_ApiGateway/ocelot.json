@@ -259,6 +259,19 @@
       "UpstreamPathTemplate": "/PublicActions/GetLatestSetting",
       "UpstreamHttpMethod": [ "GET" ],
       "Priority": 2
+    },
+    {
+      "DownstreamPathTemplate": "/ChainAction/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "dao_dbservice",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/ChainAction/{everything}",
+      "UpstreamHttpMethod": [ "GET","POST","PUT" ],
+      "Priority": 2
     }
   ]
 }

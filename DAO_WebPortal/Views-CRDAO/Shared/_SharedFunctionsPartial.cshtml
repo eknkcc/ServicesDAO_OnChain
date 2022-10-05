@@ -33,15 +33,15 @@
 
         //Create Captcha after failed request attempts for all public inputs
         @if (httpContextAccessor.HttpContext.Session.GetInt32("FailCount") > 3)
-    {
-        @Html.Raw("resetCaptchaImage(\"#img-captcha-login\", \"securityCodeLogin\");")
-        @Html.Raw("resetCaptchaImage(\"#img-captcha-register\", \"securityCodeRegister\");")
-        @Html.Raw("resetCaptchaImage(\"#img-img-captcha-resetpass\", \"securityCodeResetPass\");")
-        @Html.Raw("resetCaptchaImage(\"#img-captcha-resetpasscomplete\", \"securityCodeResetPassComplete\");")
-        @Html.Raw("$(\".captchaDiv\").removeClass(\"d-none\");")
-        @Html.Raw("failCount=" + httpContextAccessor.HttpContext.Session.GetInt32("FailCount"))
-        ;
-    }
+        {
+            @Html.Raw("resetCaptchaImage(\"#img-captcha-login\", \"securityCodeLogin\");")
+            @Html.Raw("resetCaptchaImage(\"#img-captcha-register\", \"securityCodeRegister\");")
+            @Html.Raw("resetCaptchaImage(\"#img-img-captcha-resetpass\", \"securityCodeResetPass\");")
+            @Html.Raw("resetCaptchaImage(\"#img-captcha-resetpasscomplete\", \"securityCodeResetPassComplete\");")
+            @Html.Raw("$(\".captchaDiv\").removeClass(\"d-none\");")
+            @Html.Raw("failCount=" + httpContextAccessor.HttpContext.Session.GetInt32("FailCount"))
+            ;
+        }
 
             //Toastr library options
             toastr.options = {

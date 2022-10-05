@@ -14190,7 +14190,7 @@ html:not([dir=rtl]) .rounded-start {
 .dark-theme .dropdown {
   --cui-dropdown-color: rgba(255, 255, 255, 0.87);
   --cui-dropdown-border-color: rgba(255, 255, 255, 0.075);
-  --cui-dropdown-bg: #34353e;
+  --cui-dropdown-bg: #24273d;
   --cui-dropdown-divider-bg: rgba(255, 255, 255, 0.075);
   --cui-dropdown-link-color: rgba(255, 255, 255, 0.87);
   --cui-dropdown-link-hover-color: rgba(255, 255, 255, 0.87);

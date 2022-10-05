@@ -22,11 +22,19 @@ using Casper.Network.SDK;
 using Casper.Network.SDK.Types;
 using System.Threading;
 using Casper.Network.SDK.Utils;
+using Microsoft.AspNetCore.Components;
+using Casper.Network.SDK.Web;
+using Casper.Network.SDK.Clients;
+using System.Threading.Tasks;
 
 namespace DAO_WebPortal.Controllers
 {
     public class ChainController : Controller
     {
+        //[Parameter] public IERC20Client ERC20Client { get; set; }
+
+        //[Inject] protected CasperSignerInterop SignerInterop { get; set; }
+
 
         /// <summary>
         ///  User login onchain function
@@ -168,26 +176,56 @@ namespace DAO_WebPortal.Controllers
         [HttpPost]
         public JsonResult SendSignedDeploy(string deployObj)
         {
+            ChainActionDto chainAction = new ChainActionDto() { };
+
             try
             {
+                Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Sending Deploy: " + deployObj);
+                string walletAddress = HttpContext.Session.GetString("WalletAddress");
+
+                chainAction = new ChainActionDto() { ActionType = "Contract Call", CreateDate = DateTime.Now, WalletAddress = walletAddress, DeployJson = deployObj, Status = "Pending" };
+                var chainQuePostJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/ChainAction/Post", Helpers.Serializers.SerializeJson(chainAction));
+                chainAction = Helpers.Serializers.DeserializeJson<ChainActionDto>(chainQuePostJson);
+                if (chainAction != null && chainAction.ChainActionId > 0)
+                {
+                    Program.chainQue.Add(chainAction);
+                }
+
                 Deploy deploy = Deploy.Parse(deployObj);
 
                 NetCasperClient casperSdk = new NetCasperClient(Program._settings.NodeUrl + ":7777/rpc");
 
                 var response = casperSdk.PutDeploy(deploy).Result;
+
+                chainAction.Result = " Error:" + response.Error;
+
+                Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Deploy Result: " + response.Result.GetRawText());
+                Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Deploy Error: " + response.Error);
+
                 var deployHash = response.GetDeployHash();
+
+                chainAction.DeployHash = deployHash;
+                Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Deploy Hash: " + deployHash);
 
                 var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(120));
                 var deployResponse = casperSdk.GetDeploy(deployHash, tokenSource.Token).Result;
 
-                Console.WriteLine(deployResponse.Result.GetRawText());
+                chainAction.Result = "Deploy Response: " + deployResponse.Result.GetRawText() + " Error:" + deployResponse.Error;
+                Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Deploy Response: " + deployResponse.Result.GetRawText()+ " Error: " + deployResponse.Error);
+
+                chainAction.Result = "Completed";
+
+                var updateJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/ChainAction/Update", Helpers.Serializers.SerializeJson(chainAction));
 
                 return base.Json(new SimpleResponse { Success = true, Message = deployResponse.Result.GetRawText() });
             }
             catch (Exception ex)
             {
+                chainAction.Result = "Error";
+                var updateJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/ChainAction/Update", Helpers.Serializers.SerializeJson(chainAction));
+
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
-                return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+                return base.Json(new SimpleResponse { Success = false, Message = "An error occured while sending the deploy to the chain. Please check chain logs for details." });
             }
         }
 
@@ -203,7 +241,7 @@ namespace DAO_WebPortal.Controllers
                 UserDto profileModel = Helpers.Serializers.DeserializeJson<UserDto>(userjson);
 
                 //Check user exists
-                if (profileModel == null || profileModel.UserId <= 0)
+                if (profileModel == null || profileModel.UserId <= 0)
                 {
                     return base.Json(new SimpleResponse { Success = false, Message = "User not found." });
                 }
@@ -217,7 +255,7 @@ namespace DAO_WebPortal.Controllers
                 //Check user's wallet exists
                 if (string.IsNullOrEmpty(profileModel.WalletAddress))
                 {
-                    return base.Json(new SimpleResponse { Success = false, Message = "User's chain address could not be found. "+ username +" needs to connect a wallet first." });
+                    return base.Json(new SimpleResponse { Success = false, Message = "User's chain address could not be found. " + username + " needs to connect a wallet first." });
                 }
 
                 //Get model from ApiGateway
@@ -233,14 +271,15 @@ namespace DAO_WebPortal.Controllers
 
                 PublicKey kycUserAccountPK = PublicKey.FromHexString(profileModel.WalletAddress);
                 PublicKey myAccountPK = PublicKey.FromHexString(HttpContext.Session.GetString("WalletAddress"));
-                
+
                 //"account-hash-6d87e1a98e9122460573b8bc6a4cf93c0fd2736b51d388ab28155f881e5d3c81"
-                var subjectAddress = new AccountHashKey(kycUserAccountPK.GetAccountHash()); 
+                var subjectAddress = new AccountHashKey(kycUserAccountPK.GetAccountHash());
 
                 var namedArgs = new List<NamedArg>()
                 {
                     new NamedArg("subject_address", CLValue.Key(subjectAddress)),
-                    new NamedArg("document_hash", CLValue.String(userKycModel.VerificationId)),
+                    //new NamedArg("document_hash", CLValue.String(userKycModel.VerificationId)),
+                    new NamedArg("document_hash", CLValue.U256(13455)),
                     new NamedArg("stake", CLValue.U256(stake))
                 };
 
@@ -265,6 +304,6 @@ namespace DAO_WebPortal.Controllers
         }
 
         #endregion
-    
+
     }
 }

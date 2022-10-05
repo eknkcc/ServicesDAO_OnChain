@@ -26,7 +26,8 @@
             UserLog,
             AdminLog,
             ApplicationLog,
-            ApplicationError
+            ApplicationError,
+            ChainLog
         }
 
 

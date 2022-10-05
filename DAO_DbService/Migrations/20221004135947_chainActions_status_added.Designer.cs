@@ -3,14 +3,16 @@ using System;
 using DAO_DbService.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DAO_DbService.Migrations
 {
     [DbContext(typeof(dao_maindb_context))]
-    partial class dao_maindb_contextModelSnapshot : ModelSnapshot
+    [Migration("20221004135947_chainActions_status_added")]
+    partial class chainActions_status_added
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -121,9 +123,6 @@ namespace DAO_DbService.Migrations
 
                     b.Property<string>("ActionType")
                         .HasColumnType("text");
-
-                    b.Property<DateTime>("CreateDate")
-                        .HasColumnType("datetime");
 
                     b.Property<string>("DeployHash")
                         .HasColumnType("text");

@@ -719,3 +719,45 @@ tbody tr:hover .trSlider span {
     z-index: 1001;
     text-align: center;
   }
+
+  .smallSpinner{
+    margin: 0;
+    width: 32px;
+    height: 32px;
+    top: 5px;
+    left: 0;
+  }
+
+
+  .smallSpinner i{
+    position: relative;
+    top: 6px;
+    left: 10px;
+    font-size: 13px;
+  }
+
+  .dropdown-big{
+    min-width: 25rem;
+  }
+
+  .spinner-alt:after {
+    border-top-color: #5f5f5f;
+  }
+
+  .dark-theme .spinner-alt:after {
+    border-top-color: #fff;
+  } 
+
+  .top-menu-item
+  {
+    display: block;
+    padding: 0.5rem 1rem;  
+    padding-right: 0.5rem;
+    padding-left: 0.5rem;
+    color: var(--cui-header-color, rgba(44, 56, 74, 0.681));
+  }
+
+  .top-menu-item:hover
+  {
+    color: var(--cui-header-color, rgba(44, 56, 74, 0.681));
+  }

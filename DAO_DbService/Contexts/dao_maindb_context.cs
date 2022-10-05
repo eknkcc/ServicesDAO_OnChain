@@ -38,7 +38,7 @@ namespace DAO_DbService.Contexts
         public DbSet<UserCommentVote> UserCommentVotes { get; set; }
         public DbSet<PaymentHistory> PaymentHistories { get; set; }
         public DbSet<PlatformSetting> PlatformSettings { get; set; }
-
+        public DbSet<ChainAction> ChainActions { get; set; }
 
     }
 }
