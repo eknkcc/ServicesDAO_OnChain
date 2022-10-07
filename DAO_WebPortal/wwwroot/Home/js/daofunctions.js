@@ -327,3 +327,8 @@ async function SendSignedDeploy(deploy) {
         }
     });
 }
+
+function ShowChainActionDetail(id)
+{
+    window.open("../Chain/ChainActionDetail?id="+id, '_blank').focus();
+}

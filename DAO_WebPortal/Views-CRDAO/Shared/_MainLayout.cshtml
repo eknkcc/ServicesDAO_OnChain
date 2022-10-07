@@ -276,18 +276,18 @@
                             </div>
                             @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") > 0 && Program._settings.UseChain == true)
                             {
-                                if(Program.chainQue.Count(x=>x.WalletAddress == httpContextAccessor.HttpContext.Session.GetString("WalletAddress")) > 0)
-                                {
-                                    <span class="spinner spinner-alt smallSpinner"><i class="fas fa-circle-notch fa-link"></i></span>
-                                }
-                                else
-                                {
-                                    <div class="d-inline-block reputationHeaderDiv">
+                                <div class="d-inline-block reputationHeaderDiv">
                                         <small class="mb-0"><i class="fas fa-star me-1"></i><small>Rep: </small> <span
                                             class="text-right">@httpContextAccessor.HttpContext.Session.GetString("Reputation")</span></small><br />
                                         <small><i class="fas fa-coins me-1"></i><small>Cspr: </small> <span
                                             class="text-right">@httpContextAccessor.HttpContext.Session.GetString("Balance")</span></small>
-                                    </div>             
+                                </div>             
+
+                                if(Program.chainQue.Count(x=> x.Status == "InProgress" && x.WalletAddress == httpContextAccessor.HttpContext.Session.GetString("WalletAddress")) > 0)
+                                {
+                                    <div class="d-inline-block" style="vertical-align: top;">
+                                        <span class="spinner spinner-alt smallSpinner"><i class="fas fa-circle-notch fa-link"></i></span>
+                                    </div>
                                 }
                             }
                         </div>
@@ -297,11 +297,34 @@
                         
                                     @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") > 0 && Program._settings.UseChain == true)
                                     {
-                                        <div class="dropdown-header py-2"><strong>Pending blockchain actions: @Program.chainQue.Count(x=>x.WalletAddress == httpContextAccessor.HttpContext.Session.GetString("WalletAddress"))</strong></div>
-                                        <div class="dropdown-header">
-                                            @foreach (var item in Program.chainQue.Where(x=>x.WalletAddress == httpContextAccessor.HttpContext.Session.GetString("WalletAddress")))
+                                        <div class="dropdown-header py-2"><strong>Pending blockchain actions: @Program.chainQue.Count(x=> x.Status == "In Progress" && x.WalletAddress == httpContextAccessor.HttpContext.Session.GetString("WalletAddress"))</strong></div>
+                                        <div class="dropdown-header chainDropdown">
+                                            @foreach (var item in Program.chainQue.Where(x=>x.WalletAddress == httpContextAccessor.HttpContext.Session.GetString("WalletAddress")).OrderByDescending(x=>x.CreateDate).Take(10))
                                             {
-                                                <div>@item.ActionType</div>
+                                                <div class="chainQueItem" onclick="ShowChainActionDetail(@item.ChainActionId);">
+                                                    <div class="chainQueItemIcon">
+                                                        @if(item.Status == "Completed")
+                                                        {
+                                                            <i class="fas fa-check-circle"></i> 
+                                                        }
+                                                        else if(item.Status == "Failed")
+                                                        {
+                                                            <i class="fas fa-exclamation-triangle"></i>
+                                                        }
+                                                        else if(item.Status == "In Progress")
+                                                        {
+                                                            <i class="fas fa-circle-notch fa-spin"></i> 
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="fas fa-hourglass"></i> 
+                                                        }
+                                                    </div>
+                                                    <div class="d-inline-block w-100 pe-4">
+                                                        <div class="ms-1">@item.ActionType <small style="float: right;">@item.CreateDate.ToString("MM.dd.yyyy HH:mm")</small></div>
+                                                        <small class="ms-1" style="color: rgb(255 255 255 / 50%) !important;">@item.Status</small>
+                                                    </div>                                 
+                                                </div>
                                             }
                                         </div>
                                     }
@@ -313,8 +336,8 @@
                                         </div>
                                     }
                                
-                                <a class="dropdown-item" href="../Public/Logout">
-                                    Logout
+                                <a class="dropdown-item text-right" href="../Public/Logout">
+                                     <i class="fas fa-power-off"></i> Logout
                                 </a>
                             </div>
 

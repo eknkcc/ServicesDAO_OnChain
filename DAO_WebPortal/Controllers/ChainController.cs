@@ -176,14 +176,14 @@ namespace DAO_WebPortal.Controllers
         [HttpPost]
         public JsonResult SendSignedDeploy(string deployObj)
         {
-            ChainActionDto chainAction = new ChainActionDto() { };
+            ChainActionDto chainAction = new ChainActionDto();
 
             try
             {
                 Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Sending Deploy: " + deployObj);
                 string walletAddress = HttpContext.Session.GetString("WalletAddress");
 
-                chainAction = new ChainActionDto() { ActionType = "Contract Call", CreateDate = DateTime.Now, WalletAddress = walletAddress, DeployJson = deployObj, Status = "Pending" };
+                chainAction = new ChainActionDto() { ActionType = "Contract Call", CreateDate = DateTime.Now, WalletAddress = walletAddress, DeployJson = deployObj, Status = "In Progress" };
                 var chainQuePostJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/ChainAction/Post", Helpers.Serializers.SerializeJson(chainAction));
                 chainAction = Helpers.Serializers.DeserializeJson<ChainActionDto>(chainQuePostJson);
                 if (chainAction != null && chainAction.ChainActionId > 0)
@@ -193,40 +193,67 @@ namespace DAO_WebPortal.Controllers
 
                 Deploy deploy = Deploy.Parse(deployObj);
 
-                NetCasperClient casperSdk = new NetCasperClient(Program._settings.NodeUrl + ":7777/rpc");
+                new Thread(() => 
+                {
+                    Thread.CurrentThread.IsBackground = true; 
 
-                var response = casperSdk.PutDeploy(deploy).Result;
 
-                chainAction.Result = " Error:" + response.Error;
+                    NetCasperClient casperSdk = new NetCasperClient(Program._settings.NodeUrl + ":7777/rpc");
 
-                Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Deploy Result: " + response.Result.GetRawText());
-                Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Deploy Error: " + response.Error);
+                    var response = casperSdk.PutDeploy(deploy).Result;
 
-                var deployHash = response.GetDeployHash();
+                    //chainAction.Result = " Error:" + response.Error;
 
-                chainAction.DeployHash = deployHash;
-                Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Deploy Hash: " + deployHash);
+                    Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Deploy Result: " + response.Result.GetRawText());
+                    Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Deploy Error: " + response.Error);
 
-                var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(120));
-                var deployResponse = casperSdk.GetDeploy(deployHash, tokenSource.Token).Result;
+                    var deployHash = response.GetDeployHash();
 
-                chainAction.Result = "Deploy Response: " + deployResponse.Result.GetRawText() + " Error:" + deployResponse.Error;
-                Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Deploy Response: " + deployResponse.Result.GetRawText()+ " Error: " + deployResponse.Error);
+                    chainAction.DeployHash = deployHash;
+                    Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Deploy Hash: " + deployHash);
 
-                chainAction.Result = "Completed";
+                    var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+                    var deployResponse = casperSdk.GetDeploy(deployHash, tokenSource.Token).Result;
 
-                var updateJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/ChainAction/Update", Helpers.Serializers.SerializeJson(chainAction));
+                    chainAction.Result = deployResponse.Result.GetRawText();
+                    
+                    Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Deploy Response: " + deployResponse.Result.GetRawText()+ " Error: " + deployResponse.Error);
 
-                return base.Json(new SimpleResponse { Success = true, Message = deployResponse.Result.GetRawText() });
+                    if(deployResponse.Error == null)
+                    {
+                        chainAction.Status = "Completed";
+                    }
+                    else
+                    {
+                        chainAction.Status = "Failed";
+                    }
+
+                    var updateJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/ChainAction/Update", Helpers.Serializers.SerializeJson(chainAction));
+                }).Start();
+
+                TempData["toastr-message"] = "Your deploy is in progress.";
+                TempData["toastr-type"] = "success";
+
+                return base.Json(new SimpleResponse { Success = true, Message = "Your deploy is in progress." });
             }
             catch (Exception ex)
             {
-                chainAction.Result = "Error";
+                chainAction.Status = "Error";
                 var updateJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/ChainAction/Update", Helpers.Serializers.SerializeJson(chainAction));
 
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
                 return base.Json(new SimpleResponse { Success = false, Message = "An error occured while sending the deploy to the chain. Please check chain logs for details." });
             }
+        }
+
+        public IActionResult ChainActionDetail(int id)
+        {
+            //Get model from ApiGateway
+            var chainjson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/ChainAction/GetId?id=" + id);
+            //Parse response
+            ChainActionDto chainActionModel = Helpers.Serializers.DeserializeJson<ChainActionDto>(chainjson);
+
+            return View(chainActionModel);
         }
 
         #region KYC 

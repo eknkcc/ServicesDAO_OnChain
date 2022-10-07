@@ -224,7 +224,7 @@ namespace DAO_WebPortal
             {
                 options.IdleTimeout = TimeSpan.FromHours(1);
                 options.Cookie.HttpOnly = true;
-                options.Cookie.IsEssential = true;
+                options.Cookie.IsEssential = true;                
             });
 
             services.AddMarkdown();
