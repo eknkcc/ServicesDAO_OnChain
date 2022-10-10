@@ -239,9 +239,7 @@
 
                             ShowLoader("Sending signed deploy. This may take few minutes..."); 
 
-                            await SendSignedDeploy(signature.deploy);
-
-                            window.location.reload();
+                            SendSignedDeploy(signature.deploy);
                         }
                         else {
                             HideLoader();

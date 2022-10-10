@@ -303,7 +303,7 @@ async function ChangeUserWallet(response)
 }
 
 
-async function SendSignedDeploy(deploy) {
+function SendSignedDeploy(deploy) {
     //Ajax post action
     $.ajax({
         type: "POST",
@@ -313,7 +313,7 @@ async function SendSignedDeploy(deploy) {
         },
         success: function (result) {
             if (result.success) {
-                toastr.success(result.message);
+                window.location.reload();
             }
             else {
                 toastr.warning(result.message);

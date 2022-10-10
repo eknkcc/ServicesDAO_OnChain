@@ -38,8 +38,8 @@
     <meta name="theme-color" content="#ffffff">
 
     <!-- Main styles for this application-->
-    <link href="~/Home/css/style.css?v=1.0.3" rel="stylesheet" />
-    <link href="~/Home/css/custom.css?v=1.0.6" rel="stylesheet" />
+    <link href="~/Home/css/style.css?v=1.0.4" rel="stylesheet" />
+    <link href="~/Home/css/custom.css?v=1.0.7" rel="stylesheet" />
 
     <!-- Library styles -->
     <link href="~/Home/lib/chartjs/css/coreui-chartjs.css" rel="stylesheet" />
@@ -146,8 +146,7 @@
                 </a>
             </li>
 
-            @if (httpContextAccessor.HttpContext.Session.GetString("UserType") ==
-            Helpers.Constants.Enums.UserIdentityType.Admin.ToString())
+            @if (httpContextAccessor.HttpContext.Session.GetString("UserType") == Helpers.Constants.Enums.UserIdentityType.Admin.ToString())
             {
                 <li class="nav-title">ADMIN PAGES</li>
 
@@ -197,7 +196,7 @@
                         @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") < 0 && Program._settings.UseChain == true)
                         {
                             <div class="btn-group mb-3" role="group">
-                                <button type="button" onclick="LoginChain();" class="btn btn-block btn-md submitFormButton w-100 casperBg me-2 text-white font-sm"><img src="../Public/images/casper.png" style="width: 24px;" class="me-2" />Connect Wallet</button>
+                                <button type="button" onclick="ConnectWallet();" class="btn btn-block btn-md submitFormButton w-100 casperBg me-2 text-white font-sm"><img src="../Public/images/casper.png" style="width: 24px;" class="me-2" />Connect Wallet</button>
                             </div>
                         }
 
@@ -238,7 +237,7 @@
                     == true)
                     {
                         <div class="btn-group" role="group">
-                            <button type="button" onclick="LoginChain();"
+                            <button type="button" onclick="ConnectWallet();"
                             class="btn btn-block btn-md submitFormButton w-100 casperBg me-2 text-white font-sm"><img
                                 src="../Public/images/casper.png" style="width: 24px;" class="me-2" />Connect
                                 Wallet</button>
@@ -283,7 +282,7 @@
                                             class="text-right">@httpContextAccessor.HttpContext.Session.GetString("Balance")</span></small>
                                 </div>             
 
-                                if(Program.chainQue.Count(x=> x.Status == "InProgress" && x.WalletAddress == httpContextAccessor.HttpContext.Session.GetString("WalletAddress")) > 0)
+                                if(Program.chainQue.Count(x=> x.Status == "In Progress" && x.WalletAddress == httpContextAccessor.HttpContext.Session.GetString("WalletAddress")) > 0)
                                 {
                                     <div class="d-inline-block" style="vertical-align: top;">
                                         <span class="spinner spinner-alt smallSpinner"><i class="fas fa-circle-notch fa-link"></i></span>
@@ -645,12 +644,14 @@
                 if (typeof (element) != 'undefined' && element != null) {
                     document.getElementById('btn-dark-theme').checked = true;
                 }
+                $('html').addClass('htmlScroll');
             }
             else {
                 var element = document.getElementById('btn-light-theme');
                 if (typeof (element) != 'undefined' && element != null) {
                     document.getElementById('btn-light-theme').checked = true;
                 }
+                $('html').removeClass('htmlScroll');
             }
 
             //Display toastr message from server side
@@ -708,9 +709,11 @@
 
             if (src === 'light-theme') {
                 document.body.classList.remove('dark-theme');
+                $('html').removeClass('htmlScroll');
             }
             if (src === 'dark-theme') {
                 document.body.classList.add('dark-theme');
+                $('html').addClass('htmlScroll');
             }
             document.body.dispatchEvent(event);
             changeThemeCookie(src);

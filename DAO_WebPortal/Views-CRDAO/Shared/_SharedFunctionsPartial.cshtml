@@ -129,7 +129,7 @@
 
     //Chain login function
     var checkInterval;
-    async function LoginChain() {
+    async function ConnectWallet() {
 
         window.casperlabsHelper.requestConnection();
 
@@ -155,7 +155,7 @@
                 //Ajax post action
                 $.ajax({
                     type: "POST",
-                    url: "../Chain/LoginChain",
+                    url: "../Chain/ConnectWallet",
                     data: { "publicAddress": publicAddress, "__RequestVerificationToken": token },
                     async: true,
                     success: function (result) {
