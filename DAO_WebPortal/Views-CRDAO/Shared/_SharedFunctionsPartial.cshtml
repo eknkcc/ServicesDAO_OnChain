@@ -129,18 +129,18 @@
 
     //Chain login function
     var checkInterval;
-    async function ConnectWallet() {
+    async function ConnectWallet(login) {
 
         window.casperlabsHelper.requestConnection();
 
         clearInterval(checkInterval);
         checkInterval = setInterval(function () {
-            CheckPublicKey();
+            CheckPublicKey(login);
         }, 1000);
 
     }
 
-    async function CheckPublicKey() {
+    async function CheckPublicKey(login) {
 
         try {
             const isConnected = await window.casperlabsHelper.isConnected();
@@ -153,9 +153,15 @@
                 var token = $('input[name="__RequestVerificationToken"]', token).val();
 
                 //Ajax post action
+                urlLogin = "../Chain/ConnectWallet"
+                if(login == true)
+                {
+                    urlLogin = "../Chain/LoginChain";
+                }
+
                 $.ajax({
                     type: "POST",
-                    url: "../Chain/ConnectWallet",
+                    url: urlLogin,
                     data: { "publicAddress": publicAddress, "__RequestVerificationToken": token },
                     async: true,
                     success: function (result) {

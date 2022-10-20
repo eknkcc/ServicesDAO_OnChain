@@ -82,6 +82,10 @@ namespace DAO_WebPortal
             //If true -> All VAs get payment from completed jobs according to their total reputation without participation to the vote
             public bool DistributePaymentWithoutVote { get; set; }
 
+            //Ratio of the governance payments for jobs
+            public double? GovernancePaymentRatio { get; set; }
+            //Governance wallet address
+            public string GovernanceWallet { get; set; }
 
             //CHAIN SETTINGS
             public bool UseChain { get; set; }

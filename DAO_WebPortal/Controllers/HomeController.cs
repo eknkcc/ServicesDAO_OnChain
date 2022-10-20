@@ -116,6 +116,8 @@ namespace DAO_WebPortal.Controllers
                 string jobsJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Website/GetUserJobs?status=" + status + "&userid=" + HttpContext.Session.GetInt32("UserID") + "&query=" + query, HttpContext.Session.GetString("Token"));
                 //Parse response
                 myJobsModel = Helpers.Serializers.DeserializeJson<MyJobsViewModel>(jobsJson);
+                myJobsModel.doerJobs = myJobsModel.doerJobs.OrderByDescending(x=>x.CreateDate).ToList();
+                myJobsModel.ownedJobs = myJobsModel.ownedJobs.OrderByDescending(x=>x.CreateDate).ToList();
             }
             catch (Exception ex)
             {

@@ -303,13 +303,14 @@ async function ChangeUserWallet(response)
 }
 
 
-function SendSignedDeploy(deploy) {
+function SendSignedDeploy(deploy, type) {
     //Ajax post action
     $.ajax({
         type: "POST",
         url: "../Chain/SendSignedDeploy",
         data: {
-            "deployObj": JSON.stringify(deploy)
+            "deployObj": JSON.stringify(deploy),
+            "deployType": type
         },
         success: function (result) {
             if (result.success) {

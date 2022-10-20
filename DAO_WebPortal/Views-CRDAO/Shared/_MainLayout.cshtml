@@ -196,7 +196,7 @@
                         @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") < 0 && Program._settings.UseChain == true)
                         {
                             <div class="btn-group mb-3" role="group">
-                                <button type="button" onclick="ConnectWallet();" class="btn btn-block btn-md submitFormButton w-100 casperBg me-2 text-white font-sm"><img src="../Public/images/casper.png" style="width: 24px;" class="me-2" />Connect Wallet</button>
+                                <button type="button" onclick="ConnectWallet(false);" class="btn btn-block btn-md submitFormButton w-100 casperBg me-2 text-white font-sm"><img src="../Public/images/casper.png" style="width: 24px;" class="me-2" />Connect Wallet</button>
                             </div>
                         }
 
@@ -237,7 +237,7 @@
                     == true)
                     {
                         <div class="btn-group" role="group">
-                            <button type="button" onclick="ConnectWallet();"
+                            <button type="button" onclick="ConnectWallet(false);"
                             class="btn btn-block btn-md submitFormButton w-100 casperBg me-2 text-white font-sm"><img
                                 src="../Public/images/casper.png" style="width: 24px;" class="me-2" />Connect
                                 Wallet</button>
@@ -320,8 +320,8 @@
                                                         }
                                                     </div>
                                                     <div class="d-inline-block w-100 pe-4">
-                                                        <div class="ms-1">@item.ActionType <small style="float: right;">@item.CreateDate.ToString("MM.dd.yyyy HH:mm")</small></div>
-                                                        <small class="ms-1" style="color: rgb(255 255 255 / 50%) !important;">@item.Status</small>
+                                                        <div class="ms-1">@item.ActionType <small style="float: right;color: rgb(255 255 255 / 50%) !important;">Deploy Time</small></div>
+                                                        <small class="ms-1" style="color: rgb(255 255 255 / 50%) !important;">@item.Status</small><small style="float: right;">@item.CreateDate.ToString("MM.dd.yyyy HH:mm")</small>
                                                     </div>                                 
                                                 </div>
                                             }

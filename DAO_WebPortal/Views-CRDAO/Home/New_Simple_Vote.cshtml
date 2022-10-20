@@ -156,6 +156,14 @@
                                 </select>
                             </td>
                         </tr>
+                        <tr>
+                            <td>Governance Fee Ratio</td>
+                            <td><input type="text" class="form-control" id="GovernancePaymentRatio" value="@Program._settings.GovernancePaymentRatio" /> </td>
+                        </tr>
+                        <tr>
+                            <td>Governance Wallet</td>
+                            <td><input type="text" class="form-control" id="GovernanceWallet" value="@Program._settings.GovernanceWallet" /> </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -239,7 +247,7 @@
 
                             ShowLoader("Sending signed deploy. This may take few minutes..."); 
 
-                            SendSignedDeploy(signature.deploy);
+                            SendSignedDeploy(signature.deploy, "KYC Contract Call");
                         }
                         else {
                             HideLoader();
@@ -300,6 +308,8 @@
                             var SimpleVotingTimeType = $('#SimpleVotingTimeType').val();
                             var DistributePaymentWithoutVote = false;
                             if (parseInt($('#DistributePaymentWithoutVote').val()) == 1) { DistributePaymentWithoutVote = true; }
+                            var GovernancePaymentRatio = parseFloat($('#GovernancePaymentRatio').val());
+                            var GovernanceWallet = $('#GovernanceWallet').val();
 
                             //KYC Vote parameters
                             var documentHash = $("#kycdocumenthash").val();
@@ -330,7 +340,9 @@
                                         "ReputationConversionRate": ReputationConversionRate,
                                         "SimpleVotingTime": SimpleVotingTime,
                                         "SimpleVotingTimeType": SimpleVotingTimeType,
-                                        "DistributePaymentWithoutVote": DistributePaymentWithoutVote
+                                        "DistributePaymentWithoutVote": DistributePaymentWithoutVote,
+                                        "GovernancePaymentRatio": GovernancePaymentRatio,
+                                        "GovernanceWallet": GovernanceWallet
                                     }
                                 },
                                 success: function (result) {
