@@ -7,17 +7,17 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["DAO_LogService/DAO_LogService.csproj", "DAO_LogService/"]
+COPY ["DAO_CasperChainService/DAO_CasperChainService.csproj", "DAO_CasperChainService/"]
 COPY ["Helpers/Helpers.csproj", "Helpers/"]
-RUN dotnet restore "DAO_LogService/DAO_LogService.csproj"
+RUN dotnet restore "DAO_CasperChainService/DAO_CasperChainService.csproj"
 COPY . .
-WORKDIR "/src/DAO_LogService"
-RUN dotnet build "DAO_LogService.csproj" -c Release -o /app/build
+WORKDIR "/src/DAO_CasperChainService"
+RUN dotnet build "DAO_CasperChainService.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "DAO_LogService.csproj" -c Release -o /app/publish
+RUN dotnet publish "DAO_CasperChainService.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "DAO_LogService.dll"]
+ENTRYPOINT ["dotnet", "DAO_CasperChainService.dll"]

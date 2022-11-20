@@ -163,8 +163,6 @@ namespace DAO_VotingEngine.Controllers
                     res.Items = lst;
                     res.MetaData = new PaginationMetaData() { Count = lst.Count, FirstItemOnPage = lst.FirstItemOnPage, HasNextPage = lst.HasNextPage, HasPreviousPage = lst.HasPreviousPage, IsFirstPage = lst.IsFirstPage, IsLastPage = lst.IsLastPage, LastItemOnPage = lst.LastItemOnPage, PageCount = lst.PageCount, PageNumber = lst.PageNumber, PageSize = lst.PageSize, TotalItemCount = lst.TotalItemCount };
 
-
-
                     return res;
                 }
             }
@@ -186,14 +184,7 @@ namespace DAO_VotingEngine.Controllers
             {
                 using (dao_votesdb_context db = new dao_votesdb_context())
                 {
-                    if (status != null)
-                    {
-                        model = db.Votings.Where(x => x.Status == status).ToList();
-                    }
-                    else
-                    {
-                        model = db.Votings.ToList();
-                    }
+                    model = db.Votings.Where(x => status == null || x.Status == status).ToList();
                 }
             }
             catch (Exception ex)
@@ -203,6 +194,32 @@ namespace DAO_VotingEngine.Controllers
             }
 
             return _mapper.Map<List<Voting>, List<VotingDto>>(model).ToList();
+        }
+
+        [Route("GetVotingByStatusPaged")]
+        [HttpGet]
+        public PaginationEntity<VotingDto> GetVotingByStatusPaged(Enums.VoteStatusTypes? status, int page = 1, int pageCount = 30)
+        {
+            PaginationEntity<VotingDto> res = new PaginationEntity<VotingDto>();
+
+            try
+            {
+                using (dao_votesdb_context db = new dao_votesdb_context())
+                {
+                    IPagedList<VotingDto> lst = AutoMapperBase.ToMappedPagedList<Voting, VotingDto>(db.Votings.Where(x => status == null || x.Status == status).OrderByDescending(x => x.VotingID).ToPagedList(page, pageCount));
+
+                    res.Items = lst;
+                    res.MetaData = new PaginationMetaData() { Count = lst.Count, FirstItemOnPage = lst.FirstItemOnPage, HasNextPage = lst.HasNextPage, HasPreviousPage = lst.HasPreviousPage, IsFirstPage = lst.IsFirstPage, IsLastPage = lst.IsLastPage, LastItemOnPage = lst.LastItemOnPage, PageCount = lst.PageCount, PageNumber = lst.PageNumber, PageSize = lst.PageSize, TotalItemCount = lst.TotalItemCount };
+
+                    return res;
+                }
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+            }
+
+            return res;
         }
 
         [Route("GetByJobId")]

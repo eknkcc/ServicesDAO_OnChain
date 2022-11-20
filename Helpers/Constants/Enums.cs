@@ -14,7 +14,8 @@
             DAO_NotificationService,
             DAO_ReputationService,
             DAO_VotingEngine,
-            DAO_WebPortal
+            DAO_WebPortal,
+            DAO_CasperChainService
         }
 
         /// <summary>
