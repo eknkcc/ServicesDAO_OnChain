@@ -16,11 +16,7 @@
     <PackageReference Include="PagedList.Core" Version="1.17.4" />
     <PackageReference Include="PagedList.Core.Mvc" Version="3.0.0" />
     <PackageReference Include="runtime.osx.10.10-x64.CoreCompat.System.Drawing" Version="6.0.5.128" />
-    <PackageReference Include="westwind.aspnetcore.markdown" Version="3.8.0" />
-    <PackageReference Include="Casper.Network.SDK" Version="1.1.0" />
-    <PackageReference Include="Casper.Network.SDK.Web" Version="1.1.0" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
-    <PackageReference Include="Casper.Network.SDK.Clients" Version="1.1.0" />
   </ItemGroup>
 
   <ItemGroup>

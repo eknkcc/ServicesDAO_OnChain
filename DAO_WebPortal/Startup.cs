@@ -20,7 +20,6 @@ using System.Threading.Tasks;
 using static DAO_WebPortal.Program;
 using static Helpers.Constants.Enums;
 using System.Timers;
-using Westwind.AspNetCore.Markdown;
 using Casper.Network.SDK.Web;
 using Casper.Network.SDK.Clients;
 using Casper.Network.SDK;
@@ -237,8 +236,6 @@ namespace DAO_WebPortal
                 options.Cookie.IsEssential = true;                
             });
 
-            services.AddMarkdown();
-
             services.AddCasperRPCService(Configuration);
             services.AddCasperSSEService(Configuration);
             services.AddCasperSignerInterop();
@@ -282,8 +279,6 @@ namespace DAO_WebPortal
             app.UseSession();
 
             app.UseStaticFiles();
-
-            app.UseMarkdown();
 
             //app.UseHttpsRedirection();
 

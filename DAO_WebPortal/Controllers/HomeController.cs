@@ -24,7 +24,6 @@ using Helpers.Models.KYCModels;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text;
-using Westwind.AspNetCore.Markdown;
 
 namespace DAO_WebPortal.Controllers
 {
