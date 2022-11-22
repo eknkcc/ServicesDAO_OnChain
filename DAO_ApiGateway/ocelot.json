@@ -90,6 +90,20 @@
       "UpstreamPathTemplate": "/Identity/{everything}",
       "Priority": 1
     },
+    //CasperChainService API (Public)
+    {
+      "DownstreamPathTemplate": "/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "dao_casperchainservice",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/CasperChainService/{everything}",
+      "UpstreamHttpMethod": [ "POST", "GET", "DELETE", "PUT" ],
+      "Priority": 1
+    },
     //Public Actions
     {
       "DownstreamPathTemplate": "/Identity/Login",

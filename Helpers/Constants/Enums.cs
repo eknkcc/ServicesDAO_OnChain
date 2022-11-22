@@ -152,5 +152,13 @@
             Cancelled,
 
         }
+
+        /// <summary>
+        ///  Enum of supported blockchains
+        /// </summary>
+        public enum Blockchain
+        {
+            Casper
+        }
     }
 }

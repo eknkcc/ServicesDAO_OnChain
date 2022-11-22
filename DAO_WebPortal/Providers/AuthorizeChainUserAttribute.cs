@@ -20,7 +20,7 @@ namespace DAO_WebPortal.Providers
             {
                 bool control = true;
 
-                if(Program._settings.UseChain == true)
+                if(Program._settings.DaoBlockchain != null)
                 {
                     if (context.HttpContext.Session.GetInt32("ChainSign") == null || context.HttpContext.Session.GetInt32("ChainSign") != 1)
                     {

@@ -21,6 +21,9 @@ namespace DAO_CasperChainService
             public string RabbitMQUrl { get; set; }
             public string RabbitMQUsername { get; set; }
             public string RabbitMQPassword { get; set; }
+            public string NodeUrl { get; set; }
+            public string ChainName { get; set; }
+            public string KYCVoterContract { get; set; }
         }
 
         public static Monitizer monitizer;

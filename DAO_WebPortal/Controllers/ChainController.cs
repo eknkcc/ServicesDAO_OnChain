@@ -18,24 +18,12 @@ using static Helpers.Constants.Enums;
 using DAO_WebPortal.Providers;
 using Helpers.Models.DtoModels.MainDbDto;
 using Helpers.Models.WebsiteViewModels;
-using Casper.Network.SDK;
-using Casper.Network.SDK.Types;
 using System.Threading;
-using Casper.Network.SDK.Utils;
-using Microsoft.AspNetCore.Components;
-using Casper.Network.SDK.Web;
-using Casper.Network.SDK.Clients;
-using System.Threading.Tasks;
 
 namespace DAO_WebPortal.Controllers
 {
     public class ChainController : Controller
     {
-        //[Parameter] public IERC20Client ERC20Client { get; set; }
-
-        //[Inject] protected CasperSignerInterop SignerInterop { get; set; }
-
-
         /// <summary>
         ///  User login onchain function
         /// </summary>
@@ -150,20 +138,10 @@ namespace DAO_WebPortal.Controllers
 
             try
             {
-                var hex = publicAddress;
-                var publicKey = PublicKey.FromHexString(hex);
-                var casperSdk = new NetCasperClient(Program._settings.NodeUrl + ":7777/rpc");
-                var rpcResponse = casperSdk.GetAccountBalance(publicKey).Result;
-
-                double balanceParsed = Convert.ToInt64(rpcResponse.Parse().BalanceValue.ToString()) / (double)1000000000;
-                profile.Balance = balanceParsed.ToString("N2");
-
-                Console.WriteLine("Public Key Balance: " + rpcResponse.Parse().BalanceValue);
-
-                // CasperClient casperClient = new CasperClient(rpcUrl);
-                // var result = casperClient.RpcService.GetAccountBalance(publicAddress);
-                // double balanceParsed = Convert.ToInt64(result.result.balance_value) / (double)1000000000;
-                // profile.Balance = balanceParsed.ToString("N2");
+                //Get model from ApiGateway
+                var userjson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/GetUserChainProfile?publicAddress=" + publicAddress);
+                //Parse response
+                profile = Helpers.Serializers.DeserializeJson<UserChainProfile>(userjson);
             }
             catch (Exception ex)
             {
@@ -191,48 +169,15 @@ namespace DAO_WebPortal.Controllers
                     Program.chainQue.Add(chainAction);
                 }
 
-                Deploy deploy = Deploy.Parse(deployObj);
-
-                new Thread(() => 
+                new Thread(() =>
                 {
-                    Thread.CurrentThread.IsBackground = true; 
-                    try
+                    Thread.CurrentThread.IsBackground = true;
+                    var chainActionResult = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/CasperChainService/SendSignedDeploy", Helpers.Serializers.SerializeJson(chainAction));
+                    var chainActionResultModel = Helpers.Serializers.DeserializeJson<ChainActionDto>(chainQuePostJson);
+
+                    if (chainActionResultModel != null && string.IsNullOrEmpty(chainActionResultModel.Status))
                     {
-                        NetCasperClient casperSdk = new NetCasperClient(Program._settings.NodeUrl + ":7777/rpc");
-
-                        var response = casperSdk.PutDeploy(deploy).Result;
-
-                        //chainAction.Result = " Error:" + response.Error;
-
-                        Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Deploy Result: " + response.Result.GetRawText());
-                        Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Deploy Error: " + response.Error);
-
-                        var deployHash = response.GetDeployHash();
-
-                        chainAction.DeployHash = deployHash;
-                        Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Deploy Hash: " + deployHash);
-
-                        var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(120));
-                        var deployResponse = casperSdk.GetDeploy(deployHash, tokenSource.Token).Result;
-
-                        chainAction.Result = deployResponse.Result.GetRawText();
-                        
-                        Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Deploy Response: " + deployResponse.Result.GetRawText()+ " Error: " + deployResponse.Error);
-
-                        if(deployResponse.Error == null)
-                        {
-                            chainAction.Status = "Completed";
-                        }
-                        else
-                        {
-                            chainAction.Status = "Failed";
-                        }
-
-                        var updateJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/ChainAction/Update", Helpers.Serializers.SerializeJson(chainAction));
-                    }
-                    catch (Exception ex)
-                    {
-
+                        chainAction = chainActionResultModel;
                     }
                 }).Start();
 
@@ -246,7 +191,7 @@ namespace DAO_WebPortal.Controllers
                 chainAction.Status = "Error";
                 var updateJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/ChainAction/Update", Helpers.Serializers.SerializeJson(chainAction));
 
-                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
                 return base.Json(new SimpleResponse { Success = false, Message = "An error occured while sending the deploy to the chain. Please check chain logs for details." });
             }
         }
@@ -301,31 +246,13 @@ namespace DAO_WebPortal.Controllers
                     return base.Json(new SimpleResponse { Success = false, Message = "There is no KYC application for this user. User has to submit KYC form from the 'User Profile' page." });
                 }
 
-                PublicKey kycUserAccountPK = PublicKey.FromHexString(profileModel.WalletAddress);
-                PublicKey myAccountPK = PublicKey.FromHexString(HttpContext.Session.GetString("WalletAddress"));
-
-                //"account-hash-6d87e1a98e9122460573b8bc6a4cf93c0fd2736b51d388ab28155f881e5d3c81"
-                var subjectAddress = new AccountHashKey(kycUserAccountPK.GetAccountHash());
-
-                var namedArgs = new List<NamedArg>()
-                {
-                    new NamedArg("subject_address", CLValue.Key(subjectAddress)),
-                    //new NamedArg("document_hash", CLValue.String(userKycModel.VerificationId)),
-                    new NamedArg("document_hash", CLValue.U256(13455)),
-                    new NamedArg("stake", CLValue.U256(stake))
-                };
-
-                //Create deploy object
-                HashKey contractHash = new HashKey(Program._settings.KYCVoterContract);
-                var deploy = DeployTemplates.ContractCall(contractHash,
-                       "create_voting",
-                       namedArgs,
-                       myAccountPK,
-                       5_000_000_000,
-                       Program._settings.ChainName);
+                //Get model from ApiGateway
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/GetKYCVoteDeploy?walletAddress=" + profileModel.WalletAddress + "&stake=" + stake);
+                //Parse response
+                SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
 
                 //Return deploy object in JSON
-                return base.Json(new SimpleResponse { Success = true, Message = deploy.SerializeToJson() });
+                return base.Json(deployModel);
 
             }
             catch (Exception ex)

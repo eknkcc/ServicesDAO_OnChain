@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static Helpers.Constants.Enums;
 
 namespace DAO_WebPortal
 {
@@ -88,11 +89,7 @@ namespace DAO_WebPortal
             public string GovernanceWallet { get; set; }
 
             //CHAIN SETTINGS
-            public bool UseChain { get; set; }
-            public string NodeUrl { get; set; }
-            public string ChainName { get; set; }
-            public string ChainAssetsPath { get; set; }
-            public string KYCVoterContract { get; set; }
+            public Blockchain? DaoBlockchain { get; set; }
         }
 
         public static Settings _settings { get; set; } = new Settings();

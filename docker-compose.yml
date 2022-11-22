@@ -7,9 +7,9 @@ volumes:
   reputation_datafiles:
 
 services:
-  daochain_rabbitmq:
+  dao_rabbitmq:
     image: rabbitmq:3-management
-    container_name: 'daochain_rabbitmq'
+    container_name: 'dao_rabbitmq'
     environment:
         RABBITMQ_DEFAULT_USER: "daorabbit"
         RABBITMQ_DEFAULT_PASS: "dao2021*"
@@ -29,7 +29,7 @@ services:
     networks:
         - daonetwork
 
-  daochain_db:
+  dao_db:
     image: mysql:5.7
     platform: linux/x86_64
     volumes:
@@ -41,7 +41,7 @@ services:
     networks:
       - daonetwork
 
-  daochain_logsdb:
+  dao_logsdb:
     image: mysql:5.7
     platform: linux/x86_64
     volumes:
@@ -53,7 +53,7 @@ services:
     networks:
       - daonetwork  
 
-  daochain_votedb:
+  dao_votedb:
     image: mysql:5.7
     platform: linux/x86_64
     volumes:
@@ -65,7 +65,7 @@ services:
     networks:
       - daonetwork  
 
-  daochain_reputationdb:
+  dao_reputationdb:
     image: mysql:5.7
     platform: linux/x86_64
     volumes:
@@ -77,29 +77,29 @@ services:
     networks:
       - daonetwork  
 
-  daochain_apigateway:
+  dao_apigateway:
     image: ${DOCKER_REGISTRY-}daoapigateway
     platform: linux/x86_64
     build:
       context: .
       dockerfile: DAO_ApiGateway/Dockerfile
     depends_on:
-      daochain_rabbitmq:
+      dao_rabbitmq:
         condition: service_healthy
     links:
-      - daochain_rabbitmq
+      - dao_rabbitmq
     restart: always
     networks:
       - daonetwork
 
-  daochain_dbservice:
+  dao_dbservice:
     image: ${DOCKER_REGISTRY-}daodbservice
     platform: linux/x86_64
     build:
       context: .
       dockerfile: DAO_DbService/Dockerfile
     depends_on:      
-      daochain_rabbitmq:
+      dao_rabbitmq:
         condition: service_healthy
     restart: always
     environment:
@@ -107,79 +107,92 @@ services:
     networks:
       - daonetwork
 
-  daochain_identityservice:
+  dao_identityservice:
     image: ${DOCKER_REGISTRY-}daoidentityservice
     platform: linux/x86_64
     build:
       context: .
       dockerfile: DAO_IdentityService/Dockerfile
     depends_on:
-      daochain_rabbitmq:
+      dao_rabbitmq:
         condition: service_healthy
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     networks:
         - daonetwork
 
-  daochain_logservice:
+  dao_logservice:
     image: ${DOCKER_REGISTRY-}daologservice
     platform: linux/x86_64
     build:
       context: .
       dockerfile: DAO_LogService/Dockerfile
     depends_on:
-      daochain_rabbitmq:
+      dao_rabbitmq:
         condition: service_healthy
     networks:
         - daonetwork
 
-  daochain_notificationservice:
+  dao_notificationservice:
     image: ${DOCKER_REGISTRY-}daonotificationservice
     platform: linux/x86_64
     build:
       context: .
       dockerfile: DAO_NotificationService/Dockerfile
     depends_on:
-      daochain_rabbitmq:
+      dao_rabbitmq:
         condition: service_healthy
     networks:
         - daonetwork
 
 
-  daochain_votingengine:
+  dao_votingengine:
     image: ${DOCKER_REGISTRY-}daovotingengine
     platform: linux/x86_64
     build:
       context: .
       dockerfile: DAO_VotingEngine/Dockerfile
     depends_on:      
-      daochain_rabbitmq:
+      dao_rabbitmq:
         condition: service_healthy
     restart: always
     networks:
       - daonetwork
 
-  daochain_reputationservice:
+  dao_reputationservice:
     image: ${DOCKER_REGISTRY-}daoreputationservice
     platform: linux/x86_64
     build:
       context: .
       dockerfile: DAO_ReputationService/Dockerfile
     depends_on:      
-      daochain_rabbitmq:
+      dao_rabbitmq:
         condition: service_healthy
     restart: always
     networks:
       - daonetwork
-      
-  daochain_webportal:
+  
+  dao_daoservice:
+    image: ${DOCKER_REGISTRY-}daocasperchainservice
+    platform: linux/x86_64
+    build:
+      context: .
+      dockerfile: DAO_CasperChainService/Dockerfile
+    depends_on:      
+      dao_rabbitmq:
+        condition: service_healthy
+    restart: always
+    networks:
+      - daonetwork
+
+  dao_webportal:
     image: ${DOCKER_REGISTRY-}daowebportal
     platform: linux/x86_64
     build:
       context: .
       dockerfile: DAO_WebPortal/Dockerfile
     depends_on:
-      daochain_rabbitmq:
+      dao_rabbitmq:
         condition: service_healthy
     
     networks:

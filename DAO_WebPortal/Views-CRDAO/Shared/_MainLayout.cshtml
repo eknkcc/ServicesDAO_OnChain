@@ -193,7 +193,7 @@
             <li class="nav-item d-block d-sm-none mt-3">
                 <center>
                     <nav>
-                        @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") < 0 && Program._settings.UseChain == true)
+                        @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") < 0 && Program._settings.DaoBlockchain != null)
                         {
                             <div class="btn-group mb-3" role="group">
                                 <button type="button" onclick="ConnectWallet(false);" class="btn btn-block btn-md submitFormButton w-100 casperBg me-2 text-white font-sm"><img src="../Public/images/casper.png" style="width: 24px;" class="me-2" />Connect Wallet</button>
@@ -233,8 +233,7 @@
                 </button>
                 <h4 class="d-none d-md-block">@ViewBag.Title</h4>
                 <nav class="header-nav ms-auto me-4 d-none d-sm-block">
-                    @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") < 0 && Program._settings.UseChain
-                    == true)
+                    @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") < 0 && Program._settings.DaoBlockchain != null)
                     {
                         <div class="btn-group" role="group">
                             <button type="button" onclick="ConnectWallet(false);"
@@ -273,7 +272,7 @@
                                 <small class="mb-0">@httpContextAccessor.HttpContext.Session.GetString("NameSurname")</small><br />
                                 <small><b>@httpContextAccessor.HttpContext.Session.GetString("UserType")</b></small>
                             </div>
-                            @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") > 0 && Program._settings.UseChain == true)
+                            @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") > 0 && Program._settings.DaoBlockchain != null)
                             {
                                 <div class="d-inline-block reputationHeaderDiv">
                                         <small class="mb-0"><i class="fas fa-star me-1"></i><small>Rep: </small> <span
@@ -294,7 +293,7 @@
 
                             <div>
                         
-                                    @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") > 0 && Program._settings.UseChain == true)
+                                    @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") > 0 && Program._settings.DaoBlockchain != null)
                                     {
                                         <div class="dropdown-header py-2"><strong>Pending blockchain actions: @Program.chainQue.Count(x=> x.Status == "In Progress" && x.WalletAddress == httpContextAccessor.HttpContext.Session.GetString("WalletAddress"))</strong></div>
                                         <div class="dropdown-header chainDropdown">
