@@ -101,12 +101,12 @@ namespace DAO_CasperChainService.Controllers
         #region KYC 
 
         [HttpGet("GetKYCVoteDeploy", Name = "GetKYCVoteDeploy")]
-        public SimpleResponse GetKYCVoteDeploy(string walletAddress, int stake)
+        public SimpleResponse GetKYCVoteDeploy(string kycUserAddress, string walletAddress, string verificationId, int stake)
         {
             try
             {
-                PublicKey kycUserAccountPK = PublicKey.FromHexString(walletAddress);
-                PublicKey myAccountPK = PublicKey.FromHexString(HttpContext.Session.GetString("WalletAddress"));
+                PublicKey kycUserAccountPK = PublicKey.FromHexString(kycUserAddress);
+                PublicKey myAccountPK = PublicKey.FromHexString(walletAddress);
 
                 //"account-hash-6d87e1a98e9122460573b8bc6a4cf93c0fd2736b51d388ab28155f881e5d3c81"
                 var subjectAddress = new AccountHashKey(kycUserAccountPK.GetAccountHash());
@@ -114,7 +114,7 @@ namespace DAO_CasperChainService.Controllers
                 var namedArgs = new List<NamedArg>()
                 {
                     new NamedArg("subject_address", CLValue.Key(subjectAddress)),
-                    //new NamedArg("document_hash", CLValue.String(userKycModel.VerificationId)),
+                    //new NamedArg("document_hash", CLValue.String(verificationId)),
                     new NamedArg("document_hash", CLValue.U256(13455)),
                     new NamedArg("stake", CLValue.U256(stake))
                 };

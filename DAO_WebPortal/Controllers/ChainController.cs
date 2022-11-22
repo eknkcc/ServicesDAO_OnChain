@@ -247,7 +247,7 @@ namespace DAO_WebPortal.Controllers
                 }
 
                 //Get model from ApiGateway
-                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/GetKYCVoteDeploy?walletAddress=" + profileModel.WalletAddress + "&stake=" + stake);
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/GetKYCVoteDeploy?walletAddress=" + HttpContext.Session.GetString("WalletAddress")+ "&stake=" + stake+ "&stake=" + stake + "&kycUserAddress=" + profileModel.WalletAddress+ "&verificationId=" + userKycModel.VerificationId);
                 //Parse response
                 SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
 
