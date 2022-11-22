@@ -24,6 +24,7 @@ namespace DAO_CasperChainService
             public string NodeUrl { get; set; }
             public string ChainName { get; set; }
             public string KYCVoterContract { get; set; }
+            public string CasperMiddlewareUrl { get; set; }
         }
 
         public static Monitizer monitizer;
