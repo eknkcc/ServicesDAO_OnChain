@@ -23,5 +23,6 @@ namespace DAO_DbService.Models
         public bool? DosFeePaid { get; set; }
         public string Tags { get; set; }
         public string CodeUrl { get; set; }
+        public string DeployHash { get; set; }
     }
 }

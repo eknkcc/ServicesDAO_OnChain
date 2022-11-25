@@ -3,7 +3,6 @@ using Casper.Network.SDK;
 using Casper.Network.SDK.Types;
 using System.Threading;
 using Casper.Network.SDK.Utils;
-using Casper.Network.SDK.Web;
 using Casper.Network.SDK.Clients;
 using System.Threading.Tasks;
 using Helpers.Models.WebsiteViewModels;

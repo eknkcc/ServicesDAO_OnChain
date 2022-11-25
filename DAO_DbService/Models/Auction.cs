@@ -18,5 +18,6 @@ namespace DAO_DbService.Models
         public AuctionStatusTypes Status { get; set; }
         public DateTime? PublicAuctionEndDate { get; set; }
         public DateTime? InternalAuctionEndDate { get; set; }
+        public string DeployHash { get; set; }
     }
 }

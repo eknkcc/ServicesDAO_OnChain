@@ -21,5 +21,6 @@ namespace DAO_DbService.Models
         public string GithubLink { get; set; }
         public string ResumeLink { get; set; }
         public string Referrer { get; set; }
+        public string DeployHash { get; set; }
     }
 }
