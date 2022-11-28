@@ -1423,7 +1423,14 @@ namespace DAO_WebPortal.Controllers
                 var votingJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Website/GetVotingsByStatus", HttpContext.Session.GetString("Token"));
 
                 //Parse response
-                votingsModel = Helpers.Serializers.DeserializeJson<List<VotingViewModel>>(votingJson);
+                if(String.IsNullOrEmpty(Program._settings.DaoBlockchain.ToString()))
+                    votingsModel = Helpers.Serializers.DeserializeJson<List<VotingViewModel>>(votingJson);
+                else
+                {
+                    var temporaryVotingsModel = Helpers.Serializers.DeserializeJson<List<VotingViewModel>>(votingJson);
+                    votingsModel = temporaryVotingsModel.Where(x => x.DeployHash != "" && x.DeployHash != null).ToList();
+                }
+                    
 
                 //Get user's votes
                 string votesJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Vote/GetAllVotesByUserId?userid=" + HttpContext.Session.GetInt32("UserID"), HttpContext.Session.GetString("Token"));

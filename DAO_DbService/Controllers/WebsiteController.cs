@@ -1093,7 +1093,8 @@ namespace DAO_DbService.Controllers
                                WinnerBidPrice = pAuctionBid.Price,
                                EligibleUserCount = voting.EligibleUserCount,
                                StakedForInformal = stakedForInformal,
-                               StakedAgainstInformal =  stakedAgainstInformal
+                               StakedAgainstInformal =  stakedAgainstInformal,
+                               DeployHash = voting.DeployHash
                            }).ToList();
                 }
             }
