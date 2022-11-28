@@ -19,10 +19,11 @@ using DAO_WebPortal.Providers;
 using Helpers.Models.DtoModels.MainDbDto;
 using Helpers.Models.WebsiteViewModels;
 using System.Threading;
+using Org.BouncyCastle.Crypto.Tls;
 
 namespace DAO_WebPortal.Controllers
 {
-    public class ChainController : Controller
+    public class CasperChainController : Controller
     {
         /// <summary>
         ///  User login onchain function
@@ -151,103 +152,18 @@ namespace DAO_WebPortal.Controllers
             return profile;
         }
 
-        [HttpPost]
-        public JsonResult SendSignedDeploy(string deployObj, string deployType)
-        {
-            ChainActionDto chainAction = new ChainActionDto();
-
-            try
-            {
-                Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Sending Deploy: " + deployObj);
-                string walletAddress = HttpContext.Session.GetString("WalletAddress");
-
-                chainAction = new ChainActionDto() { ActionType = deployType, CreateDate = DateTime.Now, WalletAddress = walletAddress, DeployJson = deployObj, Status = "In Progress" };
-                var chainQuePostJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/ChainAction/Post", Helpers.Serializers.SerializeJson(chainAction));
-                chainAction = Helpers.Serializers.DeserializeJson<ChainActionDto>(chainQuePostJson);
-                if (chainAction != null && chainAction.ChainActionId > 0)
-                {
-                    Program.chainQue.Add(chainAction);
-                }
-
-                new Thread(() =>
-                {
-                    Thread.CurrentThread.IsBackground = true;
-                    var chainActionResult = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/CasperChainService/SendSignedDeploy", Helpers.Serializers.SerializeJson(chainAction));
-                    var chainActionResultModel = Helpers.Serializers.DeserializeJson<ChainActionDto>(chainQuePostJson);
-
-                    if (chainActionResultModel != null && string.IsNullOrEmpty(chainActionResultModel.Status))
-                    {
-                        chainAction = chainActionResultModel;
-                    }
-                }).Start();
-
-                TempData["toastr-message"] = "Your deploy is in progress.";
-                TempData["toastr-type"] = "success";
-
-                return base.Json(new SimpleResponse { Success = true, Message = "Your deploy is in progress." });
-            }
-            catch (Exception ex)
-            {
-                chainAction.Status = "Error";
-                var updateJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/ChainAction/Update", Helpers.Serializers.SerializeJson(chainAction));
-
-                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-                return base.Json(new SimpleResponse { Success = false, Message = "An error occured while sending the deploy to the chain. Please check chain logs for details." });
-            }
-        }
-
-        public IActionResult ChainActionDetail(int id)
-        {
-            //Get model from ApiGateway
-            var chainjson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/ChainAction/GetId?id=" + id);
-            //Parse response
-            ChainActionDto chainActionModel = Helpers.Serializers.DeserializeJson<ChainActionDto>(chainjson);
-
-            return View(chainActionModel);
-        }
-
         #region KYC 
 
         public JsonResult GetKYCVoteDeploy(string username, int stake)
         {
             try
             {
-                //Get model from ApiGateway
-                var userjson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Users/GetByUsername?username=" + username, HttpContext.Session.GetString("Token"));
-                //Parse response
-                UserDto profileModel = Helpers.Serializers.DeserializeJson<UserDto>(userjson);
+                SimpleResponse controlResult = UserInputControls.ControlKYCRequest(username, HttpContext.Session.GetString("Token"));
 
-                //Check user exists
-                if (profileModel == null || profileModel.UserId <= 0)
-                {
-                    return base.Json(new SimpleResponse { Success = false, Message = "User not found." });
-                }
-
-                //Check user already completed KYC
-                if (profileModel.KYCStatus == true)
-                {
-                    return base.Json(new SimpleResponse { Success = false, Message = "This user has already completed KYC process." });
-                }
-
-                //Check user's wallet exists
-                if (string.IsNullOrEmpty(profileModel.WalletAddress))
-                {
-                    return base.Json(new SimpleResponse { Success = false, Message = "User's chain address could not be found. " + username + " needs to connect a wallet first." });
-                }
+                if (controlResult.Success == false) return base.Json(controlResult);
 
                 //Get model from ApiGateway
-                var userkycjson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/UserKYC/GetUserId?id=" + profileModel.UserId, HttpContext.Session.GetString("Token"));
-                //Parse response
-                UserKYCDto userKycModel = Helpers.Serializers.DeserializeJson<UserKYCDto>(userkycjson);
-
-                //Check if there is KYC application
-                if (userKycModel == null || userKycModel.UserKYCID <= 0)
-                {
-                    return base.Json(new SimpleResponse { Success = false, Message = "There is no KYC application for this user. User has to submit KYC form from the 'User Profile' page." });
-                }
-
-                //Get model from ApiGateway
-                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/GetKYCVoteDeploy?walletAddress=" + HttpContext.Session.GetString("WalletAddress")+ "&stake=" + stake+ "&stake=" + stake + "&kycUserAddress=" + profileModel.WalletAddress+ "&verificationId=" + userKycModel.VerificationId);
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/GetKYCVoteDeploy?walletAddress=" + HttpContext.Session.GetString("WalletAddress")+ "&stake=" + stake + "&kycUserAddress=" + ((UserDto)((dynamic)controlResult.Content).user).WalletAddress + "&verificationId=" + ((UserKYCDto)((dynamic)controlResult.Content).kyc).VerificationId);
                 //Parse response
                 SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
 

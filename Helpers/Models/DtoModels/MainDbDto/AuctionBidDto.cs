@@ -19,5 +19,7 @@ namespace Helpers.Models.DtoModels.MainDbDto
         public string GithubLink { get; set; }
         public string ResumeLink { get; set; }
         public string Referrer { get; set; }
+        public string DeployHash { get; set; }
+
     }
 }

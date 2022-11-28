@@ -118,7 +118,11 @@
             Governance,
             Admin,
             JobCompletion,
-            JobRefund
+            JobRefund,
+            NewVA,
+            KYC,
+            MintReputation,
+            BurnReputation
         }
 
 

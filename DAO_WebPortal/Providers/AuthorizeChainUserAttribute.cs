@@ -32,6 +32,19 @@ namespace DAO_WebPortal.Providers
                         context.Result = new JsonResult("Unauthorized");
                     }
                 }
+                else
+                {
+                    //If dao uses central db then follow standard authorization process.
+                    if (context.HttpContext.Session.GetInt32("UserID") == null || context.HttpContext.Session.GetInt32("UserID") <= 0)
+                    {
+                        control = false;
+                    }
+
+                    if (!control)
+                    {
+                        context.Result = new JsonResult("Unauthorized");
+                    }
+                }
             }
             catch
             {

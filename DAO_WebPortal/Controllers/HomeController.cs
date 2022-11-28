@@ -24,6 +24,9 @@ using Helpers.Models.KYCModels;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text;
+using Org.BouncyCastle.Bcpg.OpenPgp;
+using System.Threading;
+using MySqlX.XDevAPI.Common;
 
 namespace DAO_WebPortal.Controllers
 {
@@ -115,8 +118,8 @@ namespace DAO_WebPortal.Controllers
                 string jobsJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Website/GetUserJobs?status=" + status + "&userid=" + HttpContext.Session.GetInt32("UserID") + "&query=" + query, HttpContext.Session.GetString("Token"));
                 //Parse response
                 myJobsModel = Helpers.Serializers.DeserializeJson<MyJobsViewModel>(jobsJson);
-                myJobsModel.doerJobs = myJobsModel.doerJobs.OrderByDescending(x=>x.CreateDate).ToList();
-                myJobsModel.ownedJobs = myJobsModel.ownedJobs.OrderByDescending(x=>x.CreateDate).ToList();
+                myJobsModel.doerJobs = myJobsModel.doerJobs.OrderByDescending(x => x.CreateDate).ToList();
+                myJobsModel.ownedJobs = myJobsModel.ownedJobs.OrderByDescending(x => x.CreateDate).ToList();
             }
             catch (Exception ex)
             {
@@ -1423,14 +1426,13 @@ namespace DAO_WebPortal.Controllers
                 var votingJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Website/GetVotingsByStatus", HttpContext.Session.GetString("Token"));
 
                 //Parse response
-                if(String.IsNullOrEmpty(Program._settings.DaoBlockchain.ToString()))
-                    votingsModel = Helpers.Serializers.DeserializeJson<List<VotingViewModel>>(votingJson);
-                else
+                votingsModel = Helpers.Serializers.DeserializeJson<List<VotingViewModel>>(votingJson);
+
+                //Only get verified blockchain actions if platform works onchain
+                if (!String.IsNullOrEmpty(Program._settings.DaoBlockchain.ToString()))
                 {
-                    var temporaryVotingsModel = Helpers.Serializers.DeserializeJson<List<VotingViewModel>>(votingJson);
-                    votingsModel = temporaryVotingsModel.Where(x => x.DeployHash != "" && x.DeployHash != null).ToList();
+                    votingsModel = votingsModel.Where(x => !string.IsNullOrEmpty(x.DeployHash)).ToList();
                 }
-                    
 
                 //Get user's votes
                 string votesJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Vote/GetAllVotesByUserId?userid=" + HttpContext.Session.GetInt32("UserID"), HttpContext.Session.GetString("Token"));
@@ -1486,6 +1488,12 @@ namespace DAO_WebPortal.Controllers
                 //Get votes model from ApiGateway
                 var votesJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Vote/GetAllVotesByVotingId?votingid=" + VotingID, HttpContext.Session.GetString("Token"));
                 var votes = Helpers.Serializers.DeserializeJson<List<VoteDto>>(votesJson);
+
+                //Only get verified blockchain actions if platform works onchain
+                if (!String.IsNullOrEmpty(Program._settings.DaoBlockchain.ToString()))
+                {
+                    votes = votes.Where(x => !string.IsNullOrEmpty(x.DeployHash)).ToList();
+                }
 
                 //Get reputation stakes from reputation service
                 var reputationsJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationStake/GetByProcessId?referenceProcessID=" + VotingID + "&reftype=" + StakeType.For, HttpContext.Session.GetString("Token"));
@@ -1787,6 +1795,7 @@ namespace DAO_WebPortal.Controllers
                     informalVoting.StartDate = DateTime.Now;
                     informalVoting.PolicingRate = Program._settings.DefaultPolicingRate;
                     informalVoting.QuorumRatio = Program._settings.QuorumRatio;
+
                     if (model.type == "governance")
                     {
                         informalVoting.Type = Enums.VoteTypes.Governance;
@@ -1795,6 +1804,7 @@ namespace DAO_WebPortal.Controllers
                     {
                         informalVoting.Type = Enums.VoteTypes.Simple;
                     }
+
                     informalVoting.EndDate = DateTime.Now.AddDays(Program._settings.SimpleVotingTime);
 
                     if (Program._settings.SimpleVotingTimeType == "week")
@@ -1838,6 +1848,229 @@ namespace DAO_WebPortal.Controllers
             return Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
         }
 
+        /// <summary>
+        ///  New simple vote post function (KYC Vote)
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [AuthorizeChainUser]
+        public JsonResult New_SimpleVote_KYC(NewSimpleVoteKYCModel model)
+        {
+            //User input controls
+            SimpleResponse controlResult = UserInputControls.ControlKYCRequest(model.kycUserName, HttpContext.Session.GetString("Token"));
+
+            if (controlResult.Success == false) return base.Json(controlResult);
+
+            //If platform uses blockchain, process onchain flow
+            if (Program._settings.DaoBlockchain == Blockchain.Casper)
+            {
+                ChainActionDto chainAction = new ChainActionDto();
+
+                try
+                {
+                    Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Sending Deploy: " + model.signedDeployJson);
+                    string walletAddress = HttpContext.Session.GetString("WalletAddress");
+
+                    chainAction = new ChainActionDto() { ActionType = VoteTypes.KYC.ToString(), CreateDate = DateTime.Now, WalletAddress = walletAddress, DeployJson = model.signedDeployJson, Status = "In Progress" };
+                    var chainQuePostJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/ChainAction/Post", Helpers.Serializers.SerializeJson(chainAction));
+                    chainAction = Helpers.Serializers.DeserializeJson<ChainActionDto>(chainQuePostJson);
+                    if (chainAction != null && chainAction.ChainActionId > 0)
+                    {
+                        Program.chainQue.Add(chainAction);
+                    }
+
+                    new Thread(() =>
+                    {
+                        Thread.CurrentThread.IsBackground = true;
+                        var chainActionResult = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/CasperChainService/SendSignedDeploy", Helpers.Serializers.SerializeJson(chainAction));
+                        var chainActionResultModel = Helpers.Serializers.DeserializeJson<ChainActionDto>(chainQuePostJson);
+
+                        if (chainActionResultModel != null && string.IsNullOrEmpty(chainActionResultModel.Status))
+                        {
+                            chainAction = chainActionResultModel;
+                        }
+
+                        //Central db operations
+                        if (!string.IsNullOrEmpty(chainAction.DeployHash))
+                        {
+                            New_SimpleVote_KYC_DbOperations(model, ((UserKYCDto)((dynamic)controlResult.Content).kyc), chainAction.DeployHash);
+                        }
+                    }).Start();
+
+                    //Set server side toastr because page will be redirected
+                    TempData["toastr-message"] = "Your request successfully submitted. Blockchain requests can be followed from <a href='../Home/ChainActionDetail?id=" + chainAction.ChainActionId + "'>here</a>";
+                    TempData["toastr-type"] = "success";
+
+                    return Json(new SimpleResponse() { Success = true });
+                }
+                catch (Exception ex)
+                {
+                    chainAction.Status = "Error";
+                    var updateJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/ChainAction/Update", Helpers.Serializers.SerializeJson(chainAction));
+
+                    Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                    return base.Json(new SimpleResponse { Success = false, Message = "An error occured while sending the deploy to the chain. Please check chain logs for details." });
+                }
+            }
+            else
+            {
+                //Central db operations
+                SimpleResponse dbResponse = New_SimpleVote_KYC_DbOperations(model, ((UserKYCDto)((dynamic)controlResult.Content).kyc), "");
+
+                return Json(dbResponse);
+            }
+        }
+
+        public SimpleResponse New_SimpleVote_KYC_DbOperations(NewSimpleVoteKYCModel model, UserKYCDto kyc, string deployHash)
+        {
+            try
+            {
+                //Create JobPost model
+                JobPostDto jobPostModel = new JobPostDto()
+                {
+                    UserID = Convert.ToInt32(HttpContext.Session.GetInt32("UserID")),
+                    Amount = 0,
+                    JobDescription = "KYC vote for user '" + model.kycUserName + "' <br><br> Document verification id: " + kyc.VerificationId,
+                    CreateDate = DateTime.Now,
+                    LastUpdate = DateTime.Now,
+                    Title = "KYC vote for user '" + model.kycUserName + "'",
+                    Status = Enums.JobStatusTypes.InformalVoting
+                };
+                //Post model to ApiGateway
+                string jobPostResponseJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/Post", Helpers.Serializers.SerializeJson(jobPostModel), HttpContext.Session.GetString("Token"));
+                //Parse reponse
+                jobPostModel = Helpers.Serializers.DeserializeJson<JobPostDto>(jobPostResponseJson);
+
+                if (jobPostModel != null && jobPostModel.JobID > 0)
+                {
+                    //Start informal voting
+                    VotingDto informalVoting = new VotingDto();
+                    informalVoting.JobID = jobPostModel.JobID;
+                    informalVoting.StartDate = DateTime.Now;
+                    informalVoting.PolicingRate = Program._settings.DefaultPolicingRate;
+                    informalVoting.QuorumRatio = Program._settings.QuorumRatio;
+                    informalVoting.Type = Enums.VoteTypes.KYC;
+                    informalVoting.DeployHash = deployHash;
+                    informalVoting.EndDate = DateTime.Now.AddDays(Program._settings.SimpleVotingTime);
+
+                    if (Program._settings.SimpleVotingTimeType == "week")
+                    {
+                        informalVoting.EndDate = DateTime.Now.AddDays(Program._settings.SimpleVotingTime * 7);
+                    }
+                    else if (Program._settings.SimpleVotingTimeType == "minute")
+                    {
+                        informalVoting.EndDate = DateTime.Now.AddMinutes(Program._settings.SimpleVotingTime);
+                    }
+
+                    //Get total dao member count
+                    int daoMemberCount = Convert.ToInt32(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Users/GetCount?type=" + UserIdentityType.VotingAssociate, HttpContext.Session.GetString("Token")));
+                    //Eligible user count = VA Count - 1 (Job Doer)
+                    informalVoting.EligibleUserCount = daoMemberCount - 1;
+                    //Quorum count is calculated with total user count - 2(job poster, job doer)
+                    informalVoting.QuorumCount = Convert.ToInt32(Program._settings.QuorumRatio * Convert.ToDouble(informalVoting.EligibleUserCount));
+
+                    string jsonResult = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Voting/Voting/StartInformalVoting", Helpers.Serializers.SerializeJson(informalVoting), HttpContext.Session.GetString("Token"));
+                    var voteResult = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResult);
+
+                    if (voteResult.Success)
+                    {
+                        Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "User started new simple vote.", Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+
+                        //Send email notification to VAs
+                        SendEmailModel emailModel = new SendEmailModel() { Subject = "New Simple Vote Submitted #" + jobPostModel.JobID, Content = "New simple vote started. Title:" + jobPostModel.Title + "<br><br>Please submit your vote until " + informalVoting.EndDate.ToString(), TargetGroup = Enums.UserIdentityType.VotingAssociate };
+                        Program.rabbitMq.Publish(Helpers.Constants.FeedNames.NotificationFeed, "email", Helpers.Serializers.Serialize(emailModel));
+
+
+                        return new SimpleResponse { Success = true, Message = "Your request successfully submitted." };
+                    }
+                    else
+                    {
+                        return new SimpleResponse { Success = false, Message = voteResult.Message };
+                    }
+
+                }
+
+                return new SimpleResponse { Success = false, Message = "An error occured while creating the job post." };
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false, Message = "An error occured while processing your request." };
+            }
+        }
+
+        /// <summary>
+        ///  New simple vote post function (Governance Vote)
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [AuthorizeChainUser]
+        public JsonResult New_SimpleVote_Governance(NewSimpleVoteGovernanceModel model)
+        {
+
+            return Json("");
+        }
+
+        /// <summary>
+        ///  New simple vote post function (New VA Vote)
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [AuthorizeChainUser]
+        public JsonResult New_SimpleVote_VA(NewSimpleVoteVAModel model)
+        {
+
+            return Json("");
+        }
+
+        /// <summary>
+        ///  New simple vote post function (Custom Simple Vote)
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [AuthorizeChainUser]
+        public JsonResult New_SimpleVote_Custom(NewSimpleVoteCustomModel model)
+        {
+
+            return Json("");
+        }
+
+        /// <summary>
+        ///  New simple vote post function (Remove VA Vote)
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [AuthorizeChainUser]
+        public JsonResult New_SimpleVote_RemoveVA(NewSimpleVoteVARemoveModel model)
+        {
+
+            return Json("");
+        }
+
+        /// <summary>
+        ///  New simple vote post function (Mint Reputation Vote)
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [AuthorizeChainUser]
+        public JsonResult New_SimpleVote_MintRep(NewSimpleVoteMintRepModel model)
+        {
+
+            return Json("");
+        }
+
+        /// <summary>
+        ///  New simple vote post function (Burn Reputation Vote)
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [AuthorizeChainUser]
+        public JsonResult New_SimpleVote_BurnRep(NewSimpleVoteBurnRepModel model)
+        {
+
+            return Json("");
+        }
         #endregion
 
         #region Reputation
@@ -2043,18 +2276,27 @@ namespace DAO_WebPortal.Controllers
 
                         Program.monitizer.AddUserLog(modeluser.UserId, UserLogType.Request, "User updated the wallet address. OldValue:" + modeluser.WalletAddress + " || New Value:" + walletAddress, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
 
-                        ChainController chain = new ChainController();
-                        var chainProfile = chain.GetUserChainProfile(walletAddress);
-                        if (chainProfile.IsVA)
+                        UserChainProfile chainProfile = null;
+
+                        if (Program._settings.DaoBlockchain == Blockchain.Casper)
                         {
-                            HttpContext.Session.SetString("UserType", "VotingAssociate");
+                            chainProfile = new CasperChainController().GetUserChainProfile(walletAddress);
                         }
-                        else
+
+                        if (chainProfile != null)
                         {
-                            HttpContext.Session.SetString("UserType", "Associate");
+                            if (chainProfile.IsVA)
+                            {
+                                HttpContext.Session.SetString("UserType", "VotingAssociate");
+                            }
+                            else
+                            {
+                                HttpContext.Session.SetString("UserType", "Associate");
+                            }
+
+                            HttpContext.Session.SetString("Balance", chainProfile.Balance.ToString());
+                            HttpContext.Session.SetString("Reputation", chainProfile.Reputation.ToString());
                         }
-                        HttpContext.Session.SetString("Balance", chainProfile.Balance.ToString());
-                        HttpContext.Session.SetString("Reputation", chainProfile.Reputation.ToString());
 
                         return Json(new SimpleResponse { Success = true, Message = "Save changes successful." });
                     }
@@ -2243,6 +2485,15 @@ namespace DAO_WebPortal.Controllers
             return Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
         }
 
+        public IActionResult ChainActionDetail(int id)
+        {
+            //Get model from ApiGateway
+            var chainjson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/ChainAction/GetId?id=" + id);
+            //Parse response
+            ChainActionDto chainActionModel = Helpers.Serializers.DeserializeJson<ChainActionDto>(chainjson);
+
+            return View(chainActionModel);
+        }
         #endregion
 
         #region Payment History

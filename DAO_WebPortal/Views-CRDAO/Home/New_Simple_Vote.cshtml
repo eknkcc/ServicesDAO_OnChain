@@ -16,6 +16,9 @@
                 <option value="va">VA Onboarding</option>
                 <option value="governance">Governance</option>
                 <option value="kyc">KYC</option>
+                <option value="mintrep">Mint Reputation</option>
+                <option value="burnrep">Burn Reputation</option>
+                <option value="varemove">VA Removal</option>
             </select>
         </div>
         <div class="voteInputSection d-none" id="vaDiv">
@@ -36,111 +39,129 @@
                     <tbody>
                         <tr>
                             <td>Default Policing Rate</td>
-                            <td><input type="text" class="form-control" id="DefaultPolicingRate"
-                                    value="@Program._settings.DefaultPolicingRate" /></td>
+                            <td>
+                                <input type="text" class="form-control" id="DefaultPolicingRate"
+                                       value="@Program._settings.DefaultPolicingRate" />
+                            </td>
                         </tr>
                         <tr>
                             <td>Max Policing Rate</td>
-                            <td><input type="text" class="form-control" id="MaxPolicingRate"
-                                    value="@Program._settings.MaxPolicingRate" /></td>
+                            <td>
+                                <input type="text" class="form-control" id="MaxPolicingRate"
+                                       value="@Program._settings.MaxPolicingRate" />
+                            </td>
                         </tr>
                         <tr>
                             <td>Min Policing Rate</td>
-                            <td><input type="text" class="form-control" id="MinPolicingRate"
-                                    value="@Program._settings.MinPolicingRate" /></td>
+                            <td>
+                                <input type="text" class="form-control" id="MinPolicingRate"
+                                       value="@Program._settings.MinPolicingRate" />
+                            </td>
                         </tr>
                         <tr>
                             <td>Forum KYC Required</td>
                             <td>
                                 <select class="form-control" id="ForumKYCRequired"
-                                    value="@Convert.ToInt32(Program._settings.ForumKYCRequired)">
+                                        value="@Convert.ToInt32(Program._settings.ForumKYCRequired)">
                                     <!option value="1" @(Program._settings.ForumKYCRequired == true ? "selected" : "")>
-                                        True</!option>
+                                    True</!option>
                                     <!option value="-1" @(Program._settings.ForumKYCRequired == false ? "selected" :
-                                        "")>False</!option>
+                                    "")>False</!option>
                                 </select>
                             </td>
                         </tr>
                         <tr>
                             <td>Quorum Ratio</td>
-                            <td><input type="text" class="form-control" id="QuorumRatio"
-                                    value="@Program._settings.QuorumRatio" /></td>
+                            <td>
+                                <input type="text" class="form-control" id="QuorumRatio"
+                                       value="@Program._settings.QuorumRatio" />
+                            </td>
                         </tr>
                         <tr>
                             <td>Internal Auction Time</td>
-                            <td><input type="text" class="form-control" id="InternalAuctionTime"
-                                    value="@Program._settings.InternalAuctionTime" /></td>
+                            <td>
+                                <input type="text" class="form-control" id="InternalAuctionTime"
+                                       value="@Program._settings.InternalAuctionTime" />
+                            </td>
                         </tr>
                         <tr>
                             <td>Public Auction Time</td>
-                            <td><input type="text" class="form-control" id="PublicAuctionTime"
-                                    value="@Program._settings.PublicAuctionTime" /></td>
+                            <td>
+                                <input type="text" class="form-control" id="PublicAuctionTime"
+                                       value="@Program._settings.PublicAuctionTime" />
+                            </td>
                         </tr>
                         <tr>
                             <td>Auction Time Type</td>
                             <td>
                                 <select class="form-control" id="AuctionTimeType">
                                     <!option @(Program._settings.AuctionTimeType == "week" ? "selected" : "")
-                                        value="week">Week</!option>
+                                    value="week">Week</!option>
                                     <!option @(Program._settings.AuctionTimeType == "day" ? "selected" : "")
-                                        value="day">Day</!option>
+                                    value="day">Day</!option>
                                     <!option @(Program._settings.AuctionTimeType == "minute" ? "selected" : "")
-                                        value="minute">Minute</!option>
+                                    value="minute">Minute</!option>
                                 </select>
                             </td>
                         </tr>
                         <tr>
                             <td>Voting Time</td>
-                            <td><input type="text" class="form-control" id="VotingTime"
-                                    value="@Program._settings.VotingTime" /> </td>
+                            <td>
+                                <input type="text" class="form-control" id="VotingTime"
+                                       value="@Program._settings.VotingTime" />
+                            </td>
                         </tr>
                         <tr>
                             <td>Voting Time Type</td>
                             <td>
                                 <select class="form-control" id="VotingTimeType"
-                                    value="@Program._settings.VotingTimeType">
+                                        value="@Program._settings.VotingTimeType">
                                     <!option @(Program._settings.VotingTimeType == "week" ? "selected" : "")
-                                        value="week">Week</!option>
+                                    value="week">Week</!option>
                                     <!option @(Program._settings.VotingTimeType == "day" ? "selected" : "") value="day">
-                                        Day</!option>
+                                    Day</!option>
                                     <!option @(Program._settings.VotingTimeType == "minute" ? "selected" : "")
-                                        value="minute">Minute</!option>
+                                    value="minute">Minute</!option>
                                 </select>
                             </td>
                         </tr>
                         <tr>
                             <td>Reputation Conversion Rate</td>
-                            <td><input type="text" class="form-control" id="ReputationConversionRate"
-                                    value="@Program._settings.ReputationConversionRate" /> </td>
+                            <td>
+                                <input type="text" class="form-control" id="ReputationConversionRate"
+                                       value="@Program._settings.ReputationConversionRate" />
+                            </td>
                         </tr>
                         <tr>
                             <td>VA Onboarding Simple Vote</td>
                             <td>
                                 <select class="form-control" id="VAOnboardingSimpleVote"
-                                    value="@Program._settings.VAOnboardingSimpleVote">
+                                        value="@Program._settings.VAOnboardingSimpleVote">
                                     <!option @(Program._settings.VAOnboardingSimpleVote == true ? "selected" : "")
-                                        value="1">True</!option>
+                                    value="1">True</!option>
                                     <!option @(Program._settings.VAOnboardingSimpleVote == false ? "selected" : "")
-                                        value="-1">False</!option>
+                                    value="-1">False</!option>
                                 </select>
                             </td>
                         </tr>
                         <tr>
                             <td>Simple Voting Time</td>
-                            <td><input type="text" class="form-control" id="SimpleVotingTime"
-                                    value="@Program._settings.SimpleVotingTime" /> </td>
+                            <td>
+                                <input type="text" class="form-control" id="SimpleVotingTime"
+                                       value="@Program._settings.SimpleVotingTime" />
+                            </td>
                         </tr>
                         <tr>
                             <td>Simple Voting Time Type</td>
                             <td>
                                 <select class="form-control" id="SimpleVotingTimeType"
-                                    value="@Program._settings.SimpleVotingTimeType">
+                                        value="@Program._settings.SimpleVotingTimeType">
                                     <!option @(Program._settings.SimpleVotingTimeType == "week" ? "selected" : "")
-                                        value="week">Week</!option>
+                                    value="week">Week</!option>
                                     <!option @(Program._settings.SimpleVotingTimeType == "day" ? "selected" : "")
-                                        value="day">Day</!option>
+                                    value="day">Day</!option>
                                     <!option @(Program._settings.SimpleVotingTimeType == "minute" ? "selected" : "")
-                                        value="minute">Minute</!option>
+                                    value="minute">Minute</!option>
                                 </select>
                             </td>
                         </tr>
@@ -148,11 +169,11 @@
                             <td>Payment Without Participation</td>
                             <td>
                                 <select class="form-control" id="DistributePaymentWithoutVote"
-                                    value="@Program._settings.DistributePaymentWithoutVote">
+                                        value="@Program._settings.DistributePaymentWithoutVote">
                                     <!option @(Program._settings.DistributePaymentWithoutVote == true ? "selected" : "")
-                                        value="1">True</!option>
+                                    value="1">True</!option>
                                     <!option @(Program._settings.DistributePaymentWithoutVote == false ? "selected" :
-                                        "") value="-1">False</!option>
+                                    "") value="-1">False</!option>
                                 </select>
                             </td>
                         </tr>
@@ -179,9 +200,9 @@
             </div>
             <span id="kycavailablity"> </span>
             @* <div class="form-group mb-4">
-                <label class="mb-2"><b><i class="fas fa-user"></i> Document Hash</b></label>
-                <input type="text" class="form-control" id="kycdocumenthash" placeholder="Document Hash">
-                </div> *@
+            <label class="mb-2"><b><i class="fas fa-user"></i> Document Hash</b></label>
+            <input type="text" class="form-control" id="kycdocumenthash" placeholder="Document Hash">
+            </div> *@
         </div>
         <div class="voteInputSection" id="customDiv">
             <div class="form-group mb-4" id="titlediv">
@@ -191,84 +212,67 @@
             <div class="form-group" id="descriptiondiv">
                 <label class="mb-2" for="description"><b><i class="fas fa-file mx-1"></i> Description</b></label>
                 <textarea type="text" id="description" name="description" placeholder="Description of the vote"
-                    rows="10"></textarea>
+                          rows="10"></textarea>
             </div>
         </div>
 
         <div class="d-flex justify-content-end my-3">
-            <button type="submit" class="btn btn-primary submitFormButton" onclick="NewSimpleVotePost();">Start Voting</button>
+            <button type="submit" class="btn btn-primary submitFormButton" onclick="StartSimpleVote();">Start Voting</button>
         </div>
     </div>
 </div>
 
 @section Scripts{
 
-<script>
+    <script>
 
-    $(document).ready(function () {
-        if (document.body.classList.contains('dark-theme')) {
-            CKEDITOR.replace('description', {
-                skin: 'moono-dark'
-            });
-        }
-        else {
-            CKEDITOR.replace('description', {
-                skin: 'moono-lisa'
-            });
-        }
-
-        $('#voteType').on('change', function () {
-            $('.voteInputSection').addClass("d-none");
-            $('#' + this.value + "Div").removeClass("d-none");
-        });
-    });
-
-    //Add new simple vote function
-    async function NewSimpleVotePost() {
-
-        if ($('#voteType').val() == "kyc") {
-            const isConnected = await window.casperlabsHelper.isConnected();
-            if (isConnected) 
-            {
-                ShowLoader("Creating deploy object...");
-                //Ajax post action
-                $.ajax({
-                    type: "GET",
-                    url: "../Chain/GetKYCVoteDeploy?username=" + $("#kycusername").val() + "&stake=" + $("#kycrepstake").val(),
-                    success: async function (result) {
-                        if (result.success) {
-                            ShowLoader("Waiting for sign...");
-                            //const publicKeyHex = await window.casperlabsHelper.getActivePublicKey();
-                            var deployJson = { "deploy": JSON.parse(result.message) };
-
-                            // Sign transcation using casper-signer.
-                            const signature = await window.casperlabsHelper.sign(deployJson);
-
-                            ShowLoader("Sending signed deploy. This may take few minutes..."); 
-
-                            SendSignedDeploy(signature.deploy, "KYC Contract Call");
-                        }
-                        else {
-                            HideLoader();
-                            toastr.warning(result.message);
-                        }
-                    },
-                    failure: function (response) {
-                        HideLoader();
-                        toastr.warning("@Lang.ConnectionError");
-                    },
-                    error: function (response) {
-                        HideLoader();
-                        toastr.error("@Lang.UnexpectedError");
-                    }
+        $(document).ready(function () {
+            if (document.body.classList.contains('dark-theme')) {
+                CKEDITOR.replace('description', {
+                    skin: 'moono-dark'
                 });
             }
-            else
-            {
-                toastr.warning("Please connect the Casper Signer browser extension.");
+            else {
+                CKEDITOR.replace('description', {
+                    skin: 'moono-lisa'
+                });
+            }
+
+            $('#voteType').on('change', function () {
+                $('.voteInputSection').addClass("d-none");
+                $('#' + this.value + "Div").removeClass("d-none");
+            });
+        });
+
+        //Add new simple vote function
+        async function StartSimpleVote() {
+
+            if ($('#voteType').val() == "kyc") {
+                startKycVote();
+            }
+            else if ($('#voteType').val() == "va") {
+                startVaVote();
+            }
+            else if ($('#voteType').val() == "custom") {
+                startCustomVote();
+            }
+            else if ($('#voteType').val() == "governance") {
+                startGovernanceVote();
+            }
+            else if ($('#voteType').val() == "mintrep") {
+                startMintRepVote();
+            }
+            else if ($('#voteType').val() == "burnrep") {
+                startBurnRepVote();
+            }
+            else if ($('#voteType').val() == "varemove") {
+                startVaRemoveVote();
             }
         }
-        else {
+
+
+        function startKycVote(signedDeployJson) {
+
             $.confirm({
                 title: 'Confirmation',
                 content: '<p>Are you sure you want to start simple vote process ?</p>',
@@ -281,8 +285,184 @@
                         text: 'Continue',
                         btnClass: 'btn btn-primary',
                         action: function () {
+                            //KYC Vote parameters
+                            var documentHash = $("#kycdocumenthash").val();
+                            var kycUserName = $("#kycusername").val();
+                            var stake = $("#kycrepstake").val();
 
-                            //Create job model
+                            //Ajax post action
+                            $.ajax({
+                                type: "POST",
+                                url: "../Home/New_SimpleVote_KYC",
+                                data: {
+                                    "stake": stake,
+                                    "documentHash": documentHash,
+                                    "kycUserName": kycUserName,
+                                    "signedDeployJson": signedDeployJson
+                                },
+                                success: function (result) {
+                                    if (result.success) {
+                                        window.location.reload();
+                                    }
+                                    else {
+                                        toastr.warning(result.message);
+                                    }
+                                },
+                                failure: function (response) {
+                                    toastr.warning("@Lang.ConnectionError");
+                                },
+                                error: function (response) {
+                                    toastr.error("@Lang.UnexpectedError");
+                                }
+                            });
+
+                        }
+
+                    }
+                }
+            });
+
+        }
+
+        function startVaVote(signedDeployJson) {
+
+        }
+
+        function startCustomVote(signedDeployJson) {
+
+        }
+
+        function startGovernanceVote(signedDeployJson) {
+
+        }
+
+        function startMintRepVote(signedDeployJson) {
+
+        }
+        
+        function startBurnRepVote(signedDeployJson) {
+
+        }
+
+        function startVaRemovalVote(signedDeployJson) {
+
+        }
+    </script>
+
+    @if(Program._settings.DaoBlockchain == Helpers.Constants.Enums.Blockchain.Casper)
+    {
+        <script>
+
+            function startOnchainKycVote() {
+
+                const isConnected = await window.casperlabsHelper.isConnected();
+                if (isConnected) {
+                    ShowLoader("Creating deploy object...");
+                    //Ajax post action
+                    $.ajax({
+                        type: "GET",
+                        url: "../CasperChain/GetKYCVoteDeploy?username=" + $("#kycusername").val() + "&stake=" + $("#kycrepstake").val(),
+                        success: async function (result) {
+                            if (result.success) {
+                                ShowLoader("Waiting for sign...");
+                                //const publicKeyHex = await window.casperlabsHelper.getActivePublicKey();
+                                var deployJson = { "deploy": JSON.parse(result.message) };
+
+                                // Sign transcation using casper-signer.
+                                const signature = await window.casperlabsHelper.sign(deployJson);
+
+                                ShowLoader("Sending signed deploy. This may take few minutes...");
+
+                                startKycVote(signature.deploy);
+
+                                //SendSignedDeploy(signature.deploy, "KYC Contract Call");
+                            }
+                            else {
+                                HideLoader();
+                                toastr.warning(result.message);
+                            }
+                        },
+                        failure: function (response) {
+                            HideLoader();
+                            toastr.warning("@Lang.ConnectionError");
+                        },
+                        error: function (response) {
+                            HideLoader();
+                            toastr.error("@Lang.UnexpectedError");
+                        }
+                    });
+                }
+                else {
+                    toastr.warning("Please connect the Casper Signer browser extension.");
+                }
+            }
+
+            function startOnchainVaVote() {
+
+            }
+
+            function startOnchainCustomVote() {
+
+            }
+
+            function startOnchainGovernanceVote() {
+
+            }
+
+            function startOnchainMintRepVote() {
+                
+            }
+
+            function startOnchainBurnRepVote() {
+                
+            }
+
+            function startOnchainVaRemovalVote() {
+                
+            }
+        </script>
+    }
+    else if(Program._settings.DaoBlockchain == null)
+    {
+        @* Start votes without any onchain process *@
+        <script>
+
+            function startOnchainKycVote() {
+                startKycVote("");
+            }
+
+            function startOnchainVaVote() {
+                startVaVote("");
+            }
+
+            function startOnchainCustomVote() {
+                startCustomVote("");
+            }
+
+            function startOnchainGovernanceVote() {
+                startGovernanceVote("");
+            }
+
+            function startOnchainMintRepVote() {
+                startMintRepVote("");
+            }
+
+            function startOnchainBurnRepVote() {
+                startBurnRepVote("");
+            }
+            
+            function startOnchainVaRemovalVote() {
+                startVaRemovalVote("");
+            }
+        </script>
+    }
+
+}
+
+
+@*        
+    //OLD SCRIPT
+    //Create job model
                             var title = $('#title').val();
                             var description = CKEDITOR.instances["description"].getData();
                             var voteType = $('#voteType').val();
@@ -359,15 +539,4 @@
                                     toastr.error("@Lang.UnexpectedError");
                                 }
                             });
-
-
-                        }
-
-                    }
-                }
-            });
-        }
-    }
-</script>
-
-}
+*@

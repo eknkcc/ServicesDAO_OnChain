@@ -21,5 +21,7 @@ namespace Helpers.Models.DtoModels.MainDbDto
         public bool? DosFeePaid { get; set; }
         public string Tags { get; set; }
         public string CodeUrl { get; set; }
+        public string DeployHash { get; set; }
+
     }
 }

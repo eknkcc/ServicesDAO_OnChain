@@ -28,6 +28,5 @@ namespace Helpers.Models.DtoModels.VoteDbDto
         public double PolicingRate { get; set; }
         public string DeployHash { get; set; }
 
-
     }
 }
