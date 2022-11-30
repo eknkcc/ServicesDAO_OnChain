@@ -152,6 +152,16 @@ namespace DAO_WebPortal.Controllers
             return profile;
         }
 
+        public IActionResult ChainActionDetail(int id)
+        {
+            //Get model from ApiGateway
+            var chainjson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/ChainAction/GetId?id=" + id);
+            //Parse response
+            ChainActionDto chainActionModel = Helpers.Serializers.DeserializeJson<ChainActionDto>(chainjson);
+
+            return View(chainActionModel);
+        }
+
         #region KYC 
 
         public JsonResult GetKYCVoteDeploy(string username, int stake)

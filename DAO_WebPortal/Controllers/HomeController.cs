@@ -1882,12 +1882,13 @@ namespace DAO_WebPortal.Controllers
                     new Thread(() =>
                     {
                         Thread.CurrentThread.IsBackground = true;
-                        var chainActionResult = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/CasperChainService/SendSignedDeploy", Helpers.Serializers.SerializeJson(chainAction));
-                        var chainActionResultModel = Helpers.Serializers.DeserializeJson<ChainActionDto>(chainQuePostJson);
+                        var chainActionResult = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/SendSignedDeploy", Helpers.Serializers.SerializeJson(chainAction));
+                        var chainActionResultModel = Helpers.Serializers.DeserializeJson<ChainActionDto>(chainActionResult);
 
-                        if (chainActionResultModel != null && string.IsNullOrEmpty(chainActionResultModel.Status))
+                        if (chainActionResultModel != null && !string.IsNullOrEmpty(chainActionResultModel.Status))
                         {
                             chainAction = chainActionResultModel;
+                            var updateJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/ChainAction/Update", Helpers.Serializers.SerializeJson(chainAction));
                         }
 
                         //Central db operations
@@ -1898,7 +1899,7 @@ namespace DAO_WebPortal.Controllers
                     }).Start();
 
                     //Set server side toastr because page will be redirected
-                    TempData["toastr-message"] = "Your request successfully submitted. Blockchain requests can be followed from <a href='../Home/ChainActionDetail?id=" + chainAction.ChainActionId + "'>here</a>";
+                    TempData["toastr-message"] = "Your request successfully submitted. Blockchain request can be followed from <a href='../CasperChain/ChainActionDetail?id=" + chainAction.ChainActionId + "'>here</a>";
                     TempData["toastr-type"] = "success";
 
                     return Json(new SimpleResponse() { Success = true });
@@ -2071,6 +2072,7 @@ namespace DAO_WebPortal.Controllers
 
             return Json("");
         }
+
         #endregion
 
         #region Reputation
@@ -2485,15 +2487,6 @@ namespace DAO_WebPortal.Controllers
             return Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
         }
 
-        public IActionResult ChainActionDetail(int id)
-        {
-            //Get model from ApiGateway
-            var chainjson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/ChainAction/GetId?id=" + id);
-            //Parse response
-            ChainActionDto chainActionModel = Helpers.Serializers.DeserializeJson<ChainActionDto>(chainjson);
-
-            return View(chainActionModel);
-        }
         #endregion
 
         #region Payment History

@@ -248,25 +248,25 @@
         async function StartSimpleVote() {
 
             if ($('#voteType').val() == "kyc") {
-                startKycVote();
+                startOnchainKycVote();
             }
             else if ($('#voteType').val() == "va") {
-                startVaVote();
+                startOnchainVaVote();
             }
             else if ($('#voteType').val() == "custom") {
-                startCustomVote();
+                startOnchainCustomVote();
             }
             else if ($('#voteType').val() == "governance") {
-                startGovernanceVote();
+                startOnchainGovernanceVote();
             }
             else if ($('#voteType').val() == "mintrep") {
-                startMintRepVote();
+                startOnchainMintRepVote();
             }
             else if ($('#voteType').val() == "burnrep") {
-                startBurnRepVote();
+                startOnchainBurnRepVote();
             }
             else if ($('#voteType').val() == "varemove") {
-                startVaRemoveVote();
+                startOnchainVaRemoveVote();
             }
         }
 
@@ -298,7 +298,7 @@
                                     "stake": stake,
                                     "documentHash": documentHash,
                                     "kycUserName": kycUserName,
-                                    "signedDeployJson": signedDeployJson
+                                    "signedDeployJson": JSON.stringify(signedDeployJson)
                                 },
                                 success: function (result) {
                                     if (result.success) {
@@ -353,7 +353,7 @@
     {
         <script>
 
-            function startOnchainKycVote() {
+            async function startOnchainKycVote() {
 
                 const isConnected = await window.casperlabsHelper.isConnected();
                 if (isConnected) {
@@ -397,27 +397,27 @@
                 }
             }
 
-            function startOnchainVaVote() {
+            async function startOnchainVaVote() {
 
             }
 
-            function startOnchainCustomVote() {
+            async function startOnchainCustomVote() {
 
             }
 
-            function startOnchainGovernanceVote() {
+            async function startOnchainGovernanceVote() {
 
             }
 
-            function startOnchainMintRepVote() {
+            async function startOnchainMintRepVote() {
                 
             }
 
-            function startOnchainBurnRepVote() {
+            async function startOnchainBurnRepVote() {
                 
             }
 
-            function startOnchainVaRemovalVote() {
+            async function startOnchainVaRemovalVote() {
                 
             }
         </script>

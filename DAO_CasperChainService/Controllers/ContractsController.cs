@@ -79,7 +79,17 @@ namespace DAO_CasperChainService.Controllers
 
                 if (deployResponse.Error == null)
                 {
-                    chainAction.Status = "Completed";
+                    var parsedResult = ParseDeployResult(chainAction.Result);
+
+                    if (string.IsNullOrEmpty(parsedResult))
+                    {
+                        chainAction.Status = "Completed";
+                    }
+                    else
+                    {
+                        chainAction.Status = "Blockchain Error";
+                        chainAction.Result += "Blockchain Error: " + parsedResult;
+                    }
                 }
                 else
                 {
@@ -95,6 +105,36 @@ namespace DAO_CasperChainService.Controllers
             }
 
             return chainAction;
+        }
+
+        public string ParseDeployResult(string rawResult)
+        {
+            string resultText = "";
+
+            try
+            {
+                var errormsg = Helpers.Serializers.DeserializeJson<dynamic>(rawResult).execution_results[0].result.Failure.error_message.ToString();
+                if (!string.IsNullOrEmpty(errormsg))
+                {
+                    resultText = errormsg;
+
+                    var errorSplitted = errormsg.Split(":");
+                    if(errorSplitted.Length > 1)
+                    {
+                        var errorCode = Convert.ToInt32(errorSplitted[1].Trim());
+                        if(Models.CasperErrorDictionary.errorDictionary.ContainsKey(errorCode))
+                        {
+                            resultText += " ("+  Models.CasperErrorDictionary.errorDictionary[errorCode] + ")";
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return resultText;
         }
 
         #region KYC 
