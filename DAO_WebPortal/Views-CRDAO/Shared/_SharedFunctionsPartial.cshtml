@@ -59,7 +59,8 @@
                                                         "showEasing": "swing",
                                                             "hideEasing": "linear",
                                                                 "showMethod": "fadeIn",
-                                                                    "hideMethod": "fadeOut"
+                                                                    "hideMethod": "fadeOut",
+                                                                        "escapeHtml ": false
         };
 
     });
@@ -131,19 +132,19 @@
     var checkInterval;
     async function ConnectWallet(login) {
 
-        @if (Program._settings.DaoBlockchain == Helpers.Constants.Enums.Blockchain.Casper)
+    @if (Program._settings.DaoBlockchain == Helpers.Constants.Enums.Blockchain.Casper)
     {
         @Html.Raw("window.casperlabsHelper.requestConnection();")
     }
 
 
-        clearInterval(checkInterval);
+            clearInterval(checkInterval);
         checkInterval = setInterval(function () {
-            @if (Program._settings.DaoBlockchain == Helpers.Constants.Enums.Blockchain.Casper)
-            {
-                @Html.Raw("CheckCasperPublicKey(login);")
-            }
-        }, 1000);
+    @if (Program._settings.DaoBlockchain == Helpers.Constants.Enums.Blockchain.Casper)
+    {
+        @Html.Raw("CheckCasperPublicKey(login);")
+    }
+            }, 1000);
 
     }
 
@@ -381,12 +382,12 @@
 
             var publicAddress = "";
 
-            @if (Program._settings.DaoBlockchain == Helpers.Constants.Enums.Blockchain.Casper)
-            {
-                @Html.Raw("publicAddress = await window.casperlabsHelper.getActivePublicKey();")
-            }
+    @if (Program._settings.DaoBlockchain == Helpers.Constants.Enums.Blockchain.Casper)
+    {
+        @Html.Raw("publicAddress = await window.casperlabsHelper.getActivePublicKey();")
+    }
 
-            if (publicAddress.length > 0) {
+                if (publicAddress.length > 0) {
                 $.ajax({
                     type: "GET",
                     url: "../WalletUpdate?walletAddress=" + publicAddress,
@@ -412,11 +413,12 @@
 
     function ShowChainActionDetail(id) {
         var chainName = "";
-        @if (Program._settings.DaoBlockchain !=  null)
-        {
-            @Html.Raw("chainName = '"+ Helpers.Constants.Enums.Blockchain.Casper.ToString() +"';");
-        }
+    @if (Program._settings.DaoBlockchain != null)
+    {
+        @Html.Raw("chainName = '"+ Helpers.Constants.Enums.Blockchain.Casper.ToString() +"';")
+        ;
+    }
 
-        window.open('../'+ chainName +'Chain/ChainActionDetail?id=' + id, '_blank').focus();
+            window.open('../' + chainName + 'Chain/ChainActionDetail?id=' + id, '_blank').focus();
     }
 </script>

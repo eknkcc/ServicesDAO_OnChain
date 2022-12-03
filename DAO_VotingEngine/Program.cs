@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static Helpers.Constants.Enums;
 
 namespace DAO_VotingEngine
 {
@@ -20,6 +21,10 @@ namespace DAO_VotingEngine
             public string RabbitMQUsername { get; set; }
             public string RabbitMQPassword { get; set; }
             public string Service_Reputation_Url { get; set; }
+            public string Service_CasperChain_Url { get; set; }
+
+            //CHAIN SETTINGS
+            public Blockchain? DaoBlockchain { get; set; }
         }
 
         public static Monitizer monitizer;

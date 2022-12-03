@@ -164,5 +164,17 @@
         {
             Casper
         }
+
+        /// <summary>
+        ///  Enum of supported chain action status types
+        /// </summary>
+        public enum ChainActionStatus
+        {
+            InProgress,
+            Completed,
+            Error,
+            BlockchainError,
+            Failed
+        }
     }
 }

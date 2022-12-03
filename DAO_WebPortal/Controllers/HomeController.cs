@@ -1871,7 +1871,7 @@ namespace DAO_WebPortal.Controllers
                     Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Sending Deploy: " + model.signedDeployJson);
                     string walletAddress = HttpContext.Session.GetString("WalletAddress");
 
-                    chainAction = new ChainActionDto() { ActionType = VoteTypes.KYC.ToString(), CreateDate = DateTime.Now, WalletAddress = walletAddress, DeployJson = model.signedDeployJson, Status = "In Progress" };
+                    chainAction = new ChainActionDto() { ActionType = VoteTypes.KYC.ToString(), CreateDate = DateTime.Now, WalletAddress = walletAddress, DeployJson = model.signedDeployJson, Status = Enums.ChainActionStatus.InProgress.ToString() };
                     var chainQuePostJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/ChainAction/Post", Helpers.Serializers.SerializeJson(chainAction));
                     chainAction = Helpers.Serializers.DeserializeJson<ChainActionDto>(chainQuePostJson);
                     if (chainAction != null && chainAction.ChainActionId > 0)
@@ -1892,7 +1892,7 @@ namespace DAO_WebPortal.Controllers
                         }
 
                         //Central db operations
-                        if (!string.IsNullOrEmpty(chainAction.DeployHash))
+                        if (!string.IsNullOrEmpty(chainAction.DeployHash) && chainAction.Status == Enums.ChainActionStatus.Completed.ToString())
                         {
                             New_SimpleVote_KYC_DbOperations(model, ((UserKYCDto)((dynamic)controlResult.Content).kyc), chainAction.DeployHash);
                         }
@@ -1906,7 +1906,7 @@ namespace DAO_WebPortal.Controllers
                 }
                 catch (Exception ex)
                 {
-                    chainAction.Status = "Error";
+                    chainAction.Status = Enums.ChainActionStatus.Error.ToString();
                     var updateJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/ChainAction/Update", Helpers.Serializers.SerializeJson(chainAction));
 
                     Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);

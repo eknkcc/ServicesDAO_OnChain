@@ -28,6 +28,7 @@ namespace DAO_VotingEngine.Models
         //How much of the new minted reputation will be distributed to job doer.
         public double PolicingRate { get; set; }
         public string DeployHash { get; set; }
+        public int? BlockchainVotingID { get; set; }
     }
 
 

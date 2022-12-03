@@ -12,6 +12,7 @@ using static Helpers.Constants.Enums;
 using Helpers.Models.SharedModels;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
+using Helpers.Constants;
 
 namespace DAO_CasperChainService.Controllers
 {
@@ -83,24 +84,24 @@ namespace DAO_CasperChainService.Controllers
 
                     if (string.IsNullOrEmpty(parsedResult))
                     {
-                        chainAction.Status = "Completed";
+                        chainAction.Status = Enums.ChainActionStatus.Completed.ToString();
                     }
                     else
                     {
-                        chainAction.Status = "Blockchain Error";
+                        chainAction.Status = Enums.ChainActionStatus.BlockchainError.ToString();
                         chainAction.Result += "Blockchain Error: " + parsedResult;
                     }
                 }
                 else
                 {
-                    chainAction.Status = "Failed";
+                    chainAction.Status = Enums.ChainActionStatus.Failed.ToString();
                     chainAction.Result += Environment.NewLine + deployResponse.Error.Message;
                 }
             }
             catch (Exception ex)
             {
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-                chainAction.Status = "Failed";
+                chainAction.Status = Enums.ChainActionStatus.Error.ToString();
                 chainAction.Result += Environment.NewLine + ex.Message;
             }
 

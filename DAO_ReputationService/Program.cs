@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static Helpers.Constants.Enums;
 
 namespace DAO_ReputationService
 {
@@ -19,6 +20,10 @@ namespace DAO_ReputationService
             public string RabbitMQUsername { get; set; }
             public string RabbitMQPassword { get; set; }
             public string DbConnectionString { get; set; }
+            public string Service_CasperChain_Url { get; set; }
+
+            //CHAIN SETTINGS
+            public Blockchain? DaoBlockchain { get; set; }
         }
 
         public static Monitizer monitizer;

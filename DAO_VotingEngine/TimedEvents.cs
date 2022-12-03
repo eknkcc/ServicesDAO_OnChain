@@ -22,21 +22,32 @@ namespace DAO_VotingEngine
         /// </summary>
         public static void StartTimers()
         {
-            CheckVotingStatus(null, null);
+            CheckVotingStatusOffchain(null, null);
 
-            //Voting status timer
-            votingStatusTimer = new System.Timers.Timer(10000);
-            votingStatusTimer.Elapsed += CheckVotingStatus;
-            votingStatusTimer.AutoReset = true;
-            votingStatusTimer.Enabled = true;
+            if (Program._settings.DaoBlockchain == null)
+            {
+                //Voting status timer
+                votingStatusTimer = new System.Timers.Timer(10000);
+                votingStatusTimer.Elapsed += CheckVotingStatusOffchain;
+                votingStatusTimer.AutoReset = true;
+                votingStatusTimer.Enabled = true;
+            }
+            else if (Program._settings.DaoBlockchain == Enums.Blockchain.Casper)
+            {
+                //Voting status timer
+                votingStatusTimer = new System.Timers.Timer(60000);
+                votingStatusTimer.Elapsed += CheckVotingStatusCasperChain;
+                votingStatusTimer.AutoReset = true;
+                votingStatusTimer.Enabled = true;
+            }
         }
 
         /// <summary>
-        ///  Check voting status
+        ///  Check voting status from centralized db
         /// </summary>
         /// <param name="source"></param>
         /// <param name="e"></param>
-        private static void CheckVotingStatus(Object source, ElapsedEventArgs e)
+        private static void CheckVotingStatusOffchain(Object source, ElapsedEventArgs e)
         {
             try
             {
@@ -149,7 +160,76 @@ namespace DAO_VotingEngine
             }
             catch (Exception ex)
             {
-                Program.monitizer.AddConsole("Exception in timer CheckVotingStatus. Ex: " + ex.Message);
+                Program.monitizer.AddConsole("Exception in timer CheckVotingStatusOffchain. Ex: " + ex.Message);
+            }
+        }
+
+
+        /// <summary>
+        ///  Check voting status from casper blockchain
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="e"></param>
+        private static void CheckVotingStatusCasperChain(Object source, ElapsedEventArgs e)
+        {
+            try
+            {
+                //Get voting data from chain and central db
+                List<Voting> dbVotings = new List<Voting>();
+                List<Helpers.Models.CasperServiceModels.Voting> chainVotings = new List<Helpers.Models.CasperServiceModels.Voting>();
+
+                using (dao_votesdb_context db = new dao_votesdb_context())
+                {
+                    dbVotings = db.Votings.Where(x => x.Status == Enums.VoteStatusTypes.Active).ToList();
+                }
+
+                chainVotings = Serializers.DeserializeJson<List<Helpers.Models.CasperServiceModels.Voting>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetVotings?page=1&page_size=100&is_active=true"));
+
+                //Sync blockchain informal voting ids
+                foreach (var item in dbVotings.Where(x => x.IsFormal == false && x.DeployHash != null && x.BlockchainVotingID == null))
+                {
+                    if (chainVotings.Count(x => x.deploy_hash == item.DeployHash) > 0)
+                    {
+                        using (dao_votesdb_context db = new dao_votesdb_context())
+                        {
+                            var voting = db.Votings.Find(item.VotingID);
+                            voting.BlockchainVotingID = chainVotings.First(x => x.deploy_hash == item.DeployHash).voting_id;
+                            db.SaveChanges();
+                        }
+                    }
+                }
+
+                //Sync blockchain formal voting ids & deploy hash
+                foreach (var item in dbVotings.Where(x => x.IsFormal == true && x.DeployHash == null && x.BlockchainVotingID == null))
+                {
+                    using (dao_votesdb_context db = new dao_votesdb_context())
+                    {
+                        var informalVoting = db.Votings.First(x => x.JobID == item.JobID && x.IsFormal == false && x.BlockchainVotingID != null);
+
+                        if (chainVotings.Count(x => x.informal_voting_id == informalVoting.BlockchainVotingID) > 0)
+                        {
+                            var chainVoting = chainVotings.First(x => x.informal_voting_id == informalVoting.BlockchainVotingID);
+
+                            var voting = db.Votings.Find(item.VotingID);
+                            voting.BlockchainVotingID = chainVoting.voting_id;
+                            voting.DeployHash = chainVoting.deploy_hash;
+                            db.SaveChanges();
+                        }
+                    }
+                }
+
+                //Start formal voting in central db if formal voting started onchain
+                foreach (var item in dbVotings.Where(x => x.IsFormal == false && x.BlockchainVotingID != null))
+                {
+                    if(chainVotings.Count(x=>x.informal_voting_id == item.BlockchainVotingID) > 0)
+                    {
+
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddConsole("Exception in timer CheckVotingStatusCasperChain. Ex: " + ex.Message);
             }
         }
     }

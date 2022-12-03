@@ -281,7 +281,7 @@
                                             class="text-right">@httpContextAccessor.HttpContext.Session.GetString("Balance")</span></small>
                                 </div>             
 
-                                if(Program.chainQue.Count(x=> x.Status == "In Progress" && x.WalletAddress == httpContextAccessor.HttpContext.Session.GetString("WalletAddress")) > 0)
+                                if(Program.chainQue.Count(x=> x.Status == Helpers.Constants.Enums.ChainActionStatus.InProgress.ToString() && x.WalletAddress == httpContextAccessor.HttpContext.Session.GetString("WalletAddress")) > 0)
                                 {
                                     <div class="d-inline-block" style="vertical-align: top;">
                                         <span class="spinner spinner-alt smallSpinner"><i class="fas fa-circle-notch fa-link"></i></span>
@@ -295,7 +295,7 @@
                         
                                     @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") > 0 && Program._settings.DaoBlockchain != null)
                                     {
-                                        <div class="dropdown-header py-2"><strong>Pending blockchain actions: @Program.chainQue.Count(x=> x.Status == "In Progress" && x.WalletAddress == httpContextAccessor.HttpContext.Session.GetString("WalletAddress"))</strong></div>
+                                    <div class="dropdown-header py-2"><strong>Pending blockchain actions: @Program.chainQue.Count(x=> x.Status == Helpers.Constants.Enums.ChainActionStatus.InProgress.ToString() && x.WalletAddress == httpContextAccessor.HttpContext.Session.GetString("WalletAddress"))</strong></div>
                                         <div class="dropdown-header chainDropdown">
                                             @foreach (var item in Program.chainQue.Where(x=>x.WalletAddress == httpContextAccessor.HttpContext.Session.GetString("WalletAddress")).OrderByDescending(x=>x.CreateDate).Take(10))
                                             {
