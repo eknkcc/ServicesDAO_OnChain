@@ -10,7 +10,7 @@ namespace Helpers.Models.CasperServiceModels
         public string timestamp { get; set; }
         public int? voting_id { get; set; }
         public int? voting_quorum { get; set; }
-        public int? voting_time { get; set; }
+        public long? voting_time { get; set; }
 
     }
 }

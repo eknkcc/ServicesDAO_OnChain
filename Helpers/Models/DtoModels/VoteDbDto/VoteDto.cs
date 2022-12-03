@@ -14,5 +14,7 @@ namespace Helpers.Models.DtoModels.VoteDbDto
         public DateTime Date { get; set; }
         public StakeType Direction { get; set; }
         public string DeployHash { get; set; }
+        public string WalletAddress { get; set; }
+
     }
 }

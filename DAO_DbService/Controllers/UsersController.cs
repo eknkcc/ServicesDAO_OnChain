@@ -330,7 +330,10 @@ namespace DAO_DbService.Controllers
 
                     foreach (var item in userids)
                     {
-                        usernames.Add(usrs.First(x => x.UserId == item).UserName);
+                        var usr = usrs.FirstOrDefault(x => x.UserId == item);
+                        string username = "";
+                        if (usr != null && usr.UserName != null) username = usr.UserName;
+                        usernames.Add(username);
                     }
 
                     return usernames;

@@ -16,6 +16,6 @@ namespace DAO_VotingEngine.Models
         public DateTime Date { get; set; }
         public StakeType Direction { get; set; }
         public string DeployHash { get; set; }
-
+        public string WalletAddress { get; set; }
     }
 }
