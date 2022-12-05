@@ -23,10 +23,10 @@ namespace DAO_VotingEngine
         /// </summary>
         public static void StartTimers()
         {
-            CheckVotingStatusOffchain(null, null);
-
             if (Program._settings.DaoBlockchain == null)
             {
+                CheckVotingStatusOffchain(null, null);
+
                 //Voting status timer
                 votingStatusTimer = new System.Timers.Timer(10000);
                 votingStatusTimer.Elapsed += CheckVotingStatusOffchain;
@@ -35,6 +35,8 @@ namespace DAO_VotingEngine
             }
             else if (Program._settings.DaoBlockchain == Enums.Blockchain.Casper)
             {
+                CheckVotingStatusCasperChain(null, null);
+
                 //Voting status timer
                 votingStatusTimer = new System.Timers.Timer(60000);
                 votingStatusTimer.Elapsed += CheckVotingStatusCasperChain;
@@ -219,6 +221,10 @@ namespace DAO_VotingEngine
                             var voting = db.Votings.Find(item.VotingID);
                             voting.BlockchainVotingID = chainVoting.voting_id;
                             voting.DeployHash = chainVoting.deploy_hash;
+                            voting.QuorumCount = chainVoting.voting_quorum;
+                            voting.CreateDate = Convert.ToDateTime(chainVoting.timestamp);
+                            voting.StartDate = voting.CreateDate;
+                            voting.EndDate = voting.StartDate.AddMilliseconds(Convert.ToInt64(chainVoting.voting_time));
                             db.SaveChanges();
                         }
                     }
@@ -229,13 +235,14 @@ namespace DAO_VotingEngine
                 {
                     if (informalVoting.EndDate < DateTime.Now)
                     {
-                        //Quorum isn't reached -> Set voting status to Expired
-                        if (chainVotings.Count(x => x.voting_id == informalVoting.BlockchainVotingID) == 0 && chainVotings.Count(x => x.informal_voting_id == informalVoting.BlockchainVotingID) == 0)
+                        //Get all votes from chain and syncronize with central db (For doublecheck)
+                        SyncronizeVotesFromChain(Enums.Blockchain.Casper, Convert.ToInt32(informalVoting.BlockchainVotingID), informalVoting.VotingID);
+
+                        using (dao_votesdb_context db = new dao_votesdb_context())
                         {
-                            using (dao_votesdb_context db = new dao_votesdb_context())
-                            {                            
-                                //Get all votes from chain and syncronize with central db (For doublecheck)
-                                SyncronizeVotesFromChain(Enums.Blockchain.Casper, Convert.ToInt32(informalVoting.BlockchainVotingID), informalVoting.VotingID);
+                            //Quorum isn't reached -> Set voting status to Expired
+                            if (chainVotings.Count(x => x.voting_id == informalVoting.BlockchainVotingID) == 0 && chainVotings.Count(x => x.informal_voting_id == informalVoting.BlockchainVotingID) == 0 && db.Votes.Count(x => x.VotingID == informalVoting.VotingID) < informalVoting.QuorumCount)
+                            {
                                 var votingdb = db.Votings.Find(informalVoting.VotingID);
                                 votingdb.Status = Enums.VoteStatusTypes.Expired;
                                 db.Entry(votingdb).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
@@ -282,18 +289,45 @@ namespace DAO_VotingEngine
                             //Send email notification to VAs
                             Helpers.Models.NotificationModels.SendEmailModel emailModel = new Helpers.Models.NotificationModels.SendEmailModel() { Subject = "Formal Voting Started For Job #" + informalVoting.JobID, Content = "Formal voting process started for job #" + informalVoting.JobID + "<br><br>Please submit your vote until " + formalVoting.EndDate.ToString(), TargetGroup = Enums.UserIdentityType.VotingAssociate };
                             Program.rabbitMq.Publish(Helpers.Constants.FeedNames.NotificationFeed, "email", Helpers.Serializers.Serialize(emailModel));
-
-                            //Release staked reputations (OFFCHAIN - COMMENTED OUT)
-                            //var jsonResult = Helpers.Request.Get(Program._settings.Service_Reputation_Url + "/UserReputationStake/ReleaseStakes?referenceProcessID=" + voting.VotingID + "&reftype=" + Enums.StakeType.For);
-                            //SimpleResponse parsedResult = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResult);
                         }
                     }
                 }
 
                 //End formal voting in central db if formal voting ended onchain
-                foreach (var item in dbVotings.Where(x => x.IsFormal == true && x.EndDate < DateTime.Now))
+                if (dbVotings.Count(x => x.IsFormal == true && x.EndDate < DateTime.Now) > 0)
                 {
+                    var chainCompletedVotings = Serializers.DeserializeJson<List<Helpers.Models.CasperServiceModels.Voting>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetVotings?page=1&page_size=50&is_active=false&is_formal=true"));
 
+                    foreach (var formalVoting in dbVotings.Where(x => x.IsFormal == true && x.EndDate < DateTime.Now))
+                    {
+                        if (chainCompletedVotings.Count(x => x.deploy_hash == formalVoting.DeployHash) > 0)
+                        {
+                            //Get all votes from chain and syncronize with central db (For doublecheck)
+                            SyncronizeVotesFromChain(Enums.Blockchain.Casper, Convert.ToInt32(formalVoting.BlockchainVotingID), formalVoting.VotingID);
+
+                            using (dao_votesdb_context db = new dao_votesdb_context())
+                            {
+                                //Quorum isn't reached -> Set voting status to Expired
+                                if (db.Votes.Count(x => x.VotingID == formalVoting.VotingID) < formalVoting.QuorumCount)
+                                {
+                                    var votingdb = db.Votings.Find(formalVoting.VotingID);
+                                    votingdb.Status = Enums.VoteStatusTypes.Expired;
+                                    db.Entry(votingdb).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                                    db.SaveChanges();
+                                }
+                                else
+                                {
+                                    var votingdb = db.Votings.Find(formalVoting.VotingID);
+                                    votingdb.Status = Enums.VoteStatusTypes.Completed;
+                                    db.Entry(votingdb).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                                    db.SaveChanges();
+                                }
+
+                                //Release staked reputations
+                                Helpers.Request.Get(Program._settings.Service_Reputation_Url + "/UserReputationStake/ReleaseStakes?referenceProcessID=" + formalVoting.VotingID + "&reftype=" + Enums.StakeType.For);
+                            }
+                        }
+                    }
                 }
             }
             catch (Exception ex)

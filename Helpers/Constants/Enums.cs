@@ -120,6 +120,7 @@
             JobCompletion,
             JobRefund,
             NewVA,
+            RemoveVA,
             KYC,
             MintReputation,
             BurnReputation

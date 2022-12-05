@@ -11,6 +11,7 @@ using PagedList.Core;
 using Helpers.Models.SharedModels;
 using DAO_ReputationService.Mapping;
 using Helpers.Models.DtoModels.ReputationDbDto;
+using Helpers;
 
 namespace DAO_ReputationService.Controllers
 {
@@ -286,7 +287,7 @@ namespace DAO_ReputationService.Controllers
                 {
                     foreach (var userid in userids)
                     {
-                        model.Add(db.UserReputationHistories.OrderByDescending(x=>x.UserReputationHistoryID).FirstOrDefault(x=>x.UserID == userid));
+                        model.Add(db.UserReputationHistories.OrderByDescending(x => x.UserReputationHistoryID).FirstOrDefault(x => x.UserID == userid));
                     }
                 }
             }
@@ -308,11 +309,11 @@ namespace DAO_ReputationService.Controllers
             {
                 using (dao_reputationserv_context db = new dao_reputationserv_context())
                 {
-                    model = db.UserReputationHistories.Where(x => 
+                    model = db.UserReputationHistories.Where(x =>
                     (userid == null || x.UserID == userid) &&
                     (start == null || x.Date >= start) &&
-                    (end == null || x.Date <= end) 
-                    )         
+                    (end == null || x.Date <= end)
+                    )
                     .OrderByDescending(x => x.UserReputationHistoryID).ToList();
                 }
             }
@@ -324,28 +325,52 @@ namespace DAO_ReputationService.Controllers
 
             return _mapper.Map<List<UserReputationHistory>, List<UserReputationHistoryDto>>(model).ToArray();
         }
-   
-   
+
+
         [Route("GetLastReputations")]
         [HttpGet]
         public List<UserReputationHistoryDto> GetLastReputations()
         {
-            List<UserReputationHistory> model = new  List<UserReputationHistory>();
+            List<UserReputationHistory> model = new List<UserReputationHistory>();
 
             try
             {
                 using (dao_reputationserv_context db = new dao_reputationserv_context())
                 {
-                    model = db.UserReputationHistories.OrderByDescending(x=>x.UserReputationHistoryID).ToList().GroupBy(x=>x.UserID).Select(x=>x.First()).ToList();
+                    model = db.UserReputationHistories.OrderByDescending(x => x.UserReputationHistoryID).ToList().GroupBy(x => x.UserID).Select(x => x.First()).ToList();
                 }
             }
             catch (Exception ex)
             {
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
             }
-            
+
             return _mapper.Map<List<UserReputationHistory>, List<UserReputationHistoryDto>>(model);
         }
 
+
+        [Route("SyncReputationFromChain")]
+        [HttpGet]
+        public void SyncReputationFromChain(List<string> addressList)
+        {
+            try
+            {
+                using (dao_reputationserv_context db = new dao_reputationserv_context())
+                {
+                    foreach (var address in addressList)
+                    {
+                        var chainCompletedVotings = Serializers.DeserializeJson<List<Helpers.Models.CasperServiceModels.Voting>>(Helpers.Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetReputationChangesList?address=" + address + "&page=1&page_size=50"));
+
+                       //sync data here 
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+            }
+
+            return;
+        }
     }
 }

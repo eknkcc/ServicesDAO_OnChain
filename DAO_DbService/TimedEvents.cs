@@ -287,11 +287,11 @@ namespace DAO_DbService
 
                                         if (vaOnboarded || user.UserType != Enums.UserIdentityType.Associate.ToString())
                                         {
-                                            CompleteJobVA(voting, job, auctionWinnerBid);
+                                            CompleteJobVAOffChain(voting, job, auctionWinnerBid);
                                         }
                                         else
                                         {
-                                            CompleteJobExternal(voting, job, auctionWinnerBid);
+                                            CompleteJobExternalOffChain(voting, job, auctionWinnerBid);
                                         }
 
                                         //Send notification email to job poster and job doer
@@ -335,6 +335,21 @@ namespace DAO_DbService
                                             Program.monitizer.AddApplicationLog(LogTypes.ApplicationLog, "Platform settings changed with governance vote #"+voting.VotingID);
                                         }
                                     }
+                                    else if (voting.Type == VoteTypes.MintReputation)
+                                    {
+                                    }
+                                    else if (voting.Type == VoteTypes.BurnReputation)
+                                    {
+
+                                    }
+                                    else if (voting.Type == VoteTypes.NewVA)
+                                    {
+
+                                    }
+                                    else if (voting.Type == VoteTypes.RemoveVA)
+                                    {
+
+                                    }
                                 }
                                 else
                                 {
@@ -373,7 +388,7 @@ namespace DAO_DbService
             }
         }
 
-        private static void CompleteJobVA(VotingDto voting, JobPost job, AuctionBid auctionWinnerBid)
+        private static void CompleteJobVAOffChain(VotingDto voting, JobPost job, AuctionBid auctionWinnerBid)
         {
             using (dao_maindb_context db = new dao_maindb_context())
             {
@@ -456,7 +471,7 @@ namespace DAO_DbService
             }
         }
 
-        private static void CompleteJobExternal(VotingDto voting, JobPost job, AuctionBid auctionWinnerBid)
+        private static void CompleteJobExternalOffChain(VotingDto voting, JobPost job, AuctionBid auctionWinnerBid)
         {
             using (dao_maindb_context db = new dao_maindb_context())
             {

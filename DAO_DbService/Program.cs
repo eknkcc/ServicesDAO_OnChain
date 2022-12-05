@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using static DAO_DbService.Program;
+using static Helpers.Constants.Enums;
 
 namespace DAO_DbService
 {
@@ -25,6 +26,9 @@ namespace DAO_DbService
             public string Voting_Engine_Url { get; set; }
             public string Service_Reputation_Url { get; set; }
             public string Service_Log_Url { get; set; }
+            
+            //CHAIN SETTINGS
+            public Blockchain? DaoBlockchain { get; set; }
         }
 
         public static Monitizer monitizer;
