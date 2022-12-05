@@ -15,6 +15,8 @@ namespace Helpers.Models.DtoModels.ReputationDbDto
         public double Amount { get; set; }
         public StakeType Type { get; set; }
         public ReputationStakeStatus Status { get; set; }
+        public string WalletAddress { get; set; }
+        public string DeployHash { get; set; }
 
     }
 }

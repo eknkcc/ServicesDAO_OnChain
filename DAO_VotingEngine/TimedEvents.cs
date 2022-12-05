@@ -247,6 +247,9 @@ namespace DAO_VotingEngine
                                 votingdb.Status = Enums.VoteStatusTypes.Expired;
                                 db.Entry(votingdb).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                                 db.SaveChanges();
+
+                                //Release staked reputations
+                                Helpers.Request.Get(Program._settings.Service_Reputation_Url + "/UserReputationStake/ReleaseStakes?referenceProcessID=" + informalVoting.VotingID + "&reftype=" + Enums.StakeType.For);
                             }
                         }
                     }
@@ -285,6 +288,9 @@ namespace DAO_VotingEngine
 
                             //Get all votes of formal voting from chain and syncronize with central db (For doublecheck)
                             SyncronizeVotesFromChain(Enums.Blockchain.Casper, Convert.ToInt32(formalVoting.BlockchainVotingID), formalVoting.VotingID);
+
+                            //Release staked reputations
+                            Helpers.Request.Get(Program._settings.Service_Reputation_Url + "/UserReputationStake/ReleaseStakes?referenceProcessID=" + informalVoting.VotingID + "&reftype=" + Enums.StakeType.For);
 
                             //Send email notification to VAs
                             Helpers.Models.NotificationModels.SendEmailModel emailModel = new Helpers.Models.NotificationModels.SendEmailModel() { Subject = "Formal Voting Started For Job #" + informalVoting.JobID, Content = "Formal voting process started for job #" + informalVoting.JobID + "<br><br>Please submit your vote until " + formalVoting.EndDate.ToString(), TargetGroup = Enums.UserIdentityType.VotingAssociate };

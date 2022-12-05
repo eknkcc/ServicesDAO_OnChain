@@ -12,6 +12,7 @@ using Helpers.Models.SharedModels;
 using DAO_ReputationService.Mapping;
 using Helpers.Models.DtoModels.ReputationDbDto;
 using Helpers;
+using System.Reflection.Metadata;
 
 namespace DAO_ReputationService.Controllers
 {
@@ -351,17 +352,31 @@ namespace DAO_ReputationService.Controllers
 
         [Route("SyncReputationFromChain")]
         [HttpGet]
-        public void SyncReputationFromChain(List<string> addressList)
+        public void SyncReputationFromChain(int votingId, int jobId)
         {
             try
             {
+                List<UserReputationStake> stakes = new List<UserReputationStake>();
+
                 using (dao_reputationserv_context db = new dao_reputationserv_context())
                 {
-                    foreach (var address in addressList)
-                    {
-                        var chainCompletedVotings = Serializers.DeserializeJson<List<Helpers.Models.CasperServiceModels.Voting>>(Helpers.Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetReputationChangesList?address=" + address + "&page=1&page_size=50"));
+                    //Get voter stakes
+                    stakes.AddRange(db.UserReputationStakes.Where(x=>x.ReferenceProcessID == votingId && (x.Type == StakeType.For || x.Type == StakeType.Against)));
 
-                       //sync data here 
+                    //Get job doer stake
+                    stakes.AddRange(db.UserReputationStakes.Where(x => x.ReferenceProcessID == jobId && x.Type == StakeType.Mint));
+
+
+                    foreach (var address in stakes.Select(x=>x.WalletAddress))
+                    {
+                        if(!string.IsNullOrEmpty(address))
+                        {
+                            var chainCompletedVotings = Serializers.DeserializeJson<List<Helpers.Models.CasperServiceModels.Voting>>(Helpers.Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetReputationChangesList?address=" + address + "&page=1&page_size=50"));
+
+
+
+                        }
+                        //sync data here 
                     }
                 }
             }
