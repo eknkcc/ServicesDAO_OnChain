@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using static Helpers.Constants.Enums;
 using System;
 using Helpers.Models.CasperServiceModels;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DAO_CasperChainService.Controllers
 {
@@ -16,12 +18,40 @@ namespace DAO_CasperChainService.Controllers
         {
             PaginatedResponse<AggregatedReputationChange> reputationChanges = new PaginatedResponse<AggregatedReputationChange>();
 
+            var additionalParameters = new Dictionary<string, string>();
+
+            if (page != null)
+            {
+                additionalParameters.Add("page", Convert.ToString(page));
+            }
+            if (!String.IsNullOrEmpty(page_size))
+            {
+                additionalParameters.Add("page_size", page_size);
+            }
+            if (!String.IsNullOrEmpty(order_direction))
+            {
+                additionalParameters.Add("order_direction", order_direction);
+            }
+            if (!String.IsNullOrEmpty(order_by))
+            {
+                additionalParameters.Add("order_by", order_by);
+            }
+
+            //Additional Query Parameters
+            var additionalParametersStr = "";
+
+            for (int i = 0; i < additionalParameters.Count; i++)
+            {
+                if (i == 0)
+                    additionalParametersStr = "?" + additionalParameters.ElementAt(0).Key.ToString() + "=" + additionalParameters.ElementAt(0).Value.ToString();
+                else
+                    additionalParametersStr = "&" + additionalParameters.ElementAt(i).Key.ToString() + "=" + additionalParameters.ElementAt(i).Value.ToString();
+            }
+
             try
             {
-                //Additional Query Parameters
-                var additionalParameters = "?page=" + page + "&page_size=" + page_size + "&order_direction=" + order_direction + "&order_by=" + order_by;
                 //Get Reputation Changes List of User from Middleware
-                string reputationChangesJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/accounts/" + address + "/aggregated-reputation-changes" + additionalParameters);
+                string reputationChangesJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/accounts/" + address + "/aggregated-reputation-changes" + additionalParametersStr);
                 //Parse response
                 reputationChanges = Helpers.Serializers.DeserializeJson<PaginatedResponse<AggregatedReputationChange>>(reputationChangesJson);
             }
@@ -60,12 +90,45 @@ namespace DAO_CasperChainService.Controllers
         {
             PaginatedResponse<Vote> votesList = new PaginatedResponse<Vote>();
 
+            var additionalParameters = new Dictionary<string, string>();
+
+            if (page != null)
+            {
+                additionalParameters.Add("page", Convert.ToString(page));
+            }
+            if (!String.IsNullOrEmpty(page_size))
+            {
+                additionalParameters.Add("page_size", page_size);
+            }
+            if (!String.IsNullOrEmpty(order_direction))
+            {
+                additionalParameters.Add("order_direction", order_direction);
+            }
+            if (!String.IsNullOrEmpty(order_by))
+            {
+                additionalParameters.Add("order_by", order_by);
+            }
+            if (!String.IsNullOrEmpty(includes))
+            {
+                additionalParameters.Add("includes", order_by);
+            }
+
+            //Additional Query Parameters
+            var additionalParametersStr = "";
+
+            for (int i = 0; i < additionalParameters.Count; i++)
+            {
+                if (i == 0)
+                    additionalParametersStr = "?" + additionalParameters.ElementAt(0).Key.ToString() + "=" + additionalParameters.ElementAt(0).Value.ToString();
+                else
+                    additionalParametersStr = "&" + additionalParameters.ElementAt(i).Key.ToString() + "=" + additionalParameters.ElementAt(i).Value.ToString();
+            }
+
             try
             {
-                //Additional Query Parameters
-                var additionalParameters = "?page=" + page + "&page_size=" + page_size + "&order_direction=" + order_direction + "&order_by=" + order_by + "&includes=" + includes;
+
                 //Get Votes List of Voting from Middleware
-                string votesListJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/accounts/" + address + "/votes" + additionalParameters);
+                string votesListJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/accounts/" + address + "/votes" + additionalParametersStr);
                 //Parse response
                 votesList = Helpers.Serializers.DeserializeJson<PaginatedResponse<Vote>>(votesListJson);
             }
@@ -83,12 +146,44 @@ namespace DAO_CasperChainService.Controllers
         {
             PaginatedResponse<Vote> votesList = new PaginatedResponse<Vote>();
 
+            var additionalParameters = new Dictionary<string, string>();
+
+            if (page != null)
+            {
+                additionalParameters.Add("page", Convert.ToString(page));
+            }
+            if (!String.IsNullOrEmpty(page_size))
+            {
+                additionalParameters.Add("page_size", page_size);
+            }
+            if (!String.IsNullOrEmpty(order_direction))
+            {
+                additionalParameters.Add("order_direction", order_direction);
+            }
+            if (!String.IsNullOrEmpty(order_by))
+            {
+                additionalParameters.Add("order_by", order_by);
+            }
+            if (!String.IsNullOrEmpty(includes))
+            {
+                additionalParameters.Add("includes", order_by);
+            }
+
+            //Additional Query Parameters
+            var additionalParametersStr = "";
+
+            for (int i = 0; i < additionalParameters.Count; i++)
+            {
+                if (i == 0)
+                    additionalParametersStr = "?" + additionalParameters.ElementAt(0).Key.ToString() + "=" + additionalParameters.ElementAt(0).Value.ToString();
+                else
+                    additionalParametersStr = "&" + additionalParameters.ElementAt(i).Key.ToString() + "=" + additionalParameters.ElementAt(i).Value.ToString();
+            }
+
             try
             {
-                //Additional Query Parameters
-                var additionalParameters = "?page=" + page + "&page_size=" + page_size + "&order_direction=" + order_direction + "&order_by=" + order_by + "&includes=" + includes;
                 //Get Votes List of Voting from Middleware
-                string votesListJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/votings/" + voting_id + "/votes" + additionalParameters);
+                string votesListJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/votings/" + voting_id + "/votes" + additionalParametersStr);
                 //Parse response
                 votesList = Helpers.Serializers.DeserializeJson<PaginatedResponse<Vote>>(votesListJson);
             }
@@ -102,16 +197,57 @@ namespace DAO_CasperChainService.Controllers
         }
 
         [HttpGet("GetVotings", Name = "GetVotings")]
-        public PaginatedResponse<Voting> GetVotings(int? page, string page_size, string order_direction, string order_by, string includes, bool is_formal, bool is_active)
+        public PaginatedResponse<Voting> GetVotings(int? page, string page_size, string order_direction, string order_by, string includes, bool? is_formal, bool? is_active)
         {
             PaginatedResponse<Voting> votingList = new PaginatedResponse<Voting>();
 
+            var additionalParameters = new Dictionary<string, string>();
+
+            if (page != null)
+            {
+                additionalParameters.Add("page", Convert.ToString(page));
+            }
+            if (!String.IsNullOrEmpty(page_size))
+            {
+                additionalParameters.Add("page_size", page_size);
+            }
+            if (!String.IsNullOrEmpty(order_direction))
+            {
+                additionalParameters.Add("order_direction", order_direction);
+            }
+            if (!String.IsNullOrEmpty(order_by))
+            {
+                additionalParameters.Add("order_by", order_by);
+            }
+            if (!String.IsNullOrEmpty(includes))
+            {
+                additionalParameters.Add("includes", order_by);
+            }
+            if (is_active != null)
+            {
+                additionalParameters.Add("is_active", Convert.ToString(is_active));
+            }
+            if (is_formal != null)
+            {
+                additionalParameters.Add("is_formal", Convert.ToString(is_formal));
+            }
+
+            //Additional Query Parameters
+            var additionalParametersStr = "";
+
+            for (int i = 0; i < additionalParameters.Count; i++)
+            {
+                if (i == 0)
+                    additionalParametersStr = "?" + additionalParameters.ElementAt(0).Key.ToString() + "=" + additionalParameters.ElementAt(0).Value.ToString();
+                else
+                    additionalParametersStr = "&" + additionalParameters.ElementAt(i).Key.ToString() + "=" + additionalParameters.ElementAt(i).Value.ToString();
+            }
+
             try
             {
-                //Additional Query Parameters
-                var additionalParameters = "?page=" + page + "&page_size=" + page_size + "&order_direction=" + order_direction + "&order_by=" + order_by + "&includes=" + includes + "&is_formal=" + is_formal + "&is_active=" + is_active;
+
                 //Get Voting List  from Middleware
-                string votingListJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/votings" + additionalParameters);
+                string votingListJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/votings" + additionalParametersStr);
                 //Parse response
                 votingList = Helpers.Serializers.DeserializeJson<PaginatedResponse<Voting>>(votingListJson);
             }
