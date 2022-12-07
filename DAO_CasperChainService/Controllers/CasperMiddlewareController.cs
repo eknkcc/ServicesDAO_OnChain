@@ -42,10 +42,10 @@ namespace DAO_CasperChainService.Controllers
 
             for (int i = 0; i < additionalParameters.Count; i++)
             {
-                if (i == 0)
-                    additionalParametersStr = "?" + additionalParameters.ElementAt(0).Key.ToString() + "=" + additionalParameters.ElementAt(0).Value.ToString();
-                else
-                    additionalParametersStr = "&" + additionalParameters.ElementAt(i).Key.ToString() + "=" + additionalParameters.ElementAt(i).Value.ToString();
+                if (i == 0) additionalParametersStr += "?";
+                else additionalParametersStr += "&";
+
+                additionalParametersStr += additionalParameters.ElementAt(i).Key.ToString() + "=" + additionalParameters.ElementAt(i).Value.ToString();
             }
 
             try
@@ -65,21 +65,20 @@ namespace DAO_CasperChainService.Controllers
         }
 
         [HttpGet("GetTotalReputation", Name = "GetTotalReputation")]
-        public TotalReputation GetTotalReputation(string address)
+        public SuccessResponse<TotalReputation> GetTotalReputation(string address)
         {
-            TotalReputation totalReputation = new TotalReputation();
+            SuccessResponse<TotalReputation> totalReputation = new SuccessResponse<TotalReputation>();
 
             try
             {
                 //Get Total Reputation of User from Middleware
                 string TotalReputationJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/accounts/" + address + "/total-reputation");
                 //Parse response
-                totalReputation = Helpers.Serializers.DeserializeJson<TotalReputation>(TotalReputationJson);
+                totalReputation = Helpers.Serializers.DeserializeJson<SuccessResponse<TotalReputation>>(TotalReputationJson);
             }
             catch (Exception ex)
             {
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-                totalReputation = new TotalReputation { error = new ErrorResult { message = "Request Error" } };
             }
 
             return totalReputation;
@@ -118,10 +117,10 @@ namespace DAO_CasperChainService.Controllers
 
             for (int i = 0; i < additionalParameters.Count; i++)
             {
-                if (i == 0)
-                    additionalParametersStr = "?" + additionalParameters.ElementAt(0).Key.ToString() + "=" + additionalParameters.ElementAt(0).Value.ToString();
-                else
-                    additionalParametersStr = "&" + additionalParameters.ElementAt(i).Key.ToString() + "=" + additionalParameters.ElementAt(i).Value.ToString();
+                if (i == 0) additionalParametersStr += "?";
+                else additionalParametersStr += "&";
+
+                additionalParametersStr += additionalParameters.ElementAt(i).Key.ToString() + "=" + additionalParameters.ElementAt(i).Value.ToString();
             }
 
             try
@@ -174,10 +173,10 @@ namespace DAO_CasperChainService.Controllers
 
             for (int i = 0; i < additionalParameters.Count; i++)
             {
-                if (i == 0)
-                    additionalParametersStr = "?" + additionalParameters.ElementAt(0).Key.ToString() + "=" + additionalParameters.ElementAt(0).Value.ToString();
-                else
-                    additionalParametersStr = "&" + additionalParameters.ElementAt(i).Key.ToString() + "=" + additionalParameters.ElementAt(i).Value.ToString();
+                if (i == 0) additionalParametersStr += "?";
+                else additionalParametersStr += "&";
+
+                additionalParametersStr += additionalParameters.ElementAt(i).Key.ToString() + "=" + additionalParameters.ElementAt(i).Value.ToString();
             }
 
             try
@@ -197,7 +196,7 @@ namespace DAO_CasperChainService.Controllers
         }
 
         [HttpGet("GetVotings", Name = "GetVotings")]
-        public PaginatedResponse<Voting> GetVotings(int? page, string page_size, string order_direction, string order_by, string includes, bool? is_formal, bool? is_active)
+        public PaginatedResponse<Voting> GetVotings(int? page, string page_size, string order_direction, string order_by, string includes, bool? is_formal, bool? has_ended)
         {
             PaginatedResponse<Voting> votingList = new PaginatedResponse<Voting>();
 
@@ -223,9 +222,9 @@ namespace DAO_CasperChainService.Controllers
             {
                 additionalParameters.Add("includes", order_by);
             }
-            if (is_active != null)
+            if (has_ended != null)
             {
-                additionalParameters.Add("is_active", Convert.ToString(is_active));
+                additionalParameters.Add("has_ended", Convert.ToString(has_ended));
             }
             if (is_formal != null)
             {
@@ -237,10 +236,10 @@ namespace DAO_CasperChainService.Controllers
 
             for (int i = 0; i < additionalParameters.Count; i++)
             {
-                if (i == 0)
-                    additionalParametersStr = "?" + additionalParameters.ElementAt(0).Key.ToString() + "=" + additionalParameters.ElementAt(0).Value.ToString();
-                else
-                    additionalParametersStr = "&" + additionalParameters.ElementAt(i).Key.ToString() + "=" + additionalParameters.ElementAt(i).Value.ToString();
+                if (i == 0) additionalParametersStr += "?";
+                else additionalParametersStr += "&";
+
+                additionalParametersStr += additionalParameters.ElementAt(i).Key.ToString() + "=" + additionalParameters.ElementAt(i).Value.ToString();
             }
 
             try

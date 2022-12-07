@@ -186,7 +186,7 @@ namespace DAO_VotingEngine
                     dbVotings = db.Votings.Where(x => x.Status == Enums.VoteStatusTypes.Active).ToList();
                 }
 
-                chainVotings = Serializers.DeserializeJson<List<Helpers.Models.CasperServiceModels.Voting>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetVotings?page=1&page_size=1000&is_active=true"));
+                chainVotings = Serializers.DeserializeJson<List<Helpers.Models.CasperServiceModels.Voting>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetVotings?page=1&page_size=1000&has_ended=false"));
 
                 //Sync blockchain informal voting ids
                 foreach (var item in dbVotings.Where(x => x.IsFormal == false && x.DeployHash != null && x.BlockchainVotingID == null))
@@ -302,7 +302,7 @@ namespace DAO_VotingEngine
                 //End formal voting in central db if formal voting ended onchain
                 if (dbVotings.Count(x => x.IsFormal == true && x.EndDate < DateTime.Now) > 0)
                 {
-                    var chainCompletedVotings = Serializers.DeserializeJson<List<Helpers.Models.CasperServiceModels.Voting>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetVotings?page=1&page_size=50&is_active=false&is_formal=true"));
+                    var chainCompletedVotings = Serializers.DeserializeJson<List<Helpers.Models.CasperServiceModels.Voting>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetVotings?page=1&page_size=50&has_ended=true&is_formal=true"));
 
                     foreach (var formalVoting in dbVotings.Where(x => x.IsFormal == true && x.EndDate < DateTime.Now))
                     {

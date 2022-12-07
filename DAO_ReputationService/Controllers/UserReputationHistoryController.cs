@@ -13,6 +13,7 @@ using DAO_ReputationService.Mapping;
 using Helpers.Models.DtoModels.ReputationDbDto;
 using Helpers;
 using System.Reflection.Metadata;
+using Helpers.Models.CasperServiceModels;
 
 namespace DAO_ReputationService.Controllers
 {
@@ -361,22 +362,78 @@ namespace DAO_ReputationService.Controllers
                 using (dao_reputationserv_context db = new dao_reputationserv_context())
                 {
                     //Get voter stakes
-                    stakes.AddRange(db.UserReputationStakes.Where(x=>x.ReferenceProcessID == votingId && (x.Type == StakeType.For || x.Type == StakeType.Against)));
+                    stakes.AddRange(db.UserReputationStakes.Where(x => x.ReferenceProcessID == votingId && (x.Type == StakeType.For || x.Type == StakeType.Against)));
 
                     //Get job doer stake
                     stakes.AddRange(db.UserReputationStakes.Where(x => x.ReferenceProcessID == jobId && x.Type == StakeType.Mint));
 
 
-                    foreach (var address in stakes.Select(x=>x.WalletAddress))
+                    foreach (var stake in stakes)
                     {
-                        if(!string.IsNullOrEmpty(address))
+                        if (!string.IsNullOrEmpty(stake.WalletAddress))
                         {
-                            var chainCompletedVotings = Serializers.DeserializeJson<List<Helpers.Models.CasperServiceModels.Voting>>(Helpers.Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetReputationChangesList?address=" + address + "&page=1&page_size=50"));
+                            var reputationChanges = Serializers.DeserializeJson<PaginatedResponse<Helpers.Models.CasperServiceModels.AggregatedReputationChange>>(Helpers.Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetReputationChangesList?address=" + stake.WalletAddress + "&page=1&page_size=1&order_direction=desc"));
 
+                            if (reputationChanges == null) return;
+                            
+                            foreach (var repChange in reputationChanges.data)
+                            {
+                                var lastRepRecord = new UserReputationHistory();
+                                if(db.UserReputationHistories.Count(x => x.UserID == stake.UserID) > 0) lastRepRecord = db.UserReputationHistories.OrderByDescending(x=>x.UserReputationHistoryID).First(x => x.UserID == stake.UserID);
 
+                                if (lastRepRecord.EarnedAmount != repChange.earned_amount && lastRepRecord.LostAmount != repChange.lost_amount  && lastRepRecord.StakedAmount != repChange.staked_amount  && lastRepRecord.StakeReleasedAmount != repChange.released_amount && !lastRepRecord.Explanation.Contains("#"+repChange.voting_id))
+                                {
+                                    UserReputationHistory hist = new UserReputationHistory();
+                                    hist.Date = Convert.ToDateTime(repChange.timestamp);
+                                    hist.UserID = stake.UserID;
+                                    if (stake.Type == StakeType.For || stake.Type == StakeType.Against)
+                                    {
+                                        hist.Explanation = "User earned reputation from voting process #" + repChange.voting_id;
+                                    }
+                                    else
+                                    {
+                                        hist.Explanation = "User earned reputation from job #" + jobId;
+                                    }
+                                    hist.EarnedAmount = Convert.ToDouble(repChange.earned_amount);
+                                    hist.LostAmount = Convert.ToDouble(repChange.lost_amount);
+                                    hist.StakedAmount = Convert.ToDouble(repChange.staked_amount);
+                                    hist.StakeReleasedAmount = Convert.ToDouble(repChange.released_amount);
 
+                                    hist.LastTotal = lastRepRecord.LastTotal;
+                                    hist.LastStakedTotal = lastRepRecord.LastStakedTotal;
+                                    hist.LastUsableTotal = lastRepRecord.LastUsableTotal;
+
+                                    if(hist.EarnedAmount > 0) 
+                                    {              
+                                        hist.Title = "Reputation Earned";                      
+                                        hist.LastTotal += hist.EarnedAmount;
+                                        hist.LastUsableTotal += hist.EarnedAmount;
+                                    }
+                                    if(hist.LostAmount > 0) 
+                                    {                         
+                                        hist.Title = "Reputation Lost";              
+                                        hist.LastTotal -= hist.LostAmount;
+                                        hist.LastUsableTotal -= hist.LostAmount;
+                                    }
+                                    if(hist.StakedAmount > 0)
+                                    {
+                                        hist.Title = "Staked";   
+                                        hist.LastStakedTotal += hist.StakedAmount;
+                                        hist.LastUsableTotal -= hist.StakedAmount;
+                                    }
+                                    if(hist.StakeReleasedAmount > 0)
+                                    {
+                                        hist.Title = "Stake Released";   
+                                        hist.LastStakedTotal -= hist.StakeReleasedAmount;
+                                        hist.LastUsableTotal += hist.StakeReleasedAmount;
+                                    }
+
+                                    db.UserReputationHistories.Add(hist);
+                                    db.SaveChanges();
+                                }
+                            }
                         }
-                        //sync data here 
+
                     }
                 }
             }

@@ -2,7 +2,7 @@
 
 namespace DAO_ReputationService.Migrations
 {
-    public partial class walletAddress_added_stakes : Migration
+    public partial class walletaddress_Added : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

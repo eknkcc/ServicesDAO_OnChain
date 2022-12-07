@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DAO_ReputationService.Migrations
 {
     [DbContext(typeof(dao_reputationserv_context))]
-    [Migration("20221205161720_walletAddress_added_stakes")]
-    partial class walletAddress_added_stakes
+    [Migration("20221206110353_walletaddress_Added")]
+    partial class walletaddress_Added
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
