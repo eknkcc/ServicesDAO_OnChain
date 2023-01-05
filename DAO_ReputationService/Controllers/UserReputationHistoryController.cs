@@ -362,10 +362,12 @@ namespace DAO_ReputationService.Controllers
                 using (dao_reputationserv_context db = new dao_reputationserv_context())
                 {
                     //Get voter stakes
-                    stakes.AddRange(db.UserReputationStakes.Where(x => x.ReferenceProcessID == votingId && (x.Type == StakeType.For || x.Type == StakeType.Against)));
+                    var voterStakes = db.UserReputationStakes.Where(x => x.ReferenceProcessID == votingId && (x.Type == StakeType.For || x.Type == StakeType.Against));
+                    stakes.AddRange(voterStakes);
 
                     //Get job doer stake
-                    stakes.AddRange(db.UserReputationStakes.Where(x => x.ReferenceProcessID == jobId && x.Type == StakeType.Mint));
+                    var jobDoerStakes = db.UserReputationStakes.Where(x => x.ReferenceProcessID == jobId && x.Type == StakeType.Mint);
+                    stakes.AddRange(jobDoerStakes);
 
 
                     foreach (var stake in stakes)
@@ -381,7 +383,10 @@ namespace DAO_ReputationService.Controllers
                                 var lastRepRecord = new UserReputationHistory();
                                 if(db.UserReputationHistories.Count(x => x.UserID == stake.UserID) > 0) lastRepRecord = db.UserReputationHistories.OrderByDescending(x=>x.UserReputationHistoryID).First(x => x.UserID == stake.UserID);
 
-                                if (lastRepRecord.EarnedAmount != repChange.earned_amount && lastRepRecord.LostAmount != repChange.lost_amount  && lastRepRecord.StakedAmount != repChange.staked_amount  && lastRepRecord.StakeReleasedAmount != repChange.released_amount && !lastRepRecord.Explanation.Contains("#"+repChange.voting_id))
+                                if ( (jobDoerStakes.Contains(stake) && db.UserReputationHistories.Count(x=> x.UserID == stake.UserID && x.Explanation.Contains("#"+jobId)) == 0)
+                                      || 
+                                     (voterStakes.Contains(stake) && db.UserReputationHistories.Count(x => x.UserID == stake.UserID && x.Explanation.Contains("#" + repChange.voting_id)) == 0)
+                                   )
                                 {
                                     UserReputationHistory hist = new UserReputationHistory();
                                     hist.Date = Convert.ToDateTime(repChange.timestamp);
