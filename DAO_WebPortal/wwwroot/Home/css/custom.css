@@ -180,6 +180,10 @@
     top: -2px;
  }
 
+ .titleContainer{
+    padding-top:4px;
+ }
+
 .cursorp {
     cursor: pointer !important
 }
@@ -793,3 +797,25 @@ tbody tr:hover .trSlider span {
     overflow-y: scroll;
     overflow-x: hidden;
   }
+
+h5 {
+    font-size: 1.05rem !important;
+}
+
+.card-header{
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.card-footer{
+    border-bottom-left-radius: 10px !important;
+    border-bottom-right-radius: 10px !important;
+    border-top:0;
+}
+.card-date{
+    font-size: 12px;
+}
+
+.commentsx{
+    height: 572px;overflow-y: scroll;
+}

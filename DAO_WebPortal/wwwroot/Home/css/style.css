@@ -14159,7 +14159,7 @@ html:not([dir=rtl]) .rounded-start {
   --cui-text-danger: #c77171;
   --cui-text-light: rgba(255, 255, 255, 0.1);
   --cui-text-dark: rgba(0, 0, 21, 0.1);
-  --cui-headings-color: rgb(241 241 241);
+  --cui-headings-color: rgb(210 210 210)
   /* Code blocks */
   /* Inline code */
 }

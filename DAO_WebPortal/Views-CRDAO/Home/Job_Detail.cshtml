@@ -4,207 +4,623 @@
 
 @{
     Layout = "../Shared/_MainLayout.cshtml";
-
 }
+<style>
+.tab-pane{
+        min-height: 60vh;
+}
+
+</style>
+
 @model Helpers.Models.WebsiteViewModels.JobPostDetailModel
 
 @Html.AntiForgeryToken()
 
+                
+            <div class="titleContainer p-3">
+                <span class="badge bg-primary">#@Model.JobPostWebsiteModel.JobID</span>
+
+                <h5 class="card-title mx-2" title="@Model.JobPostWebsiteModel.Title">@Model.JobPostWebsiteModel.Title</h5>
+                <small class="text-medium-emphasis card-date">@Model.JobPostWebsiteModel.CreateDate.ToShortDateString() , @Model.JobPostWebsiteModel.JobPosterUserName</small>
+
+                @if (Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.AdminApprovalPending || Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.DoSFeePending || Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.KYCPending)
+                {
+                    <span class="badge bg-warning float-right mt-1">Pending</span>
+                }
+
+                @if (Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.InternalAuction)
+                {
+                    <a href="../Auctions" class="badge bg-success float-right mt-1">Internal Auction</a>
+                }
+
+                @if (Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.PublicAuction)
+                {
+                    <a href="../Auctions" class="badge bg-success float-right mt-1">Public Auction</a>
+                }
+
+                @if (Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.AuctionCompleted)
+                {
+                    <a href="../Auctions" class="badge bg-primary float-right mt-1">Auction Completed</a>
+                }
+
+                @if (Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.InformalVoting)
+                {
+                    <a href="../Votings" class="badge bg-success float-right mt-1">Informal Voting</a>
+                }
+
+                @if (Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.FormalVoting)
+                {
+                    <span href="../Votings" class="badge bg-success float-right mt-1">Formal Voting</span>
+                }
+
+                @if (Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.Completed)
+                {
+                    <span class="badge bg-success float-right mt-1">Completed</span>
+                }
+
+                @if (Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.Failed || Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.Expired || Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.Rejected || Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.FailRestart)
+                {
+                    <span class="badge bg-danger float-right">@Model.JobPostWebsiteModel.Status.ToString()</span>
+                }
+            </div>
+            <ul class="nav nav-underline border-0" role="tablist">
+                        <li class="nav-item mx-2">
+                            <a class="nav-link active" data-coreui-toggle="tab" href="#tabSummary" role="tab" aria-selected="false">
+                                <i class="fas fa-folder me-1"></i></i> Summary
+                            </a>
+                        </li>
+                        <li class="nav-item mx-2">
+                            <a class="nav-link" data-coreui-toggle="tab" href="#tabCode" role="tab" aria-selected="false">
+                                <i class="fas fa-code me-1"></i></i> Code
+                            </a>
+                        </li>
+                        <li class="nav-item mx-2">
+                            <a class="nav-link" data-coreui-toggle="tab" href="#tabBids" role="tab" aria-selected="false">
+                                <i class="fas fa-gavel me-1"></i></i> Bids
+                            </a>
+                        </li>
+            </ul>
+            <div class="w-100 px-2">
+                <hr style="margin-top:0">
+            </div>
+                    
 <!-- Row -->
 <div class="row">
-    <div class="col-md-12">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <!-- Content -->
+                <div class="tab-content rounded-bottom">
+                        <!--Tab Panel-->
+                        <div class="tab-pane active" role="tabpanel" id="tabSummary">
+                            <div class="p-3">
+                                <table class="table jobDetailTable mb-0">
+                                    <tr>
+                                        <td><i class="fas fa-coins me-2"></i><i>Job Poster's Budget</i></td>
+                                        <td>@DAO_WebPortal.Utility.StringHelper.FormatPrice(Model.JobPostWebsiteModel.Amount) €</td>
+                                    </tr>
+                                    <tr>
+                                        <td><i class="fas fa-calendar me-2"></i><i>Time Frame</i></td>
+                                        <td>@Model.JobPostWebsiteModel.TimeFrame days</td>
+                                    </tr>
+                                    @if(!string.IsNullOrEmpty(Model.JobPostWebsiteModel.JobDoerUsername)){
+                                        <tr>
+                                            <td><i class="fas fa-user me-2"></i><i>Job Doer</i></td>
+                                            <td>@Model.JobPostWebsiteModel.JobDoerUsername</td>
+                                        </tr>
+                                    }
+                                    <tr>
+                                        <td><i class="fas fa-hashtag me-2"></i><i>Tags / Coding Lang.</i></td>
+                                        <td>
+                                            @if(string.IsNullOrEmpty(@Model.JobPostWebsiteModel.Tags)){
+                                                <i>No tags specified.</i>
+                                            }
+                                            else{
+                                                foreach(var tag in Model.JobPostWebsiteModel.Tags.Split(',')){
+                                                    <span class="badge bg-secondary me-1">@tag</span>
+                                                }
+                                            }
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><i class="fas fa-code me-2"></i><i>Code Link</i></td>
+                                        <td><a target="_blank" href="@Model.JobPostWebsiteModel.CodeUrl">@DAO_WebPortal.Utility.StringHelper.ShortenString(Model.JobPostWebsiteModel.CodeUrl, 40)</a></td>
+                                    </tr>
+                                    @if(Model.JobPostWebsiteModel.Auction != null && Model.JobPostWebsiteModel.Auction.WinnerAuctionBidID != null){
+                                        <tr>
+                                            <td><i class="fas fa-clock me-2"></i><i>Deadline</i></td>
+                                            <td>
+                                                @Model.JobPostWebsiteModel.Auction.PublicAuctionEndDate.AddDays(Convert.ToInt32(Model.JobPostWebsiteModel.AuctionBids.First(x=>x.AuctionBidID == Model.JobPostWebsiteModel.Auction.WinnerAuctionBidID).Time))
+                                            </td>
+                                        </tr>
+                                    }
+                                </table>
 
-        <div class="card mb-3">
-            <!-- Job Card -->
-            <partial name="../Shared/_JobCardPartial.cshtml" model="Model.JobPostWebsiteModel" />
+                                @if(Model.JobPostWebsiteModel.Voting.Any(x=>x.IsFormal == false && x.Status == Helpers.Constants.Enums.VoteStatusTypes.Completed)){
+                                    var voting = Model.JobPostWebsiteModel.Voting.First(x=>x.IsFormal == false && x.Status == Helpers.Constants.Enums.VoteStatusTypes.Completed);
+                                    double forRatio = Convert.ToDouble(voting.StakedFor) / Convert.ToDouble(voting.StakedFor + voting.StakedAgainst);
+                                    string forPerc = Math.Round(forRatio * 100, 2) + "%";
+                                    double againstRatio = 1 - forRatio;
+                                    string againstPerc = Math.Round(againstRatio * 100, 2) + "%";
 
-            <!-- Comments footer -->
-            <div id="commentsx" class="card-footer collapse show">
-                <div id="comments" class="comment-thread">
-                    @{
-                        //Set the index of the pinned comments to first index
-                        var pinnedComments = Model.JobPostCommentModel.Where(x => x.IsPinned == true).ToList();
-                        Model.JobPostCommentModel.RemoveAll(x => x.IsPinned == true);
-                        foreach (var cmt in pinnedComments)
-                        {
-                            Model.JobPostCommentModel.Insert(0, cmt);
-                        }
+                                    if(forPerc.ToLower().Contains("nan")){
+                                        forRatio = 0;
+                                        forPerc = "0%";
+                                    }
 
-                        if (Model.JobPostCommentModel.Count > 0)
-                        {
-                            ShowCommentTree(Model.JobPostCommentModel.Where(x => x.SubCommentID == 0).OrderByDescending(x => x.UpVote).ThenBy(x => x.Date).ToList());
-                        }
-                        else
-                        {
-                            <partial name="../Shared/_EmptyPartial.cshtml" view-data='new ViewDataDictionary(ViewData) { { "Message", "There are no comments in this topic" }, { "Icon", "frown-open" }, { "HtmlContent", "<button class=\"btn btn-primary mt-3\" onclick=\"CreateReplyBox(this, 0)\">Make New Comment</button>" } }' />
+                                    if(againstPerc.ToLower().Contains("nan")){
+                                        againstRatio = 0;
+                                        againstPerc = "0%";
+                                    }
+
+                        
+                                    <div class="p-3">
+                                        <span class="ms-2"><i class="fas fa-vote-yea py-3 me-1"></i> Informal Vote Results</span>
+                                        <div class="p-1">
+                                            <div class="progress">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width:@forPerc"
+                                                    aria-valuenow="@forRatio" aria-valuemin="0" aria-valuemax="100">@forPerc</div>
+                                                <div class="progress-bar bg-danger" role="progressbar" style="width:@againstPerc"
+                                                    aria-valuenow="@againstRatio" aria-valuemin="0" aria-valuemax="100">@againstPerc</div>
+                                            </div>
+                                            <div class="mt-2">
+                                                <b class="float-left">For @forPerc</b>
+                                                <b class="float-right">Against @againstPerc</b>
+                                            </div>
+                                            <small class="float-right mt-2"><a href="../Vote-Detail/@voting.VotingID"> View vote details</a></small>
+                                        </div>
+                                    </div>
+
+                                }
+
+                                @if(Model.JobPostWebsiteModel.Voting.Any(x=>x.IsFormal == true && x.Status == Helpers.Constants.Enums.VoteStatusTypes.Completed)){
+                                    var voting = Model.JobPostWebsiteModel.Voting.First(x=>x.IsFormal == true && x.Status == Helpers.Constants.Enums.VoteStatusTypes.Completed);
+                                    double forRatio = Convert.ToDouble(voting.StakedFor) / Convert.ToDouble(voting.StakedFor + voting.StakedAgainst);
+                                    string forPerc = Math.Round(forRatio * 100, 2) + "%";
+                                    double againstRatio = 1 - forRatio;
+                                    string againstPerc = Math.Round(againstRatio * 100, 2) + "%";
+
+                                    if(forPerc.ToLower().Contains("nan")){
+                                        forRatio = 0;
+                                        forPerc = "0%";
+                                    }
+
+                                    if(againstPerc.ToLower().Contains("nan")){
+                                        againstRatio = 0;
+                                        againstPerc = "0%";
+                                    }
+                                    
+                                    <div class="p-3">
+                                        <span class="ms-2"><i class="fas fa-vote-yea pb-3 me-1"></i> Formal Vote Results</span>
+                                        <div class="p-1">
+                                            <div class="progress">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width:@forPerc"
+                                                    aria-valuenow="@forRatio" aria-valuemin="0" aria-valuemax="100">@forPerc</div>
+                                                <div class="progress-bar bg-danger" role="progressbar" style="width:@againstPerc"
+                                                    aria-valuenow="@againstRatio" aria-valuemin="0" aria-valuemax="100">@againstPerc</div>
+                                            </div>
+                                            <div class="mt-2">
+                                                <b class="float-left">For @forPerc</b>
+                                                <b class="float-right">Against @againstPerc</b>
+                                            </div>
+                                            <small class="float-right mt-2"><a href="../Vote-Detail/@voting.VotingID"> View vote details</a></small>
+                                        </div>
+                                    </div>
+                                }    
+
+                                <p class="card-text mt-5"><small class="text-medium-emphasis">Last updated @Model.JobPostWebsiteModel.LastUpdate</small></p> 
+                            </div>
+                        </div>
+                        <div class="tab-pane" role="tabpanel" id="tabCode">
+                            <div class="p-3 card-text" style="height: 572px;overflow-y: scroll;">
+                                @Html.Raw(Model.JobPostWebsiteModel.JobDescription)
+                            </div>
+                        </div>
+                        <div class="tab-pane" role="tabpanel" id="tabBids">                            
+                            @if(Model.JobPostWebsiteModel.Auction == null || Model.JobPostWebsiteModel.Auction.AuctionID <= 0){
+                                <center class="p-3">
+                                    <i class="fas fa-hourglass-start text-secondary my-3" style="font-size:35px"></i>
+                                    <h6 class="text-secondary">Auction did not start for this job yet</h6>
+                                </center>
+                            }
+                            else if (Model.JobPostWebsiteModel.Auction.AuctionID > 0 && Model.JobPostWebsiteModel.AuctionBids.Count == 0){
+                                <center class="p-3">
+                                    <i class="fas fa-user-times text-secondary my-3" style="font-size:35px"></i>
+                                    <h6 class="text-secondary">There are no bids for this job</h6>
+                                </center>
+                            }
+                            else if (Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.InternalAuction || Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.PublicAuction){
+                                <div class="table-responsive">
+                                    <table class="table table-dark">
+                                        <thead>
+                                            <tr>
+                                                <th></th>
+                                                <th>Price</th>
+                                                <th>Total Reps</th>
+                                                <th>Stake</th>
+                                                <th>Timeframe</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var bid in Model.JobPostWebsiteModel.AuctionBids)
+                                            {
+                                                string colClass = "bg-info text-white";
+                                                if(bid.UserType == Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString()){
+                                                    colClass = "bg-primary text-white";
+                                                }
+                                                <tr>
+                                                    <td class="@colClass">
+                                                        @if(bid.UserType == Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString()){
+                                                            <small>VA</small>
+                                                        }
+                                                        else{
+                                                            <small>NonVA</small>
+                                                        }
+                                                    </td>
+                                                    <td class="@colClass">@bid.Price€</td>
+                                                    <td class="@colClass">@DAO_WebPortal.Utility.StringHelper.AnonymizeReputation(bid.UsersTotalReputation)</td>
+                                                    <td class="@colClass">@bid.ReputationStake</td>
+                                                    <td class="@colClass">@bid.Time days</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else {
+                                <div class="table-responsive">
+                                    <table class="table table-dark">
+                                        <thead>
+                                            <tr>
+                                                <th></th>
+                                                <th>Username</th>
+                                                <th>Price</th>
+                                                <th>Timeframe</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var bid in Model.JobPostWebsiteModel.AuctionBids)
+                                            {
+                                                string colClass = "";
+                                                if(bid.AuctionBidID == Model.JobPostWebsiteModel.Auction.WinnerAuctionBidID){
+                                                    colClass = "bg-success text-white";
+                                                }
+                                                <tr>
+                                                    <td class="@colClass">
+                                                        @if(bid.UserType == Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString()){
+                                                            <small>VA</small>
+                                                        }
+                                                        else{
+                                                            <small>NonVA</small>
+                                                        }
+                                                    </td>
+                                                    <td class="@colClass">
+                                                        @bid.UserName
+                                                    </td>
+                                                    <td class="@colClass">@bid.Price€</td>
+                                                    <td class="@colClass">@bid.Time days</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </div>
+                </div>     
+         
+                <!-- Footer -->
+                <div class="card-footer">
+                    <a class="card-text me-2 cursorp" onclick="CreateReplyBox($('#comments'), 0)">
+                        <svg class="icon">
+                            <use xlink:href="/Home/images/svg/free.svg#cil-comment-bubble"></use>
+                        </svg> @Model.JobPostWebsiteModel.CommentCount Comment
+                    </a>
+
+                    <a class="card-text mx-2" href="#" onclick="ShareJobPost();">
+                        <svg class="icon">
+                            <use xlink:href="/Home/images/svg/free.svg#cil-share"></use>
+                        </svg> Share
+                    </a>
+
+                    @if (Model.JobPostWebsiteModel.IsUserFlagged == true){
+                        <a class="card-text mx-2 text-danger" href="#" onclick="RemoveFlag(@Model.JobPostWebsiteModel.JobID);">
+                            <svg class="icon">
+                                <use xlink:href="/Home/images/svg/free.svg#cil-flag-alt"></use>
+                            </svg> Remove Flag
+                        </a>
+                    }
+                    else{
+                        <a class="card-text mx-2" href="#" onclick="OpenFlagModal(@Model.JobPostWebsiteModel.JobID);">
+                            <svg class="icon">
+                                <use xlink:href="/Home/images/svg/free.svg#cil-flag-alt"></use>
+                            </svg> Flag
+                        </a>
+                    }
+
+                    @if (Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.Expired ||Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.Failed||Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.AdminApprovalPending ||Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.Rejected)
+                    {
+                        if(Model.JobPostWebsiteModel.JobPosterUserID == httpContextAccessor.HttpContext.Session.GetInt32("UserID")){
+                            <!-- Job Edit Button (Visible for jobposter for expired, failed and rejected jobs) -->
+                            <a href="../My-Job-Edit/@Model.JobPostWebsiteModel.JobID" class="card-text mx-2 cursorp">
+                                <svg class="icon">
+                                    <use xlink:href="/Home/images/svg/free.svg#cil-pencil"></use>
+                                </svg> Edit
+                            </a>
                         }
                     }
-                </div>
-                <!-- Job comment recursive function -->
-                @functions{
-                    int Count = 0;
 
-                    public void ShowCommentTree(IList<Helpers.Models.WebsiteViewModels.JobPostCommentModel> currentcomments)
+                    @if (Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.Failed)
                     {
-                        int SubCommentCount = 0;
+                        if(Model.JobPostWebsiteModel.JobPosterUserID == httpContextAccessor.HttpContext.Session.GetInt32("UserID")){
+                            <!-- Job Restart Button (Visible for jobposter for expired, failed jobs) -->
+                            <a class="card-text mx-2 text-danger" href="#" onclick="RestartJob(@Model.JobPostWebsiteModel.JobID);">
+                                <svg class="icon">
+                                    <use xlink:href="/Home/images/svg/free.svg#cil-loop-circular"></use>
+                                </svg> Restart Flow
+                            </a>
+                        }
+                    }
 
-                        //Show pinned comments firstly
-                        if (currentcomments.Count(x => Convert.ToBoolean(x.IsPinned)) > 0)
+                    @if(Model.JobPostWebsiteModel.FlagCount > 0){
+                        <small class="float-right"><i>@Model.JobPostWebsiteModel.FlagCount user flagged this job</i></small>
+                    }
+
+                    <!-- Display "Start Informal Voting" button for job doer if auction is completed -->
+                    @if ((Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.AuctionCompleted || Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.Failed) && Model.JobPostWebsiteModel.JobDoerUserID == httpContextAccessor.HttpContext.Session.GetInt32("UserID"))
+                    {
+                        <button onclick="StartInformalVoting(@Model.JobPostWebsiteModel.JobID);" class="btn btn-sm btn-primary btn-shine float-right">
+                            Start Informal Voting
+                        </button>
+                    }
+
+                    <!-- Display "Submit KYC" button for job poster if auction is completed -->
+                    @if (Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.KYCPending && Model.JobPostWebsiteModel.JobPosterUserID == httpContextAccessor.HttpContext.Session.GetInt32("UserID"))
+                    {
+                        <button onclick="window.location.href='../KYC-Verification'" class="btn btn-sm btn-primary btn-shine float-right">
+                            Submit KYC
+                        </button>
+                    }
+
+                    <!-- Display "Pay DoS Fee" button for job poster if auction is completed -->
+                    @if (Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.DoSFeePending && Model.JobPostWebsiteModel.JobPosterUserID == httpContextAccessor.HttpContext.Session.GetInt32("UserID"))
+                    {
+                        <button onclick="PayDosFeeModal(@Model.JobPostWebsiteModel.JobID);" class="btn btn-sm btn-primary btn-shine float-right">
+                            Pay DoS Fee
+                        </button>
+
+                        @* <form class="btn-shine float-right d-inline" action="../Home/DosFeeProcess" method="POST">
+                            <input type="hidden" value="@Model.JobID" name="jobid">
+                            <script src="https://checkout.stripe.com/checkout.js" class="stripe-button"
+                            data-key="pk_test_51K4gybBY9GMD1AgYf1OySdf1e0Q7oMtKMHsRvQihRcUA25vXAXjmMdI5bb4FSfJSVklNVjfVNhUmMziW3Uh0exRZ00CWMZfdry"
+                            data-amount="@ViewBag.PaymentAmount"
+                            data-name="Dos Fee Payment @Program._settings.DosFees[1] $"
+                            data-description="Please pay the DoS fee to validate your bid."
+                            data-locale="en"
+                            data-zip-code="false"
+                            data-label="Pay DoS Fee">
+                            </script>
+                        </form> *@
+                    }
+
+
+                    <!-- Display "Submit Bid" button if auction continues -->
+                    @if (Model.JobPostWebsiteModel.JobPosterUserID != httpContextAccessor.HttpContext.Session.GetInt32("UserID"))
+                    {
+                        if(
+                            (httpContextAccessor.HttpContext.Session.GetString("UserType") == Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString() && Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.InternalAuction) 
+                            ||
+                            (httpContextAccessor.HttpContext.Session.GetString("UserType") == Helpers.Constants.Enums.UserIdentityType.Associate.ToString() && Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.PublicAuction) 
+                        )
                         {
-                            var pinnnedComments = currentcomments.Where(x => Convert.ToBoolean(x.IsPinned)).ToList();
-
-                            foreach (var pinnedItem in pinnnedComments)
+                            if(Model.JobPostWebsiteModel.AuctionBids.Count(x=>x.UserId == httpContextAccessor.HttpContext.Session.GetInt32("UserID")) == 0)
                             {
-                                currentcomments.RemoveAt(currentcomments.IndexOf(pinnedItem));
-                                currentcomments.Insert(0, pinnedItem);
+                                <!-- New bid click -->
+                                <button onclick="window.location.href='../Auctions?auctionid=@Model.Auction.AuctionID&jobid=@Model.JobPostWebsiteModel.JobID'" class="btn btn-sm btn-primary btn-shine float-right">
+                                    Submit Bid
+                                </button>
                             }
                         }
+                    }
 
-                        //Show flagged comments firstly
-                        if (currentcomments.Count(x => Convert.ToBoolean(x.IsFlagged)) > 0)
-                        {
-                            var flaggedComments = currentcomments.Where(x => Convert.ToBoolean(x.IsFlagged)).ToList();
+                </div> 
+                <!-- Footer -->    
+            </div>
 
-                            foreach (var flagItem in flaggedComments)
-                            {
-                                currentcomments.RemoveAt(currentcomments.IndexOf(flagItem));
-                                currentcomments.Insert(0, flagItem);
-                            }
-                        }
+        </div>
 
-                        @foreach (var commentItem in currentcomments)
-                        {
-                            Count = Count + 1;
-                            SubCommentCount = SubCommentCount + 1;
-
-                            <!-- Comment -->
-                            <div class="comment" id="comment-@Count">
-
-                                <!-- Add comment-border-link class-->
-                                @if (currentcomments.Count() > SubCommentCount)
-                                {
-                                    <a href="#comment-@Count" class="comment-border-link">
-                                        <span class="sr-only">Jump to comment-@Count</span>
-                                    </a>
-                                }
-                                else
-                                {
-                                    <a href="#comment-@Count">
-                                        <span class="sr-only">Jump to comment-@Count</span>
-                                    </a>
-                                }
-
-                                <!-- Heading -->
-                                <div class="comment-heading">
-                                    <div class="comment-voting">
-                                        @if (commentItem.ProfileImage.Length > 50)
-                                        {
-                                            <img class="avatar-img" src="data:image;base64,@commentItem.ProfileImage" onerror="this.onerror=null; this.src='../Home/images/avatars/default.png'" />
-                                        }
-                                        else
-                                        {
-                                            <img class="avatar-img" src="../Home/images/avatars/@commentItem.ProfileImage" alt="@commentItem.UserName" onerror="this.onerror=null; this.src='../Home/images/avatars/default.png'">
-                                        }
-                                    </div>
-                                    <div class="comment-info">
-                                        <a href="#" class="comment-author">@commentItem.UserName</a>
-                                        @if (commentItem.UserReputation != null && commentItem.UserReputation > 0)
-                                        {
-                                            <small class="mx-1">@Convert.ToInt32(commentItem.UserReputation) reps</small>
-                                        }
-                                        <p class="m-0">
-                                            @commentItem.Date.ToShortDateString() @commentItem.Date.ToShortTimeString()
-                                        </p>
-                                    </div>
-                                </div>
-                                <!-- Heading -->
-                                <!-- Comment body -->
-                                <div class="comment-body">
-
-                                    @if (commentItem.Comment == "This comment is deleted by the owner.")
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="tab-content rounded-bottom">
+                <div class="tab-pane active p-3">
+                    <!-- Comments footer -->
+                        <div class="commentsx">
+                            <div id="comments" class="comment-thread">
+                                @{
+                                    //Set the index of the pinned comments to first index
+                                    var pinnedComments = Model.JobPostCommentModel.Where(x => x.IsPinned == true).ToList();
+                                    Model.JobPostCommentModel.RemoveAll(x => x.IsPinned == true);
+                                    foreach (var cmt in pinnedComments)
                                     {
-                                        <p><i>@commentItem.Comment</i></p>
+                                        Model.JobPostCommentModel.Insert(0, cmt);
+                                    }
+
+                                    if (Model.JobPostCommentModel.Count > 0)
+                                    {
+                                        ShowCommentTree(Model.JobPostCommentModel.Where(x => x.SubCommentID == 0).OrderByDescending(x => x.UpVote).ThenBy(x => x.Date).ToList());
                                     }
                                     else
                                     {
-                                        <div class="pt-2 pb-3">
-                                            @Html.Raw(commentItem.Comment)
+                                        <partial name="../Shared/_EmptyPartial.cshtml" view-data='new ViewDataDictionary(ViewData) { { "Message", "There are no comments in this topic" }, { "Icon", "frown-open" }, { "HtmlContent", "<button class=\"btn btn-primary mt-3\" onclick=\"CreateReplyBox(this, 0)\">Make New Comment</button>" } }' />
+                                    }
+                                }
+                            </div>
+                        </div>
+                        <!-- Job comment recursive function -->
+                        @functions{
+                            int Count = 0;
+
+                            public void ShowCommentTree(IList<Helpers.Models.WebsiteViewModels.JobPostCommentModel> currentcomments)
+                            {
+                                int SubCommentCount = 0;
+
+                                //Show pinned comments firstly
+                                if (currentcomments.Count(x => Convert.ToBoolean(x.IsPinned)) > 0)
+                                {
+                                    var pinnnedComments = currentcomments.Where(x => Convert.ToBoolean(x.IsPinned)).ToList();
+
+                                    foreach (var pinnedItem in pinnnedComments)
+                                    {
+                                        currentcomments.RemoveAt(currentcomments.IndexOf(pinnedItem));
+                                        currentcomments.Insert(0, pinnedItem);
+                                    }
+                                }
+
+                                //Show flagged comments firstly
+                                if (currentcomments.Count(x => Convert.ToBoolean(x.IsFlagged)) > 0)
+                                {
+                                    var flaggedComments = currentcomments.Where(x => Convert.ToBoolean(x.IsFlagged)).ToList();
+
+                                    foreach (var flagItem in flaggedComments)
+                                    {
+                                        currentcomments.RemoveAt(currentcomments.IndexOf(flagItem));
+                                        currentcomments.Insert(0, flagItem);
+                                    }
+                                }
+
+                                @foreach (var commentItem in currentcomments)
+                                {
+                                    Count = Count + 1;
+                                    SubCommentCount = SubCommentCount + 1;
+
+                                    <!-- Comment -->
+                                    <div class="comment" id="comment-@Count">
+
+                                        <!-- Add comment-border-link class-->
+                                        @if (currentcomments.Count() > SubCommentCount)
+                                        {
+                                            <a href="#comment-@Count" class="comment-border-link">
+                                                <span class="sr-only">Jump to comment-@Count</span>
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a href="#comment-@Count">
+                                                <span class="sr-only">Jump to comment-@Count</span>
+                                            </a>
+                                        }
+
+                                        <!-- Heading -->
+                                        <div class="comment-heading">
+                                            <div class="comment-voting">
+                                                @if (commentItem.ProfileImage.Length > 50)
+                                                {
+                                                    <img class="avatar-img" src="data:image;base64,@commentItem.ProfileImage" onerror="this.onerror=null; this.src='../Home/images/avatars/default.png'" />
+                                                }
+                                                else
+                                                {
+                                                    <img class="avatar-img" src="../Home/images/avatars/@commentItem.ProfileImage" alt="@commentItem.UserName" onerror="this.onerror=null; this.src='../Home/images/avatars/default.png'">
+                                                }
+                                            </div>
+                                            <div class="comment-info">
+                                                <a href="#" class="comment-author">@commentItem.UserName</a>
+                                                @if (commentItem.UserReputation != null && commentItem.UserReputation > 0)
+                                                {
+                                                    <small class="mx-1">@Convert.ToInt32(commentItem.UserReputation) reps</small>
+                                                }
+                                                <p class="m-0">
+                                                    @commentItem.Date.ToShortDateString() @commentItem.Date.ToShortTimeString()
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <!-- Heading -->
+                                        <!-- Comment body -->
+                                        <div class="comment-body">
+
+                                            @if (commentItem.Comment == "This comment is deleted by the owner.")
+                                            {
+                                                <p><i>@commentItem.Comment</i></p>
+                                            }
+                                            else
+                                            {
+                                                <div class="pt-2 pb-3">
+                                                    @Html.Raw(commentItem.Comment)
+
+                                                </div>
+                                            }
+
+                                            @if (Convert.ToBoolean(commentItem.IsPinned) == true)
+                                            {
+                                                <i class="fas fa-thumbtack"></i><i> <small>Pinned comment</small>  </i>
+                                            }
+                                            <!--Upvote click -->
+                                            <a onclick="UpVote(@commentItem.JobPostCommentID);" class="card-text me-2 ms-2 cA cursorp">
+                                                <!-- IsUpVote check-->
+                                                @if (commentItem.IsUpVote == true)
+                                                {
+                                                    <i class="fas fa-caret-square-up" id="voteUp_@commentItem.JobPostCommentID"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="far fa-caret-square-up" id="voteUp_@commentItem.JobPostCommentID"></i>
+                                                }
+                                                <span id="voteUpCount_@commentItem.JobPostCommentID">@commentItem.UpVote</span>
+                                            </a>
+                                            <!--Downvote click -->
+                                            <a onclick="DownVote(@commentItem.JobPostCommentID);" class="card-text me-2 cA cursorp">
+                                                @if (commentItem.IsUpVote == false)
+                                                {
+                                                    <i class="fas fa-caret-square-down" id="voteDown_@commentItem.JobPostCommentID"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="far fa-caret-square-down" id="voteDown_@commentItem.JobPostCommentID"></i>
+                                                }
+                                                <span id="voteDownCount_@commentItem.JobPostCommentID">@commentItem.DownVote</span>
+
+                                            </a>
+
+                                            <!-- New comment click -->
+                                            <a onclick="CreateReplyBox(this, @commentItem.JobPostCommentID)" class="card-text me-2 cA cursorp">
+                                                <svg class="icon">
+                                                    <use xlink:href="/Home/images/svg/free.svg#cil-comment-bubble"></use>
+                                                </svg> Reply
+                                            </a>
+
+                                            @if (commentItem.IsUsersComment == true && commentItem.Comment != "This comment is deleted by the owner.")
+                                            {
+
+                                                <a onclick="DeleteComment(@commentItem.JobPostCommentID);" class="card-text me-2 cA cursorp" id="delete_@commentItem.JobPostCommentID">
+                                                    <svg class="icon">
+                                                        <use xlink:href="/Home/images/svg/free.svg#cil-trash"></use>
+                                                    </svg> Delete
+                                                </a>
+                                            }
+
+
+                                            @if (Convert.ToBoolean(commentItem.IsFlagged) == true)
+                                            {
+                                                <span class="card-text me-2 text-danger">
+                                                    <svg class="icon">
+                                                        <use xlink:href="/Home/images/svg/free.svg#cil-flag-alt"></use>
+                                                    </svg> This comment is flagged
+                                                </span>
+                                            }
 
                                         </div>
-                                    }
 
-                                    @if (Convert.ToBoolean(commentItem.IsPinned) == true)
-                                    {
-                                        <i class="fas fa-thumbtack"></i><i> <small>Pinned comment</small>  </i>
-                                    }
-                                    <!--Upvote click -->
-                                    <a onclick="UpVote(@commentItem.JobPostCommentID);" class="card-text me-2 ms-2 cA cursorp">
-                                        <!-- IsUpVote check-->
-                                        @if (commentItem.IsUpVote == true)
-                                        {
-                                            <i class="fas fa-caret-square-up" id="voteUp_@commentItem.JobPostCommentID"></i>
-                                        }
-                                        else
-                                        {
-                                            <i class="far fa-caret-square-up" id="voteUp_@commentItem.JobPostCommentID"></i>
-                                        }
-                                        <span id="voteUpCount_@commentItem.JobPostCommentID">@commentItem.UpVote</span>
-                                    </a>
-                                    <!--Downvote click -->
-                                    <a onclick="DownVote(@commentItem.JobPostCommentID);" class="card-text me-2 cA cursorp">
-                                        @if (commentItem.IsUpVote == false)
-                                        {
-                                            <i class="fas fa-caret-square-down" id="voteDown_@commentItem.JobPostCommentID"></i>
-                                        }
-                                        else
-                                        {
-                                            <i class="far fa-caret-square-down" id="voteDown_@commentItem.JobPostCommentID"></i>
-                                        }
-                                        <span id="voteDownCount_@commentItem.JobPostCommentID">@commentItem.DownVote</span>
-
-                                    </a>
-
-                                    <!-- New comment click -->
-                                    <a onclick="CreateReplyBox(this, @commentItem.JobPostCommentID)" class="card-text me-2 cA cursorp">
-                                        <svg class="icon">
-                                            <use xlink:href="/Home/images/svg/free.svg#cil-comment-bubble"></use>
-                                        </svg> Reply
-                                    </a>
-
-                                    @if (commentItem.IsUsersComment == true && commentItem.Comment != "This comment is deleted by the owner.")
-                                    {
-
-                                        <a onclick="DeleteComment(@commentItem.JobPostCommentID);" class="card-text me-2 cA cursorp" id="delete_@commentItem.JobPostCommentID">
-                                            <svg class="icon">
-                                                <use xlink:href="/Home/images/svg/free.svg#cil-trash"></use>
-                                            </svg> Delete
-                                        </a>
-                                    }
-
-
-                                    @if (Convert.ToBoolean(commentItem.IsFlagged) == true)
-                                    {
-                                        <span class="card-text me-2 text-danger">
-                                            <svg class="icon">
-                                                <use xlink:href="/Home/images/svg/free.svg#cil-flag-alt"></use>
-                                            </svg> This comment is flagged
-                                        </span>
-                                    }
-
-                                </div>
-
-                                <div class="replies">
-                                    @{
-                                        if (Model.JobPostCommentModel.Count(x => x.SubCommentID == commentItem.JobPostCommentID) > 0)
-                                        {
-                                            ShowCommentTree(Model.JobPostCommentModel.Where(x => x.SubCommentID == commentItem.JobPostCommentID).OrderByDescending(x => x.UpVote).ToList());
-                                        }
-                                    }
-                                </div>
-                            </div>
+                                        <div class="replies">
+                                            @{
+                                                if (Model.JobPostCommentModel.Count(x => x.SubCommentID == commentItem.JobPostCommentID) > 0)
+                                                {
+                                                    ShowCommentTree(Model.JobPostCommentModel.Where(x => x.SubCommentID == commentItem.JobPostCommentID).OrderByDescending(x => x.UpVote).ToList());
+                                                }
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            }
                         }
-                    }
-                }
+                   
+                </div>
             </div>
         </div>
     </div>
@@ -291,16 +707,20 @@
             var inputExists = $('#textarea-input-' + commentid).length;
 
             if (!inputExists) {
-                $(e).parent().append("<div class='comment-body mt-3'><textarea name='textarea-input-" + commentid + "' id='textarea-input-" + commentid + "' rows='3'></textarea><div class='d-flex justify-content-end mt-1'><button class='btn btn-sm btn-block btn-primary my-2 px-3' onclick='AddNewComment(" +@Model.JobPostWebsiteModel.JobID+"," + commentid + ", this);'>Reply</button></div></div>");
+                $(e).parent().append("<div class='comment mt-3 pe-3'><textarea name='textarea-input-" + commentid + "' id='textarea-input-" + commentid + "' rows='3'></textarea><div class='d-flex justify-content-end mt-1'><button class='btn btn-sm btn-block btn-primary my-2 px-3' onclick='AddNewComment(" +@Model.JobPostWebsiteModel.JobID+"," + commentid + ", this);'>Reply</button></div></div>");
 
                 if (document.body.classList.contains('dark-theme')) {
                     CKEDITOR.replace("textarea-input-" + commentid, {
-                        skin: 'moono-dark'
+                        skin: 'moono-dark',
+                        removePlugins: 'toolbar',
+                        allowedContent: 'p h1 h2 strong em; a[!href];'
                     });
                 }
                 else {
                     CKEDITOR.replace("textarea-input-" + commentid, {
-                        skin: 'moono-lisa'
+                        skin: 'moono-lisa',
+                        removePlugins: 'toolbar',
+                        allowedContent: 'p h1 h2 strong em; a[!href];'
                     });
                 }
 

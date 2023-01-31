@@ -102,6 +102,44 @@ namespace DAO_WebPortal.Controllers
         #region Job Post
 
         /// <summary>
+        /// Forum Page
+        /// </summary>
+        /// <returns></returns>
+        [Route("Forum")]
+        [Route("Home/Forum")]
+        public IActionResult Forum(JobStatusTypes? status, string query, int page = 1, int pageCount = 100)
+        {
+            ViewBag.Title = "Forum";
+
+            IPagedList<JobPostViewModel> pagedModel = new PagedList<JobPostViewModel>(null, 1, 1);
+
+            try
+            {
+                //Get jobs data from ApiGateway
+                string jobsJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Website/GetAllJobs?status=" + status + "&userid=" + HttpContext.Session.GetInt32("UserID") + "&query=" + query + "&page=" + page + "&pageCount=" + pageCount, HttpContext.Session.GetString("Token"));
+                //Parse response
+                var jobsListPaged = Helpers.Serializers.DeserializeJson<PaginationEntity<JobPostViewModel>>(jobsJson);
+
+                pagedModel = new StaticPagedList<JobPostViewModel>(
+                    jobsListPaged.Items,
+                    jobsListPaged.MetaData.PageNumber,
+                    jobsListPaged.MetaData.PageSize,
+                    jobsListPaged.MetaData.TotalItemCount
+                    );
+
+                //var result = JsonConvert.DeserializeObject<PagedList<JobPostViewModel>>(jobsJson);
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+            }
+
+            return View(pagedModel);
+
+        }
+
+        /// <summary>
         /// User's Job Page
         /// </summary>
         /// <returns></returns>
@@ -135,7 +173,7 @@ namespace DAO_WebPortal.Controllers
         /// <returns></returns>
         [Route("All-Jobs")]
         [Route("Home/All-Jobs")]
-        public IActionResult All_Jobs(JobStatusTypes? status, string query, int page = 1, int pageCount = 10)
+        public IActionResult All_Jobs(JobStatusTypes? status, string query, int page = 1, int pageCount = 50)
         {
             ViewBag.Title = "All Jobs";
 
