@@ -23,8 +23,24 @@ namespace DAO_CasperChainService
             public string RabbitMQPassword { get; set; }
             public string NodeUrl { get; set; }
             public string ChainName { get; set; }
-            public string KYCVoterContract { get; set; }
             public string CasperMiddlewareUrl { get; set; }
+
+            //CONTRACTS ADDRESSES
+            public string VariableRepositoryContract { get; set; }
+            public string ReputationContract { get; set; }
+            public string DaoIdsContract { get; set; }
+            public string VaNftContract { get; set; }
+            public string KYCVoterContract { get; set; }
+            public string KycNftContract { get; set; }
+            public string SlashingVoterContract { get; set; }
+            public string SimpleVoterContract { get; set; }
+            public string ReputationVoterContract { get; set; }
+            public string RepoVoterContract { get; set; }
+            public string AdminContract { get; set; }
+            public string OnboardingRequestContract { get; set; }
+            public string KycVoterContract { get; set; }
+            public string BidEscrowContract { get; set; }
+
         }
 
         public static Monitizer monitizer;

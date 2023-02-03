@@ -694,7 +694,7 @@
             {
                 var publicAddress = await window.casperlabsHelper.getActivePublicKey();
 
-                if('@httpContextAccessor.HttpContext.Session.GetString("WalletAddress")' != publicAddress)
+                if('@httpContextAccessor.HttpContext.Session.GetString("WalletAddress")' != publicAddress &&  @httpContextAccessor.HttpContext.Session.GetInt32("UserID") != 0)
                 {
                     $("#modal-walletchange").modal({ show: false, backdrop: 'static' });
                     $("#modal-walletchange").modal("show");

@@ -382,12 +382,12 @@
 
             var publicAddress = "";
 
-    @if (Program._settings.DaoBlockchain == Helpers.Constants.Enums.Blockchain.Casper)
-    {
-        @Html.Raw("publicAddress = await window.casperlabsHelper.getActivePublicKey();")
-    }
+            @if (Program._settings.DaoBlockchain == Helpers.Constants.Enums.Blockchain.Casper)
+            {
+                @Html.Raw("publicAddress = await window.casperlabsHelper.getActivePublicKey();")
+            }
 
-                if (publicAddress.length > 0) {
+            if (publicAddress.length > 0) {
                 $.ajax({
                     type: "GET",
                     url: "../WalletUpdate?walletAddress=" + publicAddress,

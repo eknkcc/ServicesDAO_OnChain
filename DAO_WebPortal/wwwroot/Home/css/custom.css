@@ -681,6 +681,7 @@ tbody tr:hover .trSlider span {
 
   .jobDetailTable td:nth-child(1) {  
      color:#707491;
+     width: 40%;
   }
 
   .dark-theme .jobDetailTable td:nth-child(1) {  
@@ -819,3 +820,4 @@ h5 {
 .commentsx{
     height: 572px;overflow-y: scroll;
 }
+
