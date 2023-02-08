@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 
 namespace Helpers.Models.WebsiteViewModels
 {
-    public class NewSimpleVoteGovernanceModel
+    public class NewVoteGovernanceModel
     {
         public double stake { get; set; }
         public string signedDeployJson { get; set; }
-        public PlatformSettingDto settings { get; set; } //For variable repository (governance) vote
+        public string key { get; set; }
+        public string value { get; set; }
     }
 }

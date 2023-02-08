@@ -118,12 +118,10 @@
             Governance,
             Admin,
             JobCompletion,
-            JobRefund,
-            NewVA,
-            RemoveVA,
+            VAOnboarding,
             KYC,
-            MintReputation,
-            BurnReputation
+            Reputation,
+            Slashing
         }
 
 

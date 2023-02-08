@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Helpers.Models.WebsiteViewModels
 {
-    public class NewSimpleVoteCustomModel
+    public class NewVoteVaOnboardingModel
     {
-        public string title { get; set; }
-        public string description { get; set; }
+        public string newvausername { get; set; }
+        public string reason { get; set; }
         public double stake { get; set; }
         public string signedDeployJson { get; set; }
 

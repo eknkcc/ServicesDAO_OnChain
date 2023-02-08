@@ -12,22 +12,39 @@
         <div class="form-group mb-4">
             <label class="mb-2"><b><i class="fas fa-star"></i> Type</b></label>
             <select class="form-control" id="voteType">
-                <option value="custom">Custom</option>
-                <option value="va">VA Onboarding</option>
-                <option value="governance">Governance</option>
+                <option value="simple">Simple</option>
+                <option value="vaonboarding">VA Onboarding</option>
+                <option value="repo">Governance / Repo</option>
                 <option value="kyc">KYC</option>
-                <option value="mintrep">Mint Reputation</option>
-                <option value="burnrep">Burn Reputation</option>
-                <option value="varemove">VA Removal</option>
+                <option value="reputation">Reputation</option>
+                <option value="slashing">Slashing</option>
             </select>
         </div>
-        <div class="voteInputSection d-none" id="vaDiv">
+        <div class="voteInputSection" id="simpleDiv">
+            <div class="form-group mb-4" id="titlediv">
+                <label class="mb-2" for="title"><b><i class="fas fa-heading"></i> Title</b></label>
+                <input type="text" class="form-control" id="title" placeholder="Title of the post" autocomplete="off">
+            </div>
+            <div class="form-group mb-4" id="documentDiv">
+                <label class="mb-2" for="documenthash"><b><i class="fas fa-folder"></i> Document</b></label>
+                <input type="text" class="form-control" id="documenthash" placeholder="Document hash" autocomplete="off">
+            </div>
+            <div class="form-group mb-4">
+                <label class="mb-2"><b><i class="fas fa-star"></i> Reputation Stake</b></label>
+                <input type="text" class="form-control" id="simplerepstake" placeholder="Stake">
+            </div>
+            <div class="form-group" id="descriptiondiv">
+                <label class="mb-2" for="description"><b><i class="fas fa-file mx-1"></i> Description</b></label>
+                <textarea type="text" id="description" name="description" placeholder="Description of the vote" rows="10"></textarea>
+            </div>
+        </div>
+        <div class="voteInputSection d-none" id="vaonboardingDiv">
             <div class="form-group mb-4">
                 <label class="mb-2"><b><i class="fas fa-user"></i> New VA Username</b></label>
                 <input type="text" class="form-control" id="vausername" placeholder="Username">
             </div>
         </div>
-        <div class="voteInputSection d-none" id="governanceDiv">
+        <div class="voteInputSection d-none" id="repoDiv">
             <div class="row">
                 <table class="table table-striped table-hover mt-3">
                     <thead>
@@ -204,20 +221,16 @@
             <input type="text" class="form-control" id="kycdocumenthash" placeholder="Document Hash">
             </div> *@
         </div>
-        <div class="voteInputSection" id="customDiv">
-            <div class="form-group mb-4" id="titlediv">
-                <label class="mb-2" for="title"><b><i class="fas fa-heading"></i> Title</b></label>
-                <input type="text" class="form-control" id="title" placeholder="Title of the post">
-            </div>
-            <div class="form-group" id="descriptiondiv">
-                <label class="mb-2" for="description"><b><i class="fas fa-file mx-1"></i> Description</b></label>
-                <textarea type="text" id="description" name="description" placeholder="Description of the vote"
-                          rows="10"></textarea>
-            </div>
+        <div class="voteInputSection d-none" id="reputationDiv">
+           REPUTATION VOTER GOES HERE
+        </div>
+        <div class="voteInputSection d-none" id="slashingDiv">
+           SLASHING VOTER GOES HERE
         </div>
 
+
         <div class="d-flex justify-content-end my-3">
-            <button type="submit" class="btn btn-primary submitFormButton" onclick="StartSimpleVote();">Start Voting</button>
+            <button type="submit" class="btn btn-primary submitFormButton" onclick="StartNewVote();">Start Voting</button>
         </div>
     </div>
 </div>
@@ -245,37 +258,94 @@
         });
 
         //Add new simple vote function
-        async function StartSimpleVote() {
+        async function StartNewVote() {
 
-            if ($('#voteType').val() == "kyc") {
+            if ($('#voteType').val() == "simple") {
+                startOnchainSimpleVote();
+            }
+            else if ($('#voteType').val() == "vaonboarding") {
+                startOnchainVaOnboardingVote();
+            }
+            else if ($('#voteType').val() == "repo") {
+                startOnchainRepoVote();
+            }
+            else if ($('#voteType').val() == "kyc") {
                 startOnchainKycVote();
             }
-            else if ($('#voteType').val() == "va") {
-                startOnchainVaVote();
+            else if ($('#voteType').val() == "reputation") {
+                startOnchainReputationVote();
             }
-            else if ($('#voteType').val() == "custom") {
-                startOnchainCustomVote();
-            }
-            else if ($('#voteType').val() == "governance") {
-                startOnchainGovernanceVote();
-            }
-            else if ($('#voteType').val() == "mintrep") {
-                startOnchainMintRepVote();
-            }
-            else if ($('#voteType').val() == "burnrep") {
-                startOnchainBurnRepVote();
-            }
-            else if ($('#voteType').val() == "varemove") {
-                startOnchainVaRemoveVote();
+            else if ($('#voteType').val() == "slashing") {
+                startOnchainSlashingVote();
             }
         }
 
+
+        function startSimpleVote(signedDeployJson) {
+            $.confirm({
+                title: 'Confirmation',
+                content: '<p>Are you sure you want to start simple vote process ?</p>',
+                columnClass: 'col-md-8 col-md-offset-2',
+                buttons: {
+                    cancel: {
+                        text: 'Cancel'
+                    },
+                    confirm: {
+                        text: 'Continue',
+                        btnClass: 'btn btn-primary',
+                        action: function () {
+                            //KYC Vote parameters
+                            var documentHash = $("#documenthash").val();
+                            var title = $("#title").val();
+                            var description = $("#description").val();
+                            var stake = $("#simplerepstake").val();
+
+                            //Ajax post action
+                            $.ajax({
+                                type: "POST",
+                                url: "../Home/New_Vote_KYC",
+                                data: {
+                                    "stake": stake,
+                                    "documentHash": documentHash,
+                                    "kycUserName": kycUserName,
+                                    "signedDeployJson": JSON.stringify(signedDeployJson)
+                                },
+                                success: function (result) {
+                                    if (result.success) {
+                                        window.location.reload();
+                                    }
+                                    else {
+                                        toastr.warning(result.message);
+                                    }
+                                },
+                                failure: function (response) {
+                                    toastr.warning("@Lang.ConnectionError");
+                                },
+                                error: function (response) {
+                                    toastr.error("@Lang.UnexpectedError");
+                                }
+                            });
+
+                        }
+
+                    }
+                }
+            });
+        }
+
+        function startVaOnboardingVote(signedDeployJson) {
+
+        }
+        
+        function startRepoVote(signedDeployJson) {
+
+        }
 
         function startKycVote(signedDeployJson) {
 
             $.confirm({
                 title: 'Confirmation',
-                content: '<p>Are you sure you want to start simple vote process ?</p>',
+                content: '<p>Are you sure you want to start KYC vote process ?</p>',
                 columnClass: 'col-md-8 col-md-offset-2',
                 buttons: {
                     cancel: {
@@ -324,37 +394,72 @@
 
         }
 
-        function startVaVote(signedDeployJson) {
+        function startReputationVote(signedDeployJson) {
 
         }
 
-        function startCustomVote(signedDeployJson) {
+        function startSlashingVote(signedDeployJson) {
 
         }
 
-        function startGovernanceVote(signedDeployJson) {
-
-        }
-
-        function startMintRepVote(signedDeployJson) {
-
-        }
-        
-        function startBurnRepVote(signedDeployJson) {
-
-        }
-
-        function startVaRemovalVote(signedDeployJson) {
-
-        }
     </script>
 
     @if(Program._settings.DaoBlockchain == Helpers.Constants.Enums.Blockchain.Casper)
     {
         <script>
 
-            async function startOnchainKycVote() {
+            async function startOnchainSimpleVote() {
+                const isConnected = await window.casperlabsHelper.isConnected();
+                if (isConnected) {
+                    ShowLoader("Creating deploy object...");
+                    //Ajax post action
+                    $.ajax({
+                        type: "GET",
+                        url: "../CasperChain/GetSimpleVoteDeploy?documenthash=" + $("#documenthash").val() + "&stake=" + $("#simplerepstake").val(),
+                        success: async function (result) {
+                            if (result.success) {
+                                ShowLoader("Waiting for sign...");
+                                //const publicKeyHex = await window.casperlabsHelper.getActivePublicKey();
+                                var deployJson = { "deploy": JSON.parse(result.message) };
 
+                                // Sign transcation using casper-signer.
+                                const signature = await window.casperlabsHelper.sign(deployJson);
+
+                                ShowLoader("Sending signed deploy. This may take few minutes...");
+
+                                startSimpleVote(signature.deploy);
+
+                                //SendSignedDeploy(signature.deploy, "KYC Contract Call");
+                            }
+                            else {
+                                HideLoader();
+                                toastr.warning(result.message);
+                            }
+                        },
+                        failure: function (response) {
+                            HideLoader();
+                            toastr.warning("@Lang.ConnectionError");
+                        },
+                        error: function (response) {
+                            HideLoader();
+                            toastr.error("@Lang.UnexpectedError");
+                        }
+                    });
+                }
+                else {
+                    toastr.warning("Please connect the Casper Signer browser extension.");
+                }
+            }
+
+            async function startOnchainVaOnboardingVote() {
+
+            }
+
+            async function startOnchainRepoVote() {
+
+            }
+
+            async function startOnchainKycVote() {
                 const isConnected = await window.casperlabsHelper.isConnected();
                 if (isConnected) {
                     ShowLoader("Creating deploy object...");
@@ -397,27 +502,11 @@
                 }
             }
 
-            async function startOnchainVaVote() {
-
-            }
-
-            async function startOnchainCustomVote() {
-
-            }
-
-            async function startOnchainGovernanceVote() {
-
-            }
-
-            async function startOnchainMintRepVote() {
+            async function startOnchainReputationVote() {
                 
             }
 
-            async function startOnchainBurnRepVote() {
-                
-            }
-
-            async function startOnchainVaRemovalVote() {
+            async function startOnchainSlashingVote() {
                 
             }
         </script>
@@ -426,33 +515,28 @@
     {
         @* Start votes without any onchain process *@
         <script>
+            function startOnchainSimpleVote() {
+                startSimpleVote("");
+            }
+            
+            function startOnchainVaOnboardingVote() {
+                startVaOnboardingVote("");
+            }
+
+            function startOnchainRepoVote() {
+                startRepoVote("");
+            }
 
             function startOnchainKycVote() {
                 startKycVote("");
             }
 
-            function startOnchainVaVote() {
-                startVaVote("");
+            function startOnchainReputationVote() {
+                startReputationVote("");
             }
 
-            function startOnchainCustomVote() {
-                startCustomVote("");
-            }
-
-            function startOnchainGovernanceVote() {
-                startGovernanceVote("");
-            }
-
-            function startOnchainMintRepVote() {
-                startMintRepVote("");
-            }
-
-            function startOnchainBurnRepVote() {
-                startBurnRepVote("");
-            }
-            
-            function startOnchainVaRemovalVote() {
-                startVaRemovalVote("");
+            function startOnchainSlashingVote() {
+                startSlashingVote("");
             }
         </script>
     }

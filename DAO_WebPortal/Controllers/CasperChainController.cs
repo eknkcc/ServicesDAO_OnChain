@@ -162,18 +162,17 @@ namespace DAO_WebPortal.Controllers
             return View(chainActionModel);
         }
 
-        #region KYC 
 
         public JsonResult GetKYCVoteDeploy(string username, int stake)
         {
             try
             {
-                SimpleResponse controlResult = UserInputControls.ControlKYCRequest(username, HttpContext.Session.GetString("Token"));
+                SimpleResponse controlResult = UserInputControls.ControlKYCVoteRequest(username, HttpContext.Session.GetString("Token"));
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 
                 //Get model from ApiGateway
-                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/GetKYCVoteDeploy?walletAddress=" + HttpContext.Session.GetString("WalletAddress")+ "&stake=" + stake + "&kycUserAddress=" + ((UserDto)((dynamic)controlResult.Content).user).WalletAddress + "&verificationId=" + ((UserKYCDto)((dynamic)controlResult.Content).kyc).VerificationId);
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/KYCVoterCreateVoting?walletAddress=" + HttpContext.Session.GetString("WalletAddress")+ "&stake=" + stake + "&kycUserAddress=" + ((UserDto)((dynamic)controlResult.Content).user).WalletAddress + "&documenthash=" + ((UserKYCDto)((dynamic)controlResult.Content).kyc).VerificationId);
                 //Parse response
                 SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
 
@@ -188,7 +187,30 @@ namespace DAO_WebPortal.Controllers
             }
         }
 
-        #endregion
+        public JsonResult GetSimpleVoteDeploy(string documenthash, int stake)
+        {
+            try
+            {
+                SimpleResponse controlResult = UserInputControls.ControlSimpleVoteRequest(documenthash);
+
+                if (controlResult.Success == false) return base.Json(controlResult);
+
+                //Get model from ApiGateway
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/SimpleVoterCreateVoting?walletAddress=" + HttpContext.Session.GetString("WalletAddress") + "&stake=" + stake + "&documenthash=" + documenthash);
+                //Parse response
+                SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
+
+                //Return deploy object in JSON
+                return base.Json(deployModel);
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+            }
+        }
+
 
     }
 }

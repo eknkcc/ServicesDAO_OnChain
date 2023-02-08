@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace Helpers.Models.WebsiteViewModels
 {
-    public class NewSimpleVoteBurnRepModel
+    public class NewVoteKYCModel
     {
+        public string documentHash { get; set; }  //For KYC vote
+        public string kycUserName { get; set; }  //For KYC vote
         public double stake { get; set; }
         public string signedDeployJson { get; set; }
-        public string vausername { get; set; }
-        public double burnAmount { get; set; }
+
     }
 }

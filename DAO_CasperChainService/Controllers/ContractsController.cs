@@ -14,6 +14,8 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Helpers.Constants;
 using System.Text;
+using Ubiety.Dns.Core;
+using System.Collections;
 
 namespace DAO_CasperChainService.Controllers
 {
@@ -139,7 +141,7 @@ namespace DAO_CasperChainService.Controllers
             return resultText;
         }
 
-        #region Variable Reppsitory
+        #region Variable Repository
 
         [HttpGet("VariableRepositoryAllVariables", Name = "VariableRepositoryAllVariables")]
         public SimpleResponse VariableRepository_AllVariables(string walletAddress)
@@ -148,12 +150,9 @@ namespace DAO_CasperChainService.Controllers
             {
                 var casperSdk = new NetCasperClient(Program._settings.NodeUrl + ":7777/rpc");
 
-                var accountHash = new AccountHashKey("account-hash-"+walletAddress);
-                var dictItem = Convert.ToBase64String(accountHash.GetBytes());
-                
-                var response = casperSdk.GetDictionaryItemByContract(Program._settings.VariableRepositoryContract, "all_variables", dictItem).Result;
-      
-                var result = response.Parse();
+                var queryResponse = casperSdk.QueryGlobalState(Program._settings.VariableRepositoryContract, null, "balances__reputation_storage__contract").Result;
+
+                var result = queryResponse.Parse();
                 var balance = result.StoredValue.CLValue.ToBigInteger();
                 Console.WriteLine("Balance: " + balance.ToString() + " $CSSDK");
 
@@ -164,6 +163,27 @@ namespace DAO_CasperChainService.Controllers
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
                 return new SimpleResponse { Success = false };
             }
+
+            //try
+            //{
+            //    var casperSdk = new NetCasperClient(Program._settings.NodeUrl + ":7777/rpc");
+
+            //    var accountHash = new AccountHashKey("account-hash-"+walletAddress);
+            //    var dictItem = Convert.ToBase64String(accountHash.GetBytes());
+
+            //    var response = casperSdk.GetDictionaryItemByContract(Program._settings.VariableRepositoryContract, "all_variables", dictItem).Result;
+
+            //    var result = response.Parse();
+            //    var balance = result.StoredValue.CLValue.ToBigInteger();
+            //    Console.WriteLine("Balance: " + balance.ToString() + " $CSSDK");
+
+            //    return new SimpleResponse();
+            //}
+            //catch (Exception ex)
+            //{
+            //    Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+            //    return new SimpleResponse { Success = false };
+            //}
         }
         
         #endregion 
@@ -177,7 +197,11 @@ namespace DAO_CasperChainService.Controllers
             {
                 var casperSdk = new NetCasperClient(Program._settings.NodeUrl + ":7777/rpc");
 
-                var queryResponse = casperSdk.QueryGlobalState(Program._settings.ReputationContract, null, walletAddress).Result;
+                var queryResponse = casperSdk.QueryGlobalState(Program._settings.ReputationContract, null, "balances__reputation_storage__contract").Result;
+
+                var result = queryResponse.Parse();
+                var balance = result.StoredValue.CLValue.ToBigInteger();
+                Console.WriteLine("Balance: " + balance.ToString() + " $CSSDK");
 
                 return new SimpleResponse();
             }
@@ -185,7 +209,7 @@ namespace DAO_CasperChainService.Controllers
             {
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
                 return new SimpleResponse { Success = false };
-            }
+            }          
         }     
 
         #endregion
@@ -226,32 +250,21 @@ namespace DAO_CasperChainService.Controllers
             }
         }
 
-        [HttpGet("ReputationVoterCreateVoting", Name = "ReputationVoterCreateVoting")]
-        public SimpleResponse ReputationVoter_CreateVoting(string userwallet, string subjectaddress, string action, int amount, string documenthash, int stake)
+        [HttpGet("VaOnboardingVoterCreateVoting", Name = "VaOnboardingVoterCreateVoting")]
+        public SimpleResponse VaOnboarding_CreateVoting(string userwallet, string reason, string purse)
         {
             try
             {
                 PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
 
-                var subjectAddress = new AccountHashKey(subjectaddress);
-
-                List<CLValue> documentBytes = new List<CLValue>();
-                foreach (var byt in Encoding.ASCII.GetBytes(documenthash))
-                {
-                    documentBytes.Add(CLValue.U8(byt));
-                }
-
                 var namedArgs = new List<NamedArg>()
                 {
-                    new NamedArg("account", CLValue.Key(subjectAddress)),
-                    new NamedArg("action", CLValue.String(action)),
-                    new NamedArg("amount", CLValue.U512(amount)),
-                    new NamedArg("document_hash", CLValue.List(documentBytes.ToArray())),
-                    new NamedArg("stake", CLValue.U512(stake))
+                    new NamedArg("reason", CLValue.String(reason)),
+                    new NamedArg("purse", CLValue.URef(purse))
                 };
 
                 //Create deploy object
-                HashKey contractHash = new HashKey(Program._settings.ReputationVoterContract);
+                HashKey contractHash = new HashKey(Program._settings.OnboardingRequestContract);
                 var deploy = DeployTemplates.ContractCall(contractHash,
                        "create_voting",
                        namedArgs,
@@ -341,6 +354,87 @@ namespace DAO_CasperChainService.Controllers
 
                 //Create deploy object
                 HashKey contractHash = new HashKey(Program._settings.KYCVoterContract);
+                var deploy = DeployTemplates.ContractCall(contractHash,
+                       "create_voting",
+                       namedArgs,
+                       myAccountPK,
+                       5_000_000_000,
+                       Program._settings.ChainName);
+
+                //Return deploy object in JSON
+                return new SimpleResponse { Success = true, Message = deploy.SerializeToJson() };
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false };
+            }
+        }
+
+        [HttpGet("ReputationVoterCreateVoting", Name = "ReputationVoterCreateVoting")]
+        public SimpleResponse ReputationVoter_CreateVoting(string userwallet, string subjectaddress, string action, int amount, string documenthash, int stake)
+        {
+            try
+            {
+                PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
+
+                var subjectAddress = new AccountHashKey(subjectaddress);
+
+                List<CLValue> documentBytes = new List<CLValue>();
+                foreach (var byt in Encoding.ASCII.GetBytes(documenthash))
+                {
+                    documentBytes.Add(CLValue.U8(byt));
+                }
+
+                var namedArgs = new List<NamedArg>()
+                {
+                    new NamedArg("account", CLValue.Key(subjectAddress)),
+                    new NamedArg("action", CLValue.String(action)),
+                    new NamedArg("amount", CLValue.U512(amount)),
+                    new NamedArg("document_hash", CLValue.List(documentBytes.ToArray())),
+                    new NamedArg("stake", CLValue.U512(stake))
+                };
+
+                //Create deploy object
+                HashKey contractHash = new HashKey(Program._settings.ReputationVoterContract);
+                var deploy = DeployTemplates.ContractCall(contractHash,
+                       "create_voting",
+                       namedArgs,
+                       myAccountPK,
+                       5_000_000_000,
+                       Program._settings.ChainName);
+
+                //Return deploy object in JSON
+                return new SimpleResponse { Success = true, Message = deploy.SerializeToJson() };
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false };
+            }
+        }
+
+        [HttpGet("SlashingVoterCreateVoting", Name = "SlashingVoterCreateVoting")]
+        public SimpleResponse SlashingVoter_CreateVoting(string userwallet, string address_to_slash, uint slash_ratio, int stake)
+        {
+            try
+            {
+                PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
+
+                PublicKey slashAccountPK = PublicKey.FromHexString(address_to_slash);
+                var subjectAddress = new AccountHashKey(slashAccountPK.GetAccountHash());
+
+                var namedArgs = new List<NamedArg>()
+                {
+                    new NamedArg("address_to_slash", CLValue.Key(subjectAddress)),
+                    new NamedArg("slash_ratio", CLValue.U32(slash_ratio)),
+                    new NamedArg("stake", CLValue.U512(stake))
+                };
+
+                //Create deploy object
+                HashKey contractHash = new HashKey(Program._settings.SlashingVoterContract);
                 var deploy = DeployTemplates.ContractCall(contractHash,
                        "create_voting",
                        namedArgs,
