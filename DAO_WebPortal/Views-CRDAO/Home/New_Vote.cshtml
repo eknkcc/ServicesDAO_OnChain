@@ -336,6 +336,7 @@
 @section Scripts{
 
 <script>
+    var votetype = "";
 
     $(document).ready(function () {
         if (document.body.classList.contains('dark-theme')) {
@@ -361,27 +362,28 @@
         $('#typeSelectionDiv').addClass("d-none");
         $('#voteInputsDiv').removeClass("d-none");
         $('#' + voteType + "Div").removeClass("d-none");
+        votetype = voteType;
     }
 
     //Add new simple vote function
     async function StartNewVote() {
 
-        if ($('#voteType').val() == "simple") {
+        if (votetype == "simple") {
             startOnchainSimpleVote();
         }
-        else if ($('#voteType').val() == "vaonboarding") {
+        else if (votetype == "vaonboarding") {
             startOnchainVaOnboardingVote();
         }
-        else if ($('#voteType').val() == "repo") {
+        else if (votetype == "repo") {
             startOnchainRepoVote();
         }
-        else if ($('#voteType').val() == "kyc") {
+            else if (votetype == "kyc") {
             startOnchainKycVote();
         }
-        else if ($('#voteType').val() == "reputation") {
+        else if (votetype == "reputation") {
             startOnchainReputationVote();
         }
-        else if ($('#voteType').val() == "slashing") {
+            else if (votetype == "slashing") {
             startOnchainSlashingVote();
         }
     }
