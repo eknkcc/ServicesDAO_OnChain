@@ -218,7 +218,7 @@ namespace DAO_CasperChainService.Controllers
         #region Voters
 
         [HttpGet("SimpleVoterCreateVoting", Name = "SimpleVoterCreateVoting")]
-        public SimpleResponse SimpleVoter_CreateVoting(string userwallet, int documenthash, int stake)
+        public SimpleResponse SimpleVoter_CreateVoting(string userwallet, string documenthash, int stake)
         {
             try
             {
@@ -226,7 +226,7 @@ namespace DAO_CasperChainService.Controllers
 
                 var namedArgs = new List<NamedArg>()
                 {
-                    new NamedArg("document_hash", CLValue.U256(documenthash)),
+                    new NamedArg("document_hash", CLValue.String(documenthash)),
                     new NamedArg("stake", CLValue.U512(stake))
                 };
 
@@ -236,7 +236,7 @@ namespace DAO_CasperChainService.Controllers
                        "create_voting",
                        namedArgs,
                        myAccountPK,
-                       5_000_000_000,
+                       100_000_000_000,
                        Program._settings.ChainName);
 
                 //Return deploy object in JSON
@@ -269,7 +269,7 @@ namespace DAO_CasperChainService.Controllers
                        "create_voting",
                        namedArgs,
                        myAccountPK,
-                       5_000_000_000,
+                       100_000_000_000,
                        Program._settings.ChainName);
 
                 //Return deploy object in JSON
@@ -313,7 +313,7 @@ namespace DAO_CasperChainService.Controllers
                        "create_voting",
                        namedArgs,
                        myAccountPK,
-                       5_000_000_000,
+                       100_000_000_000,
                        Program._settings.ChainName);
 
                 //Return deploy object in JSON
@@ -337,18 +337,12 @@ namespace DAO_CasperChainService.Controllers
 
                 var subjectAddress = new AccountHashKey(kycUserAccountPK.GetAccountHash());
 
-                List<CLValue> documentBytes = new List<CLValue>();
-                foreach (var byt in Encoding.ASCII.GetBytes(documenthash))
-                {
-                    documentBytes.Add(CLValue.U8(byt));
-                }
-
                 var namedArgs = new List<NamedArg>()
                 {
                     new NamedArg("subject_address", CLValue.Key(subjectAddress)),
                     //new NamedArg("document_hash", CLValue.String(verificationId)),
                     //new NamedArg("document_hash", CLValue.U256(13455)),
-                    new NamedArg("document_hash", CLValue.List(documentBytes.ToArray())),
+                    new NamedArg("document_hash", CLValue.String(documenthash)),
                     new NamedArg("stake", CLValue.U512(stake))
                 };
 
@@ -358,7 +352,7 @@ namespace DAO_CasperChainService.Controllers
                        "create_voting",
                        namedArgs,
                        myAccountPK,
-                       5_000_000_000,
+                       100_000_000_000,
                        Program._settings.ChainName);
 
                 //Return deploy object in JSON
@@ -381,18 +375,12 @@ namespace DAO_CasperChainService.Controllers
 
                 var subjectAddress = new AccountHashKey(subjectaddress);
 
-                List<CLValue> documentBytes = new List<CLValue>();
-                foreach (var byt in Encoding.ASCII.GetBytes(documenthash))
-                {
-                    documentBytes.Add(CLValue.U8(byt));
-                }
-
                 var namedArgs = new List<NamedArg>()
                 {
                     new NamedArg("account", CLValue.Key(subjectAddress)),
                     new NamedArg("action", CLValue.String(action)),
                     new NamedArg("amount", CLValue.U512(amount)),
-                    new NamedArg("document_hash", CLValue.List(documentBytes.ToArray())),
+                    new NamedArg("document_hash", CLValue.String(documenthash)),
                     new NamedArg("stake", CLValue.U512(stake))
                 };
 
@@ -402,7 +390,7 @@ namespace DAO_CasperChainService.Controllers
                        "create_voting",
                        namedArgs,
                        myAccountPK,
-                       5_000_000_000,
+                       100_000_000_000,
                        Program._settings.ChainName);
 
                 //Return deploy object in JSON
@@ -439,7 +427,7 @@ namespace DAO_CasperChainService.Controllers
                        "create_voting",
                        namedArgs,
                        myAccountPK,
-                       5_000_000_000,
+                       100_000_000_000,
                        Program._settings.ChainName);
 
                 //Return deploy object in JSON

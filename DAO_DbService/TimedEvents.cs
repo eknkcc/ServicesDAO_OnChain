@@ -335,21 +335,6 @@ namespace DAO_DbService
                                             Program.monitizer.AddApplicationLog(LogTypes.ApplicationLog, "Platform settings changed with governance vote #"+voting.VotingID);
                                         }
                                     }
-                                    else if (voting.Type == VoteTypes.MintReputation)
-                                    {
-                                    }
-                                    else if (voting.Type == VoteTypes.BurnReputation)
-                                    {
-
-                                    }
-                                    else if (voting.Type == VoteTypes.NewVA)
-                                    {
-
-                                    }
-                                    else if (voting.Type == VoteTypes.RemoveVA)
-                                    {
-
-                                    }
                                 }
                                 else
                                 {

@@ -16,7 +16,7 @@ namespace DAO_WebPortal.Providers
 
             return new SimpleResponse { Success = true };
         }
-        public static SimpleResponse ControlVaOnboardingVoteRequest(string newvausername, string token)
+        public static SimpleResponse ControlVaOnboardingVoteRequest(string newvausername, string reason, string token)
         {
             //Get model from ApiGateway
             var userjson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Users/GetByUsername?username=" + newvausername, token);
@@ -29,7 +29,7 @@ namespace DAO_WebPortal.Providers
                 return new SimpleResponse { Success = false, Message = "User not found." };
             }
 
-            //Check user already completed KYC
+            //Check user is already VA
             if (profileModel.UserType == Enums.UserIdentityType.VotingAssociate.ToString())
             {
                 return new SimpleResponse { Success = false, Message = "This user is already VA." };
@@ -41,7 +41,13 @@ namespace DAO_WebPortal.Providers
                 return new SimpleResponse { Success = false, Message = "User's chain address could not be found. " + newvausername + " needs to connect a wallet first." };
             }
 
-            return new SimpleResponse { Success = true };
+            //Check reason
+            if (string.IsNullOrEmpty(reason))
+            {
+                return new SimpleResponse { Success = false, Message = "Reason cannot be null." };
+            }
+
+            return new SimpleResponse { Success = true, Content = new { user = profileModel } };
         }
         public static SimpleResponse ControlGovernanceVoteRequest(string key, string value)
         {

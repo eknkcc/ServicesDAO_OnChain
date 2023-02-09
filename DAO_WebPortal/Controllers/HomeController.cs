@@ -1724,19 +1724,19 @@ namespace DAO_WebPortal.Controllers
 
         }
 
-        #region OLD METHODS
         /// <summary>
         /// New Simple Vote Page
         /// </summary>
         /// <returns></returns>
-        //[Route("New-Simple-Vote")]
-        //public IActionResult New_Simple_Vote()
-        //{
-        //    ViewBag.Title = "Start A New Simple Vote";
+        [Route("New-Vote")]
+        public IActionResult New_Vote()
+        {
+           ViewBag.Title = "Start A New Vote";
 
-        //    return View();
-        //}
+           return View();
+        }
 
+        #region OLD METHODS
         ///// <summary>
         /////  New simple vote post function
         ///// </summary>
@@ -2049,7 +2049,7 @@ namespace DAO_WebPortal.Controllers
             try
             {
                 //User input controls
-                SimpleResponse controlResult = UserInputControls.ControlVaOnboardingVoteRequest(model.newvausername, HttpContext.Session.GetString("Token"));
+                SimpleResponse controlResult = UserInputControls.ControlVaOnboardingVoteRequest(model.newvausername, model.reason, HttpContext.Session.GetString("Token"));
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 

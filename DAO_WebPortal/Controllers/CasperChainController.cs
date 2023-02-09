@@ -163,16 +163,16 @@ namespace DAO_WebPortal.Controllers
         }
 
 
-        public JsonResult GetKYCVoteDeploy(string username, int stake)
+        public JsonResult GetSimpleVoteDeploy(string documenthash, int stake)
         {
             try
             {
-                SimpleResponse controlResult = UserInputControls.ControlKYCVoteRequest(username, HttpContext.Session.GetString("Token"));
+                SimpleResponse controlResult = UserInputControls.ControlSimpleVoteRequest(documenthash);
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 
                 //Get model from ApiGateway
-                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/KYCVoterCreateVoting?walletAddress=" + HttpContext.Session.GetString("WalletAddress")+ "&stake=" + stake + "&kycUserAddress=" + ((UserDto)((dynamic)controlResult.Content).user).WalletAddress + "&documenthash=" + ((UserKYCDto)((dynamic)controlResult.Content).kyc).VerificationId);
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/SimpleVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&stake=" + stake + "&documenthash=" + documenthash);
                 //Parse response
                 SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
 
@@ -187,16 +187,112 @@ namespace DAO_WebPortal.Controllers
             }
         }
 
-        public JsonResult GetSimpleVoteDeploy(string documenthash, int stake)
+        public JsonResult GetVaOnboardingVoteDeploy(string username, string reason)
         {
             try
             {
-                SimpleResponse controlResult = UserInputControls.ControlSimpleVoteRequest(documenthash);
+                SimpleResponse controlResult = UserInputControls.ControlVaOnboardingVoteRequest(username, reason, HttpContext.Session.GetString("Token"));
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 
                 //Get model from ApiGateway
-                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/SimpleVoterCreateVoting?walletAddress=" + HttpContext.Session.GetString("WalletAddress") + "&stake=" + stake + "&documenthash=" + documenthash);
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/VaOnboardingVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&reason=" + reason + "&purse=" + ((UserDto)((dynamic)controlResult.Content).user).WalletAddress);
+                //Parse response
+                SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
+
+                //Return deploy object in JSON
+                return base.Json(deployModel);
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+            }
+        }
+
+        public JsonResult GetRepoVoteDeploy(string key, string value, int stake)
+        {
+            try
+            {
+                SimpleResponse controlResult = UserInputControls.ControlGovernanceVoteRequest(key, value);
+
+                if (controlResult.Success == false) return base.Json(controlResult);
+
+                //Get model from ApiGateway
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/RepoVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&key=" + key + "&value=" + value + "&stake=" + stake);
+                //Parse response
+                SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
+
+                //Return deploy object in JSON
+                return base.Json(deployModel);
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+            }
+        }
+
+        public JsonResult GetKYCVoteDeploy(string username, int stake)
+        {
+            try
+            {
+                SimpleResponse controlResult = UserInputControls.ControlKYCVoteRequest(username, HttpContext.Session.GetString("Token"));
+
+                if (controlResult.Success == false) return base.Json(controlResult);
+
+                //Get model from ApiGateway
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/KYCVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&stake=" + stake + "&kycUserAddress=" + ((UserDto)((dynamic)controlResult.Content).user).WalletAddress + "&documenthash=" + ((UserKYCDto)((dynamic)controlResult.Content).kyc).VerificationId);
+                //Parse response
+                SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
+
+                //Return deploy object in JSON
+                return base.Json(deployModel);
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+            }
+        }
+
+        public JsonResult GetReputationVoteDeploy(string action, string subjectaddress, int amount, string documenthash, int stake)
+        {
+            try
+            {
+                SimpleResponse controlResult = UserInputControls.ControlReputationVoteRequest(amount, documenthash, action);
+
+                if (controlResult.Success == false) return base.Json(controlResult);
+
+                //Get model from ApiGateway
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/ReputationVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&stake=" + stake + "&subjectaddress=" + subjectaddress + "&action=" + action + "&amount=" + amount + "&documenthash=" + documenthash);
+                //Parse response
+                SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
+
+                //Return deploy object in JSON
+                return base.Json(deployModel);
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+            }
+        }
+
+        public JsonResult GetSlashingVoteDeploy(string addresstoslash, int slashratio, int stake)
+        {
+            try
+            {
+                SimpleResponse controlResult = UserInputControls.ControlSlashingVoteRequest(addresstoslash);
+
+                if (controlResult.Success == false) return base.Json(controlResult);
+
+                //Get model from ApiGateway
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/SlashingVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&address_to_slash=" + addresstoslash + "&slash_ratio=" + slashratio + "&stake=" + stake);
                 //Parse response
                 SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
 

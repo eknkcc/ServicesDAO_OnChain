@@ -813,6 +813,7 @@ h5 {
     border-bottom-right-radius: 10px !important;
     border-top:0;
 }
+
 .card-date{
     font-size: 12px;
 }
@@ -821,3 +822,15 @@ h5 {
     height: 572px;overflow-y: scroll;
 }
 
+.voteTypeCard{
+    min-height: 150px;
+    margin-top:50px;
+    cursor:pointer;
+}
+
+.voteTypeCard .card-body i{
+    font-size:60px;
+    position: absolute;
+    bottom:20px;
+    right: 20px;
+}
