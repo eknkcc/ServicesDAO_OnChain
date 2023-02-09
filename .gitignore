@@ -79,8 +79,11 @@
 /UnitTests/DAO_ReputationService.Tests/obj
 /UnitTests/DAO_VotingEngine.Tests/obj
 
+appsettings.Production.json
 
 .DS_Store
 
 /DAO_CasperChainService/obj
 /DAO_CasperChainService/bin
+DAO_CasperChainService/appsettings.json
+DAO_CasperChainService/appsettings.json
