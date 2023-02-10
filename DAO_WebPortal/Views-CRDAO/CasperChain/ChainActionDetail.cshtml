@@ -23,12 +23,12 @@
         </div>
             <div class="form-group mb-4">
                 <label class="mb-2"><b>Deploy Object</b></label>
-                <label class="form-control" id="deployJson" style="white-space: pre;height: 200px;overflow-y: scroll;overflow-x: hidden;white-space:pre">
+                <label class="form-control" id="deployJson" style="white-space: pre-line;height: 200px;overflow-y: scroll;overflow-x: hidden;">
                 </label>
             </div>
             <div class="form-group mb-4">
                 <label class="mb-2"><b>Deploy Result</b></label>
-                <label class="form-control" id="deployResult"  style="white-space: pre;height: 200px;overflow-y: scroll;overflow-x: hidden;white-space:pre">
+                <label class="form-control" id="deployResult"  style="white-space: pre-line;height: 200px;overflow-y: scroll;overflow-x: hidden;">
                 </label>
             </div>
 
@@ -40,12 +40,26 @@
     <script>
         $(document).ready(function () {
             var str = '@Html.Raw(Model.DeployJson)';
-            var parsed = JSON.parse(str.replace("&quot;",'"'));
-            $("#deployJson").html(JSON.stringify(parsed, undefined, 4));
+            try
+            {     
+                var parsed = JSON.parse(str.replace("&quot;",'"'));
+                $("#deployJson").html(JSON.stringify(parsed, undefined, 4));
+            }
+            catch
+            {
+                $("#deployJson").html(str);
+            }
 
             var str2 = '@Html.Raw(Model.Result)';
-            var parsed2 = JSON.parse(str2.replace("&quot;",'"'));
-            $("#deployResult").html(JSON.stringify(parsed2, undefined, 4));
+            try
+            {   
+                var parsed2 = JSON.parse(str2.replace("&quot;",'"'));
+                $("#deployResult").html(JSON.stringify(parsed2, undefined, 4));
+            }
+            catch
+            {
+                $("#deployResult").html(str2);
+            }
         });
     </script>
 

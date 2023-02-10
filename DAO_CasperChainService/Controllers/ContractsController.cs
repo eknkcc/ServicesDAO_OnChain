@@ -123,12 +123,12 @@ namespace DAO_CasperChainService.Controllers
                     resultText = errormsg;
 
                     var errorSplitted = errormsg.Split(":");
-                    if(errorSplitted.Length > 1)
+                    if (errorSplitted.Length > 1)
                     {
                         var errorCode = Convert.ToInt32(errorSplitted[1].Trim());
-                        if(Models.CasperErrorDictionary.errorDictionary.ContainsKey(errorCode))
+                        if (Models.CasperErrorDictionary.errorDictionary.ContainsKey(errorCode))
                         {
-                            resultText += " ("+  Models.CasperErrorDictionary.errorDictionary[errorCode] + ")";
+                            resultText += " (" + Models.CasperErrorDictionary.errorDictionary[errorCode] + ")";
                         }
                     }
                 }
@@ -185,8 +185,8 @@ namespace DAO_CasperChainService.Controllers
             //    return new SimpleResponse { Success = false };
             //}
         }
-        
-        #endregion 
+
+        #endregion
 
         #region Reputation
 
@@ -209,8 +209,8 @@ namespace DAO_CasperChainService.Controllers
             {
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
                 return new SimpleResponse { Success = false };
-            }          
-        }     
+            }
+        }
 
         #endregion
 
@@ -236,7 +236,7 @@ namespace DAO_CasperChainService.Controllers
                        "create_voting",
                        namedArgs,
                        myAccountPK,
-                       100_000_000_000,
+                       500_000_000_000,
                        Program._settings.ChainName);
 
                 //Return deploy object in JSON
@@ -269,7 +269,7 @@ namespace DAO_CasperChainService.Controllers
                        "create_voting",
                        namedArgs,
                        myAccountPK,
-                       100_000_000_000,
+                       500_000_000_000,
                        Program._settings.ChainName);
 
                 //Return deploy object in JSON
@@ -290,7 +290,14 @@ namespace DAO_CasperChainService.Controllers
             {
                 PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
 
-                var subjectAddress = new AccountHashKey(repo);
+                if(string.IsNullOrEmpty(repo))
+                {
+                    repo = "13216e15d887f1963af7685fc683b4e571a666a78965eace725cf5f4ba08dd96";
+                }
+
+                PublicKey repoAccountPK = PublicKey.FromHexString(repo);
+
+                var subjectAddress = new AccountHashKey(repoAccountPK.GetAccountHash());
 
                 List<CLValue> valueBytes = new List<CLValue>();
                 foreach (var byt in Encoding.ASCII.GetBytes(value))
@@ -313,7 +320,7 @@ namespace DAO_CasperChainService.Controllers
                        "create_voting",
                        namedArgs,
                        myAccountPK,
-                       100_000_000_000,
+                       500_000_000_000,
                        Program._settings.ChainName);
 
                 //Return deploy object in JSON
@@ -352,7 +359,7 @@ namespace DAO_CasperChainService.Controllers
                        "create_voting",
                        namedArgs,
                        myAccountPK,
-                       100_000_000_000,
+                       500_000_000_000,
                        Program._settings.ChainName);
 
                 //Return deploy object in JSON
@@ -367,18 +374,20 @@ namespace DAO_CasperChainService.Controllers
         }
 
         [HttpGet("ReputationVoterCreateVoting", Name = "ReputationVoterCreateVoting")]
-        public SimpleResponse ReputationVoter_CreateVoting(string userwallet, string subjectaddress, string action, int amount, string documenthash, int stake)
+        public SimpleResponse ReputationVoter_CreateVoting(string userwallet, string subjectaddress, byte action, int amount, string documenthash, int stake)
         {
             try
             {
                 PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
 
-                var subjectAddress = new AccountHashKey(subjectaddress);
+                PublicKey repUserAccountPK = PublicKey.FromHexString(subjectaddress);
+
+                var subjectAddress = new AccountHashKey(repUserAccountPK.GetAccountHash());
 
                 var namedArgs = new List<NamedArg>()
                 {
                     new NamedArg("account", CLValue.Key(subjectAddress)),
-                    new NamedArg("action", CLValue.String(action)),
+                    new NamedArg("action", CLValue.U8(action)),
                     new NamedArg("amount", CLValue.U512(amount)),
                     new NamedArg("document_hash", CLValue.String(documenthash)),
                     new NamedArg("stake", CLValue.U512(stake))
@@ -390,7 +399,7 @@ namespace DAO_CasperChainService.Controllers
                        "create_voting",
                        namedArgs,
                        myAccountPK,
-                       100_000_000_000,
+                       500_000_000_000,
                        Program._settings.ChainName);
 
                 //Return deploy object in JSON
@@ -405,19 +414,19 @@ namespace DAO_CasperChainService.Controllers
         }
 
         [HttpGet("SlashingVoterCreateVoting", Name = "SlashingVoterCreateVoting")]
-        public SimpleResponse SlashingVoter_CreateVoting(string userwallet, string address_to_slash, uint slash_ratio, int stake)
+        public SimpleResponse SlashingVoter_CreateVoting(string userwallet, string addresstoslash, uint slashratio, int stake)
         {
             try
             {
                 PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
 
-                PublicKey slashAccountPK = PublicKey.FromHexString(address_to_slash);
+                PublicKey slashAccountPK = PublicKey.FromHexString(addresstoslash);
                 var subjectAddress = new AccountHashKey(slashAccountPK.GetAccountHash());
 
                 var namedArgs = new List<NamedArg>()
                 {
                     new NamedArg("address_to_slash", CLValue.Key(subjectAddress)),
-                    new NamedArg("slash_ratio", CLValue.U32(slash_ratio)),
+                    new NamedArg("slash_ratio", CLValue.U32(slashratio)),
                     new NamedArg("stake", CLValue.U512(stake))
                 };
 
@@ -427,7 +436,7 @@ namespace DAO_CasperChainService.Controllers
                        "create_voting",
                        namedArgs,
                        myAccountPK,
-                       100_000_000_000,
+                       500_000_000_000,
                        Program._settings.ChainName);
 
                 //Return deploy object in JSON

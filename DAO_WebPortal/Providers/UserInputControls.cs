@@ -38,7 +38,7 @@ namespace DAO_WebPortal.Providers
             //Check user's wallet exists
             if (string.IsNullOrEmpty(profileModel.WalletAddress))
             {
-                return new SimpleResponse { Success = false, Message = "User's chain address could not be found. " + newvausername + " needs to connect a wallet first." };
+                return new SimpleResponse { Success = false, Message = "User's wallet address could not be found. " + newvausername + " needs to connect a wallet first." };
             }
 
             //Check reason
@@ -81,7 +81,7 @@ namespace DAO_WebPortal.Providers
             //Check user's wallet exists
             if (string.IsNullOrEmpty(profileModel.WalletAddress))
             {
-                return new SimpleResponse { Success = false, Message = "User's chain address could not be found. " + kycusername + " needs to connect a wallet first." };
+                return new SimpleResponse { Success = false, Message = "User's wallet address could not be found. " + kycusername + " needs to connect a wallet first." };
             }
 
             //Get model from ApiGateway
@@ -97,7 +97,7 @@ namespace DAO_WebPortal.Providers
 
             return new SimpleResponse { Success = true, Content = new { kyc = userKycModel, user = profileModel } };
         }
-        public static SimpleResponse ControlReputationVoteRequest(int amount, string documenthash, string action)
+        public static SimpleResponse ControlReputationVoteRequest(int amount, string documenthash, int action)
         {
             if (string.IsNullOrEmpty(documenthash))
             {

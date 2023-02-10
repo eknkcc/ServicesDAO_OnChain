@@ -219,8 +219,10 @@ namespace DAO_WebPortal.Controllers
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 
+                long activationTime = DateTime.Now.ToFileTime();
+
                 //Get model from ApiGateway
-                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/RepoVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&key=" + key + "&value=" + value + "&stake=" + stake);
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/RepoVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&key=" + key + "&value=" + value + "&stake=" + stake + "&activationtime=" + activationTime);
                 //Parse response
                 SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
 
@@ -259,7 +261,7 @@ namespace DAO_WebPortal.Controllers
             }
         }
 
-        public JsonResult GetReputationVoteDeploy(string action, string subjectaddress, int amount, string documenthash, int stake)
+        public JsonResult GetReputationVoteDeploy(int action, string subjectaddress, int amount, string documenthash, int stake)
         {
             try
             {
@@ -292,7 +294,7 @@ namespace DAO_WebPortal.Controllers
                 if (controlResult.Success == false) return base.Json(controlResult);
 
                 //Get model from ApiGateway
-                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/SlashingVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&address_to_slash=" + addresstoslash + "&slash_ratio=" + slashratio + "&stake=" + stake);
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/SlashingVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&addresstoslash=" + addresstoslash + "&slashratio=" + slashratio + "&stake=" + stake);
                 //Parse response
                 SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
 

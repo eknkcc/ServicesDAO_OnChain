@@ -105,7 +105,7 @@
             <div class="row">
                 <div class="form-group mb-4">
                     <label class="mb-2"><b><i class="fas fa-key"></i> Key</b></label>
-                    <input type="text" class="form-control" id="repokey" placeholder="Username">
+                    <input type="text" class="form-control" id="repokey" placeholder="Key">
                 </div>
                 <div class="form-group mb-4">
                     <label class="mb-2"><b><i class="fas fa-star-of-life"></i> New Value</b></label>
@@ -586,7 +586,7 @@
     function startReputationVote(signedDeployJson) {
 
         //Reputation Vote parameters
-        var action = $("#repaction").val();
+        var action = parseInt($("#repaction").val());
         var subjectaddress = $("#repwallet").val();
         var amount = $("#repamount").val();
         var documenthash = $("#repdocumenthash").val();
@@ -634,8 +634,8 @@
             type: "POST",
             url: "../Home/New_Vote_Slashing",
             data: {
-                "address_to_slash": address_to_slash,
-                "slash_ratio": slash_ratio,
+                "addresstoslash": address_to_slash,
+                "slashratio": slash_ratio,
                 "stake": stake,
                 "signedDeployJson": JSON.stringify(signedDeployJson)
             },
@@ -684,7 +684,7 @@
     }
 
     async function startOnchainSlashingVote() {
-        CreateAndSendDeploy("../CasperChain/GetSlashingVoteDeploy?username=" + $("#kycusername").val() + "&stake=" + $("#kycstake").val(), startSlashingVote);
+        CreateAndSendDeploy("../CasperChain/GetSlashingVoteDeploy?addresstoslash=" + $("#slashaddress").val() + "&slashratio=" + $("#slashratio").val() + "&stake=" + $("#slashstake").val(), startSlashingVote);
     }
 </script>
 }
