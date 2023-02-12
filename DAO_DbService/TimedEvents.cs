@@ -12,6 +12,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
 using static Helpers.Constants.Enums;
+using DAO_DbService.Mapping;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace DAO_DbService
 {
@@ -256,89 +258,11 @@ namespace DAO_DbService
                             //Formal voting completed -> Set job status according to vote result
                             else if (voting.Status == Enums.VoteStatusTypes.Completed)
                             {
-                                //Find winning side
-                                if (voting.StakedFor > voting.StakedAgainst)
+                                var job = db.JobPosts.Find(voting.JobID);
+
+                                //Voting result AGAINST
+                                if (voting.StakedFor < voting.StakedAgainst)
                                 {
-                                    var job = db.JobPosts.Find(voting.JobID);
-                                    job.Status = Enums.JobStatusTypes.Completed;
-                                    db.SaveChanges();
-
-                                    //Job completion formal vote passed
-                                    if (voting.Type == VoteTypes.JobCompletion)
-                                    {
-                                        var auction = db.Auctions.First(x => x.JobID == voting.JobID);
-                                        var auctionWinnerBid = db.AuctionBids.First(x => x.AuctionBidID == auction.WinnerAuctionBidID);
-                                        var user = db.Users.Find(auctionWinnerBid.UserID);
-
-                                        bool vaOnboarded = false;
-
-                                        //Get last DAO setting and check if new user should be onboarded as VA automatically
-                                        if (db.PlatformSettings.OrderByDescending(x => x.PlatformSettingID).First().VAOnboardingSimpleVote == false)
-                                        {
-                                            //If job doer is Associate, change the user type to  VA
-                                            if (user.UserType == Enums.UserIdentityType.Associate.ToString() && auctionWinnerBid.VaOnboarding == true)
-                                            {
-                                                user.DateBecameVA = DateTime.Now;
-                                                user.UserType = Enums.UserIdentityType.VotingAssociate.ToString();
-                                                db.SaveChanges();
-                                                vaOnboarded = true;
-                                            }
-                                        }
-
-                                        if (vaOnboarded || user.UserType != Enums.UserIdentityType.Associate.ToString())
-                                        {
-                                            CompleteJobVAOffChain(voting, job, auctionWinnerBid);
-                                        }
-                                        else
-                                        {
-                                            CompleteJobExternalOffChain(voting, job, auctionWinnerBid);
-                                        }
-
-                                        //Send notification email to job poster and job doer
-                                        var jobPoster = db.Users.Find(job.UserID);
-                                        var jobDoer = db.Users.Find(job.JobDoerUserID);
-
-                                        //Set email title and content
-                                        string emailTitle = "Formal voting finished successfully for job #" + job.JobID;
-                                        string emailContent = "Greetings, {name}, <br><br> Congratulations, your job passed the formal voting and job is completed successfully. <br><br> Payment for the job will be visible on the 'Payment History' for job doer.";
-
-                                        //Send email to job poster
-                                        SendNotificationEmail(emailTitle, emailContent.Replace("{name}", jobPoster.NameSurname.Split(' ')[0]), jobPoster.Email);
-                                        //Send email to job doer
-                                        SendNotificationEmail(emailTitle, emailContent.Replace("{name}", jobDoer.NameSurname.Split(' ')[0]), jobDoer.Email);
-
-                                        Program.monitizer.AddApplicationLog(LogTypes.ApplicationLog, "Job completed with vote #"+voting.VotingID);
-                                    }
-                                    //VA onboarding formal vote passed
-                                    else if (voting.Type == VoteTypes.Simple && job.Title.Contains("New VA Onboarding"))
-                                    {
-                                        string username = job.Title.Split("(")[1].Split(")")[0];
-                                        var user = db.Users.First(x => x.UserName == username);
-                                        user.UserType = UserIdentityType.VotingAssociate.ToString();
-                                        user.DateBecameVA = DateTime.Now;
-                                        db.SaveChanges();
-
-                                        Program.monitizer.AddApplicationLog(LogTypes.ApplicationLog, "New user became VA with vote #"+voting.VotingID);
-                                    }
-                                    //Governance formal vote passed
-                                    else if (voting.Type == VoteTypes.Governance)
-                                    {
-                                        string settingsJson = job.JobDescription.Split("Variables listed below will be applied to DAO")[1];
-                                        PlatformSetting settings = Helpers.Serializers.DeserializeJson<PlatformSetting>(settingsJson);
-                                        if (settings != null)
-                                        {
-                                            settings.UserID = job.UserID;
-                                            settings.CreateDate = DateTime.Now;
-                                            db.PlatformSettings.Add(settings);
-                                            db.SaveChanges();
-
-                                            Program.monitizer.AddApplicationLog(LogTypes.ApplicationLog, "Platform settings changed with governance vote #"+voting.VotingID);
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    var job = db.JobPosts.Find(voting.JobID);
                                     job.Status = Enums.JobStatusTypes.Failed;
                                     db.SaveChanges();
 
@@ -357,6 +281,113 @@ namespace DAO_DbService
                                         //Send email to job doer
                                         SendNotificationEmail(emailTitle, emailContent.Replace("{name}", jobDoer.NameSurname.Split(' ')[0]), jobDoer.Email);
                                     }
+
+                                    continue;
+                                }
+
+                                //Votin result FOR
+                                job.Status = Enums.JobStatusTypes.Completed;
+                                db.SaveChanges();
+
+                                //Job completion formal vote passed
+                                if (voting.Type == VoteTypes.JobCompletion)
+                                {
+                                    var auction = db.Auctions.First(x => x.JobID == voting.JobID);
+                                    var auctionWinnerBid = db.AuctionBids.First(x => x.AuctionBidID == auction.WinnerAuctionBidID);
+                                    var user = db.Users.Find(auctionWinnerBid.UserID);
+
+                                    bool vaOnboarded = false;
+
+                                    //Get last DAO setting and check if new user should be onboarded as VA automatically
+                                    if (db.PlatformSettings.OrderByDescending(x => x.PlatformSettingID).First().VAOnboardingSimpleVote == false)
+                                    {
+                                        //If job doer is Associate, change the user type to  VA
+                                        if (user.UserType == Enums.UserIdentityType.Associate.ToString() && auctionWinnerBid.VaOnboarding == true)
+                                        {
+                                            user.DateBecameVA = DateTime.Now;
+                                            user.UserType = Enums.UserIdentityType.VotingAssociate.ToString();
+                                            db.SaveChanges();
+                                            vaOnboarded = true;
+                                        }
+                                    }
+
+                                    if (vaOnboarded || user.UserType != Enums.UserIdentityType.Associate.ToString())
+                                    {
+                                        CompleteJobVAOffChain(voting, job, auctionWinnerBid);
+                                    }
+                                    else
+                                    {
+                                        CompleteJobExternalOffChain(voting, job, auctionWinnerBid);
+                                    }
+
+                                    //Send notification email to job poster and job doer
+                                    var jobPoster = db.Users.Find(job.UserID);
+                                    var jobDoer = db.Users.Find(job.JobDoerUserID);
+
+                                    //Set email title and content
+                                    string emailTitle = "Formal voting finished successfully for job #" + job.JobID;
+                                    string emailContent = "Greetings, {name}, <br><br> Congratulations, your job passed the formal voting and job is completed successfully. <br><br> Payment for the job will be visible on the 'Payment History' for job doer.";
+
+                                    //Send email to job poster
+                                    SendNotificationEmail(emailTitle, emailContent.Replace("{name}", jobPoster.NameSurname.Split(' ')[0]), jobPoster.Email);
+                                    //Send email to job doer
+                                    SendNotificationEmail(emailTitle, emailContent.Replace("{name}", jobDoer.NameSurname.Split(' ')[0]), jobDoer.Email);
+
+                                    Program.monitizer.AddApplicationLog(LogTypes.ApplicationLog, "Job completed with vote #" + voting.VotingID);
+                                }
+                                //VA onboarding formal vote passed
+                                else if (voting.Type == VoteTypes.VAOnboarding)
+                                {
+                                    string username = job.Title.Split("'")[1].Split("'")[0].Trim();
+                                    var user = db.Users.First(x => x.UserName == username);
+                                    user.UserType = UserIdentityType.VotingAssociate.ToString();
+                                    user.DateBecameVA = DateTime.Now;
+                                    db.SaveChanges();
+
+                                    Program.monitizer.AddApplicationLog(LogTypes.ApplicationLog, "New user became VA with vote #" + voting.VotingID);
+                                }
+                                //Governance formal vote passed
+                                else if (voting.Type == VoteTypes.Governance)
+                                {
+                                    string key = job.Title.Split("'")[1].Split("'")[0].Trim();
+                                    string value = job.JobDescription.Split("New value:")[1].Trim();
+
+                                    PlatformSettingController contr = new PlatformSettingController();
+                                    PlatformSettingDto lastSettings = contr.GetLatestSetting();
+
+                                    PlatformSetting settings = DAO_DbService.Mapping.AutoMapperBase._mapper.Map<PlatformSettingDto, PlatformSetting>(lastSettings);
+                                    settings.PlatformSettingID = 0;
+
+                                    var propertyInfo = settings.GetType().GetProperty(key);
+                                    propertyInfo.SetValue(settings, value, null);
+
+                                    if (settings != null)
+                                    {
+                                        settings.UserID = job.UserID;
+                                        settings.CreateDate = DateTime.Now;
+                                        db.PlatformSettings.Add(settings);
+                                        db.SaveChanges();
+
+                                        Program.monitizer.AddApplicationLog(LogTypes.ApplicationLog, "Platform settings changed with governance vote #" + voting.VotingID);
+                                    }
+                                }
+                                //KYC formal vote passed
+                                else if (voting.Type == VoteTypes.KYC)
+                                {
+                                    string username = job.Title.Split("'")[1].Split("'")[0].Trim();
+                                    var user = db.Users.First(x => x.UserName == username);
+                                    user.KYCStatus = true;
+                                    db.SaveChanges();
+
+                                    Program.monitizer.AddApplicationLog(LogTypes.ApplicationLog, "New user KYC completed with vote #" + voting.VotingID);
+                                }
+                                else if (voting.Type == VoteTypes.Reputation)
+                                {
+
+                                }
+                                else if (voting.Type == VoteTypes.Slashing)
+                                {
+
                                 }
                             }
                         }
@@ -386,7 +417,7 @@ namespace DAO_DbService
 
                 //Get reputations of voters who
                 var participatedUsers = reputations.Where(x => x.Type == Enums.StakeType.For || x.Type == Enums.StakeType.Against).ToList();
-                var allVAs =  db.Users.Where(x=>x.UserType == Enums.UserIdentityType.VotingAssociate.ToString()).Select(x=>x.UserId);
+                var allVAs = db.Users.Where(x => x.UserType == Enums.UserIdentityType.VotingAssociate.ToString()).Select(x => x.UserId);
 
                 //Add job doer to list
                 participatedUsers.Add(new UserReputationStakeDto() { UserID = job.JobDoerUserID });
@@ -395,23 +426,23 @@ namespace DAO_DbService
 
                 List<int> userIds = new List<int>();
                 //Create Payment History model for dao members who participated into voting
-                if(lastSettings.DistributePaymentWithoutVote)
+                if (lastSettings.DistributePaymentWithoutVote)
                 {
                     userIds = allVAs.ToList();
                     reputationsTotalJson = Helpers.Request.Post(Program._settings.Service_Reputation_Url + "/UserReputationHistory/GetLastReputationByUserIds", Helpers.Serializers.SerializeJson(allVAs.ToList()));
-                    reputationsTotal =Helpers.Serializers.DeserializeJson<List<UserReputationHistoryDto>>(reputationsTotalJson);
+                    reputationsTotal = Helpers.Serializers.DeserializeJson<List<UserReputationHistoryDto>>(reputationsTotalJson);
                 }
                 else
                 {
-                    userIds = participatedUsers.GroupBy(x => x.UserID).Select(x=>x.Key).ToList();
+                    userIds = participatedUsers.GroupBy(x => x.UserID).Select(x => x.Key).ToList();
                     reputationsTotalJson = Helpers.Request.Post(Program._settings.Service_Reputation_Url + "/UserReputationHistory/GetLastReputationByUserIds", Helpers.Serializers.SerializeJson(participatedUsers.Select(x => x.UserID)));
-                    reputationsTotal =Helpers.Serializers.DeserializeJson<List<UserReputationHistoryDto>>(reputationsTotalJson);
+                    reputationsTotal = Helpers.Serializers.DeserializeJson<List<UserReputationHistoryDto>>(reputationsTotalJson);
                 }
 
 
                 //Create governance payment
                 double remainingJobAmount = auctionWinnerBid.Price;
-                if(lastSettings.GovernancePaymentRatio != null && lastSettings.GovernancePaymentRatio > 0)
+                if (lastSettings.GovernancePaymentRatio != null && lastSettings.GovernancePaymentRatio > 0)
                 {
                     PaymentHistory paymentGovernance = new PaymentHistory
                     {
@@ -472,21 +503,21 @@ namespace DAO_DbService
 
                 PlatformSettingController contr = new PlatformSettingController();
                 PlatformSettingDto lastSettings = contr.GetLatestSetting();
-                
+
                 List<int> userIds = new List<int>();
                 //Create Payment History model for dao members who participated into voting
-                if(lastSettings.DistributePaymentWithoutVote)
+                if (lastSettings.DistributePaymentWithoutVote)
                 {
-                    userIds = db.Users.Where(x=>x.UserType == Enums.UserIdentityType.VotingAssociate.ToString()).Select(x=>x.UserId).ToList();
+                    userIds = db.Users.Where(x => x.UserType == Enums.UserIdentityType.VotingAssociate.ToString()).Select(x => x.UserId).ToList();
                 }
                 else
                 {
-                    userIds = participatedUsers.GroupBy(x => x.UserID).Select(x=>x.Key).ToList();
+                    userIds = participatedUsers.GroupBy(x => x.UserID).Select(x => x.Key).ToList();
                 }
 
-               //Create governance payment
+                //Create governance payment
                 double remainingJobAmount = auctionWinnerBid.Price;
-                if(lastSettings.GovernancePaymentRatio != null && lastSettings.GovernancePaymentRatio > 0)
+                if (lastSettings.GovernancePaymentRatio != null && lastSettings.GovernancePaymentRatio > 0)
                 {
                     PaymentHistory paymentGovernance = new PaymentHistory
                     {
