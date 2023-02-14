@@ -236,7 +236,7 @@ namespace DAO_CasperChainService.Controllers
                        "create_voting",
                        namedArgs,
                        myAccountPK,
-                       500_000_000_000,
+                       150_000_000_000,
                        Program._settings.ChainName);
 
                 //Return deploy object in JSON
@@ -269,7 +269,7 @@ namespace DAO_CasperChainService.Controllers
                        "create_voting",
                        namedArgs,
                        myAccountPK,
-                       500_000_000_000,
+                       150_000_000_000,
                        Program._settings.ChainName);
 
                 //Return deploy object in JSON
@@ -320,7 +320,7 @@ namespace DAO_CasperChainService.Controllers
                        "create_voting",
                        namedArgs,
                        myAccountPK,
-                       500_000_000_000,
+                       150_000_000_000,
                        Program._settings.ChainName);
 
                 //Return deploy object in JSON
@@ -359,7 +359,7 @@ namespace DAO_CasperChainService.Controllers
                        "create_voting",
                        namedArgs,
                        myAccountPK,
-                       500_000_000_000,
+                       150_000_000_000,
                        Program._settings.ChainName);
 
                 //Return deploy object in JSON
@@ -399,7 +399,7 @@ namespace DAO_CasperChainService.Controllers
                        "create_voting",
                        namedArgs,
                        myAccountPK,
-                       500_000_000_000,
+                       150_000_000_000,
                        Program._settings.ChainName);
 
                 //Return deploy object in JSON
@@ -436,7 +436,7 @@ namespace DAO_CasperChainService.Controllers
                        "create_voting",
                        namedArgs,
                        myAccountPK,
-                       500_000_000_000,
+                       150_000_000_000,
                        Program._settings.ChainName);
 
                 //Return deploy object in JSON

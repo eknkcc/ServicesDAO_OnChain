@@ -70,7 +70,7 @@ namespace DAO_WebPortal.Controllers
                 HttpContext.Session.SetString("Email", "");
                 HttpContext.Session.SetString("Token", token);
                 HttpContext.Session.SetString("LoginType", "user");
-                HttpContext.Session.SetString("NameSurname", publicAddress.Substring(0, 5) + "..." + publicAddress.Substring(publicAddress.Length - 5, 5));
+                HttpContext.Session.SetString("NameSurname", Utility.StringHelper.ShortenWallet(publicAddress));
                 HttpContext.Session.SetString("ProfileImage", "");
                 HttpContext.Session.SetString("KYCStatus", "");
                 HttpContext.Session.SetString("WalletAddress", loginModel.WalletAddress.ToString());

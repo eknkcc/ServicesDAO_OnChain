@@ -1901,14 +1901,14 @@ namespace DAO_WebPortal.Controllers
             return new SimpleResponse { Success = false, Message = "An error occured while sending the deploy to the chain. Please check chain logs for details." };
         }
 
-        public SimpleResponse VoteDbOperations(string title, string description, string deployHash, HttpContext httpContext)
+        public SimpleResponse VoteDbOperations(string title, string description, string deployHash, int userid, string token, string ip, string port)
         {
             try
             {
                 //Create JobPost model
                 JobPostDto jobPostModel = new JobPostDto()
                 {
-                    UserID = Convert.ToInt32(httpContext.Session.GetInt32("UserID")),
+                    UserID = userid,
                     Amount = 0,
                     JobDescription = description,
                     CreateDate = DateTime.Now,
@@ -1917,7 +1917,7 @@ namespace DAO_WebPortal.Controllers
                     Status = Enums.JobStatusTypes.InformalVoting
                 };
                 //Post model to ApiGateway
-                string jobPostResponseJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/Post", Helpers.Serializers.SerializeJson(jobPostModel), httpContext.Session.GetString("Token"));
+                string jobPostResponseJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/Post", Helpers.Serializers.SerializeJson(jobPostModel), token);
                 //Parse reponse
                 jobPostModel = Helpers.Serializers.DeserializeJson<JobPostDto>(jobPostResponseJson);
 
@@ -1943,18 +1943,18 @@ namespace DAO_WebPortal.Controllers
                     }
 
                     //Get total dao member count
-                    int daoMemberCount = Convert.ToInt32(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Users/GetCount?type=" + UserIdentityType.VotingAssociate, httpContext.Session.GetString("Token")));
+                    int daoMemberCount = Convert.ToInt32(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Users/GetCount?type=" + UserIdentityType.VotingAssociate, token));
                     //Eligible user count = VA Count - 1 (Job Doer)
                     informalVoting.EligibleUserCount = daoMemberCount - 1;
                     //Quorum count is calculated with total user count - 2(job poster, job doer)
                     informalVoting.QuorumCount = Convert.ToInt32(Program._settings.QuorumRatio * Convert.ToDouble(informalVoting.EligibleUserCount));
 
-                    string jsonResult = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Voting/Voting/StartInformalVoting", Helpers.Serializers.SerializeJson(informalVoting), httpContext.Session.GetString("Token"));
+                    string jsonResult = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Voting/Voting/StartInformalVoting", Helpers.Serializers.SerializeJson(informalVoting), token);
                     var voteResult = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResult);
 
                     if (voteResult.Success)
                     {
-                        Program.monitizer.AddUserLog(Convert.ToInt32(httpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "User started new simple vote.", Utility.IpHelper.GetClientIpAddress(httpContext), Utility.IpHelper.GetClientPort(httpContext));
+                        Program.monitizer.AddUserLog(userid, Helpers.Constants.Enums.UserLogType.Request, "User started new simple vote.", ip, port);
 
                         //Send email notification to VAs
                         SendEmailModel emailModel = new SendEmailModel() { Subject = "New Vote Submitted #" + jobPostModel.JobID, Content = "New vote started. Title:" + jobPostModel.Title + "<br><br>Please submit your vote until " + informalVoting.EndDate.ToString(), TargetGroup = Enums.UserIdentityType.VotingAssociate };
@@ -1999,12 +1999,15 @@ namespace DAO_WebPortal.Controllers
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 
+                int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
+                string token = HttpContext.Session.GetString("Token");
+                string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
+                string port =  Utility.IpHelper.GetClientPort(HttpContext);
+
                 //If platform uses blockchain, process onchain flow
                 if (Program._settings.DaoBlockchain == Blockchain.Casper)
                 {
                     chainAction = CreateChainActionRecord(model.signedDeployJson, VoteTypes.Simple);
-
-                    HttpContext httpContext = HttpContext;
 
                     new Thread(() =>
                     {
@@ -2015,7 +2018,7 @@ namespace DAO_WebPortal.Controllers
                         //Central db operations
                         if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
                         {
-                            VoteDbOperations("Simple Vote: " + model.title, model.description, deployResult.DeployHash, httpContext);
+                            VoteDbOperations("Simple Vote: " + model.title, model.description, deployResult.DeployHash, userid, token, ip, port);
                         }
 
                         Program.chainQue.RemoveAt(Program.chainQue.IndexOf(chainAction));
@@ -2031,7 +2034,7 @@ namespace DAO_WebPortal.Controllers
                 else
                 {
                     //Central db operations
-                    SimpleResponse dbResponse = VoteDbOperations("Simple Vote: " + model.title, model.description, "", HttpContext);
+                    SimpleResponse dbResponse = VoteDbOperations("Simple Vote: " + model.title, model.description, "", userid, token, ip, port);
                     return Json(dbResponse);
                 }
             }
@@ -2058,12 +2061,15 @@ namespace DAO_WebPortal.Controllers
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 
+                int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
+                string token = HttpContext.Session.GetString("Token");
+                string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
+                string port =  Utility.IpHelper.GetClientPort(HttpContext);
+
                 //If platform uses blockchain, process onchain flow
                 if (Program._settings.DaoBlockchain == Blockchain.Casper)
                 {
                     chainAction = CreateChainActionRecord(model.signedDeployJson, VoteTypes.VAOnboarding);
-
-                    HttpContext httpContext = HttpContext;
 
                     new Thread(() =>
                     {
@@ -2074,7 +2080,7 @@ namespace DAO_WebPortal.Controllers
                         //Central db operations
                         if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
                         {
-                            VoteDbOperations("VA Onboarding vote for user '" + model.newvausername + "'", "VA Onboarding vote for user '" + model.newvausername + "' <br><br> Reason: " + model.reason, deployResult.DeployHash, httpContext);
+                            VoteDbOperations("VA Onboarding vote for user '" + model.newvausername + "'", "VA Onboarding vote for user '" + model.newvausername + "' <br><br> Reason: " + model.reason, deployResult.DeployHash, userid, token, ip, port);
                         }
 
                         Program.chainQue.RemoveAt(Program.chainQue.IndexOf(chainAction));
@@ -2090,7 +2096,7 @@ namespace DAO_WebPortal.Controllers
                 else
                 {
                     //Central db operations
-                    SimpleResponse dbResponse = VoteDbOperations("VA Onboarding vote for user '" + model.newvausername + "'", "VA Onboarding vote for user '" + model.newvausername + "' <br><br> Reason: " + model.reason, "", HttpContext);
+                    SimpleResponse dbResponse = VoteDbOperations("VA Onboarding vote for user '" + model.newvausername + "'", "VA Onboarding vote for user '" + model.newvausername + "' <br><br> Reason: " + model.reason, "", userid, token, ip, port);
                     return Json(dbResponse);
                 }
             }
@@ -2117,12 +2123,15 @@ namespace DAO_WebPortal.Controllers
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 
+                int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
+                string token = HttpContext.Session.GetString("Token");
+                string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
+                string port =  Utility.IpHelper.GetClientPort(HttpContext);
+
                 //If platform uses blockchain, process onchain flow
                 if (Program._settings.DaoBlockchain == Blockchain.Casper)
                 {
                     chainAction = CreateChainActionRecord(model.signedDeployJson, VoteTypes.Governance);
-
-                    HttpContext httpContext = HttpContext;
 
                     new Thread(() =>
                     {
@@ -2133,7 +2142,7 @@ namespace DAO_WebPortal.Controllers
                         //Central db operations
                         if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
                         {
-                            VoteDbOperations("Governance vote for variable: '" + model.key + "'", "Governance vote for variable: '" + model.key + "' <br><br> New value: " + model.value, deployResult.DeployHash, httpContext);
+                            VoteDbOperations("Governance vote for variable: '" + model.key + "'", "Governance vote for variable: '" + model.key + "' <br><br> New value: " + model.value, deployResult.DeployHash, userid, token, ip, port);
                         }
 
                         Program.chainQue.RemoveAt(Program.chainQue.IndexOf(chainAction));
@@ -2149,7 +2158,7 @@ namespace DAO_WebPortal.Controllers
                 else
                 {
                     //Central db operations
-                    SimpleResponse dbResponse = VoteDbOperations("Governance vote for variable: '" + model.key + "'", "Governance vote for variable: '" + model.key + "' <br><br> New value: " + model.value, "", HttpContext);
+                    SimpleResponse dbResponse = VoteDbOperations("Governance vote for variable: '" + model.key + "'", "Governance vote for variable: '" + model.key + "' <br><br> New value: " + model.value, "", userid, token, ip, port);
                     return Json(dbResponse);
                 }
             }
@@ -2176,12 +2185,15 @@ namespace DAO_WebPortal.Controllers
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 
+                int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
+                string token = HttpContext.Session.GetString("Token");
+                string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
+                string port =  Utility.IpHelper.GetClientPort(HttpContext);
+
                 //If platform uses blockchain, process onchain flow
                 if (Program._settings.DaoBlockchain == Blockchain.Casper)
                 {
                     chainAction = CreateChainActionRecord(model.signedDeployJson, VoteTypes.KYC);
-
-                    HttpContext httpContext = HttpContext;
 
                     new Thread(() =>
                     {
@@ -2192,7 +2204,7 @@ namespace DAO_WebPortal.Controllers
                         //Central db operations
                         if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
                         {
-                            VoteDbOperations("KYC vote for user '" + model.kycUserName + "'", "KYC vote for user '" + model.kycUserName + "' <br><br> Document verification id: " + ((UserKYCDto)((dynamic)controlResult.Content).kyc).VerificationId, deployResult.DeployHash, httpContext);
+                            VoteDbOperations("KYC vote for user '" + model.kycUserName + "'", "KYC vote for user '" + model.kycUserName + "' <br><br> Document verification id: " + ((UserKYCDto)((dynamic)controlResult.Content).kyc).VerificationId, deployResult.DeployHash, userid, token, ip, port);
                         }
 
                         Program.chainQue.RemoveAt(Program.chainQue.IndexOf(chainAction));
@@ -2208,7 +2220,7 @@ namespace DAO_WebPortal.Controllers
                 else
                 {
                     //Central db operations
-                    SimpleResponse dbResponse = VoteDbOperations("KYC vote for user '" + model.kycUserName + "'", "KYC vote for user '" + model.kycUserName + "' <br><br> Document verification id: " + ((UserKYCDto)((dynamic)controlResult.Content).kyc).VerificationId, "", HttpContext);
+                    SimpleResponse dbResponse = VoteDbOperations("KYC vote for user '" + model.kycUserName + "'", "KYC vote for user '" + model.kycUserName + "' <br><br> Document verification id: " + ((UserKYCDto)((dynamic)controlResult.Content).kyc).VerificationId, "", userid, token, ip, port);
                     return Json(dbResponse);
                 }
             }
@@ -2235,12 +2247,15 @@ namespace DAO_WebPortal.Controllers
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 
+                int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
+                string token = HttpContext.Session.GetString("Token");
+                string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
+                string port =  Utility.IpHelper.GetClientPort(HttpContext);
+
                 //If platform uses blockchain, process onchain flow
                 if (Program._settings.DaoBlockchain == Blockchain.Casper)
                 {
                     chainAction = CreateChainActionRecord(model.signedDeployJson, VoteTypes.Reputation);
-
-                    HttpContext httpContext = HttpContext;
 
                     new Thread(() =>
                     {
@@ -2251,7 +2266,7 @@ namespace DAO_WebPortal.Controllers
                         //Central db operations
                         if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
                         {
-                            VoteDbOperations("Reputation vote for account '" + model.subjectaddress + "'", "Reputation vote details <br><br> Account: " + model.subjectaddress + " <br> Action: " + model.action + " <br> Amount: " + model.amount + " <br> Document Hash: " + model.documenthash + " <br> Stake: " + model.stake, deployResult.DeployHash, httpContext);
+                            VoteDbOperations("Reputation vote for account '" + Utility.StringHelper.ShortenWallet(model.subjectaddress) + "'", "Reputation vote details <br><br> Account: " + model.subjectaddress + " <br> Action: " + model.action + " <br> Amount: " + model.amount + " <br> Document Hash: " + model.documenthash + " <br> Stake: " + model.stake, deployResult.DeployHash, userid, token, ip, port);
                         }
 
                         Program.chainQue.RemoveAt(Program.chainQue.IndexOf(chainAction));
@@ -2267,7 +2282,7 @@ namespace DAO_WebPortal.Controllers
                 else
                 {
                     //Central db operations
-                    SimpleResponse dbResponse = VoteDbOperations("Reputation vote for account '" + model.subjectaddress + "'", "Reputation vote details <br><br> Account: " + model.subjectaddress + " <br> Action: " + model.action + " <br> Amount: " + model.amount + " <br> Document Hash: " + model.documenthash + " <br> Stake: " + model.stake, "", HttpContext);
+                    SimpleResponse dbResponse = VoteDbOperations("Reputation vote for account '" + Utility.StringHelper.ShortenWallet(model.subjectaddress) + "'", "Reputation vote details <br><br> Account: " + model.subjectaddress + " <br> Action: " + model.action + " <br> Amount: " + model.amount + " <br> Document Hash: " + model.documenthash + " <br> Stake: " + model.stake, "", userid, token, ip, port);
                     return Json(dbResponse);
                 }
             }
@@ -2294,12 +2309,15 @@ namespace DAO_WebPortal.Controllers
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 
+                int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
+                string token = HttpContext.Session.GetString("Token");
+                string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
+                string port =  Utility.IpHelper.GetClientPort(HttpContext);
+
                 //If platform uses blockchain, process onchain flow
                 if (Program._settings.DaoBlockchain == Blockchain.Casper)
                 {
                     chainAction = CreateChainActionRecord(model.signedDeployJson, VoteTypes.Slashing);
-
-                    HttpContext httpContext = HttpContext;
 
                     new Thread(() =>
                     {
@@ -2310,7 +2328,7 @@ namespace DAO_WebPortal.Controllers
                         //Central db operations
                         if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
                         {
-                            VoteDbOperations("Slashing vote for account '" + model.addresstoslash + "'", "Slashing vote details <br><br> Account: " + model.addresstoslash + " <br> Slash Ratio: " + model.slashratio + " <br> Stake: " + model.stake, deployResult.DeployHash, httpContext);
+                            VoteDbOperations("Slashing vote for account '" + Utility.StringHelper.ShortenWallet(model.addresstoslash) + "'", "Slashing vote details <br><br> Account: " + model.addresstoslash + " <br> Slash Ratio: " + model.slashratio + " <br> Stake: " + model.stake, deployResult.DeployHash, userid, token, ip, port);
                         }
 
                         Program.chainQue.RemoveAt(Program.chainQue.IndexOf(chainAction));
@@ -2326,7 +2344,7 @@ namespace DAO_WebPortal.Controllers
                 else
                 {
                     //Central db operations
-                    SimpleResponse dbResponse = VoteDbOperations("Slashing vote for account '" + model.addresstoslash + "'", "Slashing vote details <br><br> Account: " + model.addresstoslash + " <br> Slash Ratio: " + model.slashratio + " <br> Stake: " + model.stake, "", HttpContext);
+                    SimpleResponse dbResponse = VoteDbOperations("Slashing vote for account '" + Utility.StringHelper.ShortenWallet(model.addresstoslash) + "'", "Slashing vote details <br><br> Account: " + model.addresstoslash + " <br> Slash Ratio: " + model.slashratio + " <br> Stake: " + model.stake, "", userid, token, ip, port);
                     return Json(dbResponse);
                 }
             }

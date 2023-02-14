@@ -73,5 +73,28 @@ namespace DAO_WebPortal.Utility
             }
 
         }
+
+        public static string ShortenWallet(string publicAddress){
+
+           try
+           {
+                return publicAddress.Substring(0, 5) + "..." + publicAddress.Substring(publicAddress.Length - 5, 5);
+           }
+           catch
+           {
+
+           }
+
+            if(publicAddress == null) 
+            {
+                return "";
+            }
+            else
+            {
+                return publicAddress;
+            }
+
+        }
+
     }
 }
