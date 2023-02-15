@@ -187,11 +187,11 @@ namespace DAO_WebPortal.Controllers
             }
         }
 
-        public JsonResult GetVaOnboardingVoteDeploy(string username, string reason)
+        public JsonResult GetVaOnboardingVoteDeploy(string username, string vaaddress, string reason)
         {
             try
             {
-                SimpleResponse controlResult = UserInputControls.ControlVaOnboardingVoteRequest(username, reason, HttpContext.Session.GetString("Token"));
+                SimpleResponse controlResult = UserInputControls.ControlVaOnboardingVoteRequest(username, vaaddress, reason, HttpContext.Session.GetString("Token"));
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 
@@ -261,11 +261,11 @@ namespace DAO_WebPortal.Controllers
             }
         }
 
-        public JsonResult GetReputationVoteDeploy(int action, string subjectaddress, int amount, string documenthash, int stake)
+        public JsonResult GetReputationVoteDeploy(int action, string subjectaddress, int amount, string documenthash, int stake, string repusername)
         {
             try
             {
-                SimpleResponse controlResult = UserInputControls.ControlReputationVoteRequest(amount, documenthash, action);
+                SimpleResponse controlResult = UserInputControls.ControlReputationVoteRequest(amount, documenthash, action, repusername, subjectaddress, HttpContext.Session.GetString("Token"));
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 
@@ -285,11 +285,11 @@ namespace DAO_WebPortal.Controllers
             }
         }
 
-        public JsonResult GetSlashingVoteDeploy(string addresstoslash, int slashratio, int stake)
+        public JsonResult GetSlashingVoteDeploy(string addresstoslash, int slashratio, int stake, string slashusername)
         {
             try
             {
-                SimpleResponse controlResult = UserInputControls.ControlSlashingVoteRequest(addresstoslash);
+                SimpleResponse controlResult = UserInputControls.ControlSlashingVoteRequest(addresstoslash, slashusername, HttpContext.Session.GetString("Token"));
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 

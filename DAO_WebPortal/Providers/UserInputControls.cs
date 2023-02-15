@@ -2,6 +2,7 @@
 using Helpers.Models.DtoModels.MainDbDto;
 using Helpers.Models.SharedModels;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json.Linq;
 
 namespace DAO_WebPortal.Providers
 {
@@ -16,29 +17,43 @@ namespace DAO_WebPortal.Providers
 
             return new SimpleResponse { Success = true };
         }
-        public static SimpleResponse ControlVaOnboardingVoteRequest(string newvausername, string reason, string token)
+        public static SimpleResponse ControlVaOnboardingVoteRequest(string newvausername, string newvaaddress, string reason, string token)
         {
-            //Get model from ApiGateway
-            var userjson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Users/GetByUsername?username=" + newvausername, token);
-            //Parse response
-            UserDto profileModel = Helpers.Serializers.DeserializeJson<UserDto>(userjson);
-
-            //Check user exists
-            if (profileModel == null || profileModel.UserId <= 0)
+            if (string.IsNullOrEmpty(newvausername) && string.IsNullOrEmpty(newvaaddress))
             {
-                return new SimpleResponse { Success = false, Message = "User not found." };
+                return new SimpleResponse { Success = false, Message = "Username OR public key must be filled." };
             }
 
-            //Check user is already VA
-            if (profileModel.UserType == Enums.UserIdentityType.VotingAssociate.ToString())
-            {
-                return new SimpleResponse { Success = false, Message = "This user is already VA." };
-            }
+            UserDto profileModel = new UserDto();
 
-            //Check user's wallet exists
-            if (string.IsNullOrEmpty(profileModel.WalletAddress))
+            if (!string.IsNullOrEmpty(newvausername))
             {
-                return new SimpleResponse { Success = false, Message = "User's wallet address could not be found. " + newvausername + " needs to connect a wallet first." };
+                //Get model from ApiGateway
+                var userjson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Users/GetByUsername?username=" + newvausername, token);
+                //Parse response
+                profileModel = Helpers.Serializers.DeserializeJson<UserDto>(userjson);
+
+                //Check user exists
+                if (profileModel == null || profileModel.UserId <= 0)
+                {
+                    return new SimpleResponse { Success = false, Message = "User not found." };
+                }
+
+                //Check user is already VA
+                if (profileModel.UserType == Enums.UserIdentityType.VotingAssociate.ToString())
+                {
+                    return new SimpleResponse { Success = false, Message = "This user is already VA." };
+                }
+
+                //Check user's wallet exists
+                if (string.IsNullOrEmpty(profileModel.WalletAddress))
+                {
+                    return new SimpleResponse { Success = false, Message = "User's wallet address could not be found. " + newvausername + " needs to connect a wallet first." };
+                }
+            }
+            else if (!string.IsNullOrEmpty(newvaaddress))
+            {
+                profileModel.WalletAddress = newvaaddress;
             }
 
             //Check reason
@@ -97,8 +112,39 @@ namespace DAO_WebPortal.Providers
 
             return new SimpleResponse { Success = true, Content = new { kyc = userKycModel, user = profileModel } };
         }
-        public static SimpleResponse ControlReputationVoteRequest(int amount, string documenthash, int action)
+        public static SimpleResponse ControlReputationVoteRequest(int amount, string documenthash, int action, string username, string address, string token)
         {
+            if (string.IsNullOrEmpty(username) && string.IsNullOrEmpty(address))
+            {
+                return new SimpleResponse { Success = false, Message = "Username OR public key must be filled." };
+            }
+
+            UserDto profileModel = new UserDto();
+
+            if (!string.IsNullOrEmpty(username))
+            {
+                //Get model from ApiGateway
+                var userjson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Users/GetByUsername?username=" + username, token);
+                //Parse response
+                profileModel = Helpers.Serializers.DeserializeJson<UserDto>(userjson);
+
+                //Check user exists
+                if (profileModel == null || profileModel.UserId <= 0)
+                {
+                    return new SimpleResponse { Success = false, Message = "User not found." };
+                }
+
+                //Check user's wallet exists
+                if (string.IsNullOrEmpty(profileModel.WalletAddress))
+                {
+                    return new SimpleResponse { Success = false, Message = "User's wallet address could not be found. " + username + " needs to connect a wallet first." };
+                }
+            }
+            else if (!string.IsNullOrEmpty(address))
+            {
+                profileModel.WalletAddress = address;
+            }
+
             if (string.IsNullOrEmpty(documenthash))
             {
                 return new SimpleResponse { Success = false, Message = "Document hash cannot be null." };
@@ -110,13 +156,39 @@ namespace DAO_WebPortal.Providers
             }
 
 
-            return new SimpleResponse { Success = true };
+            return new SimpleResponse { Success = true, Content = new { user = profileModel } };
         }
-        public static SimpleResponse ControlSlashingVoteRequest(string address_to_slash)
+        public static SimpleResponse ControlSlashingVoteRequest(string address_to_slash, string username, string token)
         {
-            if (string.IsNullOrEmpty(address_to_slash))
+            if (string.IsNullOrEmpty(address_to_slash) && string.IsNullOrEmpty(username))
             {
-                return new SimpleResponse { Success = false, Message = "Address to slash cannot be null." };
+                return new SimpleResponse { Success = false, Message = "Username OR public key must be filled." };
+            }
+
+            UserDto profileModel = new UserDto();
+
+            if (!string.IsNullOrEmpty(username))
+            {
+                //Get model from ApiGateway
+                var userjson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Users/GetByUsername?username=" + username, token);
+                //Parse response
+                profileModel = Helpers.Serializers.DeserializeJson<UserDto>(userjson);
+
+                //Check user exists
+                if (profileModel == null || profileModel.UserId <= 0)
+                {
+                    return new SimpleResponse { Success = false, Message = "User not found." };
+                }
+
+                //Check user's wallet exists
+                if (string.IsNullOrEmpty(profileModel.WalletAddress))
+                {
+                    return new SimpleResponse { Success = false, Message = "User's wallet address could not be found. " + username + " needs to connect a wallet first." };
+                }
+            }
+            else if (!string.IsNullOrEmpty(address_to_slash))
+            {
+                profileModel.WalletAddress = address_to_slash;
             }
 
             return new SimpleResponse { Success = true };

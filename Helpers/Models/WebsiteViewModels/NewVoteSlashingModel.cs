@@ -9,6 +9,7 @@ namespace Helpers.Models.WebsiteViewModels
     public class NewVoteSlashingModel
     {
         public string addresstoslash { get; set; }
+        public string slashusername { get; set; }
         public uint slashratio { get; set; }
         public double stake { get; set; }
         public string signedDeployJson { get; set; }

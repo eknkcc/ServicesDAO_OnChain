@@ -2057,7 +2057,7 @@ namespace DAO_WebPortal.Controllers
             try
             {
                 //User input controls
-                SimpleResponse controlResult = UserInputControls.ControlVaOnboardingVoteRequest(model.newvausername, model.reason, HttpContext.Session.GetString("Token"));
+                SimpleResponse controlResult = UserInputControls.ControlVaOnboardingVoteRequest(model.newvausername, model.newvaaddress, model.reason, HttpContext.Session.GetString("Token"));
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 
@@ -2243,7 +2243,7 @@ namespace DAO_WebPortal.Controllers
             try
             {
                 //User input controls
-                SimpleResponse controlResult = UserInputControls.ControlReputationVoteRequest(model.amount, model.documenthash, model.action);
+                SimpleResponse controlResult = UserInputControls.ControlReputationVoteRequest(model.amount, model.documenthash, model.action, model.repusername, model.subjectaddress, HttpContext.Session.GetString("Token"));
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 
@@ -2305,7 +2305,7 @@ namespace DAO_WebPortal.Controllers
             try
             {
                 //User input controls
-                SimpleResponse controlResult = UserInputControls.ControlSlashingVoteRequest(model.addresstoslash);
+                SimpleResponse controlResult = UserInputControls.ControlSlashingVoteRequest(model.addresstoslash, model.slashusername, HttpContext.Session.GetString("Token"));
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 

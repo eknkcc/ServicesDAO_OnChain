@@ -10,6 +10,7 @@ namespace Helpers.Models.WebsiteViewModels
     {
         public string signedDeployJson { get; set; }
         public int action { get; set; }
+        public string repusername { get; set; }
         public string subjectaddress { get; set; }
         public int amount { get; set; }
         public string documenthash { get; set; }

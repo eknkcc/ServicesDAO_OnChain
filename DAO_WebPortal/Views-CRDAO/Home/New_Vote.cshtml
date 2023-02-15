@@ -74,7 +74,7 @@
                     <div class="form-group mb-4" id="documentDiv">
                         <label class="mb-2" for="simpledocumenthash"><i class="fas fa-folder"></i> Document</b></label>
                         <input type="text" class="form-control" id="simpledocumenthash" placeholder="Document hash"
-                            autocomplete="off">
+                               autocomplete="off">
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -88,18 +88,31 @@
             <div class="form-group" id="descriptiondiv">
                 <label class="mb-2" for="description"><b><i class="fas fa-list mx-1"></i> Description</b></label>
                 <textarea type="text" id="description" name="description" placeholder="Description of the vote"
-                    rows="10"></textarea>
+                          rows="10"></textarea>
             </div>
         </div>
         <div class="voteInputSection d-none" id="vaonboardingDiv">
-            <div class="form-group mb-4">
-                <label class="mb-2"><b><i class="fas fa-id-badge"></i> New VA Username</b></label>
-                <input type="text" class="form-control" id="vausername" placeholder="Username">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-4">
+                        <label class="mb-2"><b><i class="fas fa-id-badge"></i> New VA Username</b></label>
+                        <input type="text" class="form-control" id="vausername" placeholder="Username">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-4">
+                        <label class="mb-2"><b><i class="fas fa-wallet"></i> New VA Public Key</b></label>
+                        <input type="text" class="form-control" id="vaaddress" placeholder="User's public key">
+                    </div>
+                </div>
             </div>
+
             <div class="form-group mb-4">
                 <label class="mb-2"><b><i class="fas fa-th-list"></i> Reason</b></label>
                 <input type="text" class="form-control" id="reason" placeholder="Reason">
             </div>
+
+            <p>*You must fill username OR public key</p>
         </div>
         <div class="voteInputSection d-none" id="repoDiv">
             <div class="row">
@@ -128,32 +141,32 @@
                             <td>Default Policing Rate</td>
                             <td>
                                 <input type="text" class="form-control" id="DefaultPolicingRate"
-                                    value="@Program._settings.DefaultPolicingRate" />
+                                       value="@Program._settings.DefaultPolicingRate" />
                             </td>
                         </tr>
                         <tr>
                             <td>Max Policing Rate</td>
                             <td>
                                 <input type="text" class="form-control" id="MaxPolicingRate"
-                                    value="@Program._settings.MaxPolicingRate" />
+                                       value="@Program._settings.MaxPolicingRate" />
                             </td>
                         </tr>
                         <tr>
                             <td>Min Policing Rate</td>
                             <td>
                                 <input type="text" class="form-control" id="MinPolicingRate"
-                                    value="@Program._settings.MinPolicingRate" />
+                                       value="@Program._settings.MinPolicingRate" />
                             </td>
                         </tr>
                         <tr>
                             <td>Forum KYC Required</td>
                             <td>
                                 <select class="form-control" id="ForumKYCRequired"
-                                    value="@Convert.ToInt32(Program._settings.ForumKYCRequired)">
+                                        value="@Convert.ToInt32(Program._settings.ForumKYCRequired)">
                                     <!option value="1" @(Program._settings.ForumKYCRequired == true ? "selected" : "")>
-                                        True</!option>
+                                    True</!option>
                                     <!option value="-1" @(Program._settings.ForumKYCRequired == false ? "selected" :
-                                        "")>False</!option>
+                                    "")>False</!option>
                                 </select>
                             </td>
                         </tr>
@@ -161,21 +174,21 @@
                             <td>Quorum Ratio</td>
                             <td>
                                 <input type="text" class="form-control" id="QuorumRatio"
-                                    value="@Program._settings.QuorumRatio" />
+                                       value="@Program._settings.QuorumRatio" />
                             </td>
                         </tr>
                         <tr>
                             <td>Internal Auction Time</td>
                             <td>
                                 <input type="text" class="form-control" id="InternalAuctionTime"
-                                    value="@Program._settings.InternalAuctionTime" />
+                                       value="@Program._settings.InternalAuctionTime" />
                             </td>
                         </tr>
                         <tr>
                             <td>Public Auction Time</td>
                             <td>
                                 <input type="text" class="form-control" id="PublicAuctionTime"
-                                    value="@Program._settings.PublicAuctionTime" />
+                                       value="@Program._settings.PublicAuctionTime" />
                             </td>
                         </tr>
                         <tr>
@@ -183,11 +196,11 @@
                             <td>
                                 <select class="form-control" id="AuctionTimeType">
                                     <!option @(Program._settings.AuctionTimeType == "week" ? "selected" : "")
-                                        value="week">Week</!option>
+                                    value="week">Week</!option>
                                     <!option @(Program._settings.AuctionTimeType == "day" ? "selected" : "")
-                                        value="day">Day</!option>
+                                    value="day">Day</!option>
                                     <!option @(Program._settings.AuctionTimeType == "minute" ? "selected" : "")
-                                        value="minute">Minute</!option>
+                                    value="minute">Minute</!option>
                                 </select>
                             </td>
                         </tr>
@@ -195,20 +208,20 @@
                             <td>Voting Time</td>
                             <td>
                                 <input type="text" class="form-control" id="VotingTime"
-                                    value="@Program._settings.VotingTime" />
+                                       value="@Program._settings.VotingTime" />
                             </td>
                         </tr>
                         <tr>
                             <td>Voting Time Type</td>
                             <td>
                                 <select class="form-control" id="VotingTimeType"
-                                    value="@Program._settings.VotingTimeType">
+                                        value="@Program._settings.VotingTimeType">
                                     <!option @(Program._settings.VotingTimeType == "week" ? "selected" : "")
-                                        value="week">Week</!option>
+                                    value="week">Week</!option>
                                     <!option @(Program._settings.VotingTimeType == "day" ? "selected" : "") value="day">
-                                        Day</!option>
+                                    Day</!option>
                                     <!option @(Program._settings.VotingTimeType == "minute" ? "selected" : "")
-                                        value="minute">Minute</!option>
+                                    value="minute">Minute</!option>
                                 </select>
                             </td>
                         </tr>
@@ -216,18 +229,18 @@
                             <td>Reputation Conversion Rate</td>
                             <td>
                                 <input type="text" class="form-control" id="ReputationConversionRate"
-                                    value="@Program._settings.ReputationConversionRate" />
+                                       value="@Program._settings.ReputationConversionRate" />
                             </td>
                         </tr>
                         <tr>
                             <td>VA Onboarding Simple Vote</td>
                             <td>
                                 <select class="form-control" id="VAOnboardingSimpleVote"
-                                    value="@Program._settings.VAOnboardingSimpleVote">
+                                        value="@Program._settings.VAOnboardingSimpleVote">
                                     <!option @(Program._settings.VAOnboardingSimpleVote == true ? "selected" : "")
-                                        value="1">True</!option>
+                                    value="1">True</!option>
                                     <!option @(Program._settings.VAOnboardingSimpleVote == false ? "selected" : "")
-                                        value="-1">False</!option>
+                                    value="-1">False</!option>
                                 </select>
                             </td>
                         </tr>
@@ -235,20 +248,20 @@
                             <td>Simple Voting Time</td>
                             <td>
                                 <input type="text" class="form-control" id="SimpleVotingTime"
-                                    value="@Program._settings.SimpleVotingTime" />
+                                       value="@Program._settings.SimpleVotingTime" />
                             </td>
                         </tr>
                         <tr>
                             <td>Simple Voting Time Type</td>
                             <td>
                                 <select class="form-control" id="SimpleVotingTimeType"
-                                    value="@Program._settings.SimpleVotingTimeType">
+                                        value="@Program._settings.SimpleVotingTimeType">
                                     <!option @(Program._settings.SimpleVotingTimeType == "week" ? "selected" : "")
-                                        value="week">Week</!option>
+                                    value="week">Week</!option>
                                     <!option @(Program._settings.SimpleVotingTimeType == "day" ? "selected" : "")
-                                        value="day">Day</!option>
+                                    value="day">Day</!option>
                                     <!option @(Program._settings.SimpleVotingTimeType == "minute" ? "selected" : "")
-                                        value="minute">Minute</!option>
+                                    value="minute">Minute</!option>
                                 </select>
                             </td>
                         </tr>
@@ -256,23 +269,27 @@
                             <td>Payment Without Participation</td>
                             <td>
                                 <select class="form-control" id="DistributePaymentWithoutVote"
-                                    value="@Program._settings.DistributePaymentWithoutVote">
+                                        value="@Program._settings.DistributePaymentWithoutVote">
                                     <!option @(Program._settings.DistributePaymentWithoutVote == true ? "selected" : "")
-                                        value="1">True</!option>
+                                    value="1">True</!option>
                                     <!option @(Program._settings.DistributePaymentWithoutVote == false ? "selected" :
-                                        "") value="-1">False</!option>
+                                    "") value="-1">False</!option>
                                 </select>
                             </td>
                         </tr>
                         <tr>
                             <td>Governance Fee Ratio</td>
-                            <td><input type="text" class="form-control" id="GovernancePaymentRatio"
-                                    value="@Program._settings.GovernancePaymentRatio" /> </td>
+                            <td>
+                                <input type="text" class="form-control" id="GovernancePaymentRatio"
+                                       value="@Program._settings.GovernancePaymentRatio" />
+                            </td>
                         </tr>
                         <tr>
                             <td>Governance Wallet</td>
-                            <td><input type="text" class="form-control" id="GovernanceWallet"
-                                    value="@Program._settings.GovernanceWallet" /> </td>
+                            <td>
+                                <input type="text" class="form-control" id="GovernanceWallet"
+                                       value="@Program._settings.GovernanceWallet" />
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -290,13 +307,24 @@
             <span id="kycavailablity"> </span>
         </div>
         <div class="voteInputSection d-none" id="reputationDiv">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-4">
+                        <label class="mb-2"><b><i class="fas fa-id-badge"></i> VA Username</b></label>
+                        <input type="text" class="form-control" id="repusername" placeholder="Username">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-4">
+                        <label class="mb-2"><b><i class="fas fa-wallet"></i> VA Public Key</b></label>
+                        <input type="text" class="form-control" id="repwallet" placeholder="User's public key">
+                    </div>
+                </div>
+            </div>
+
             <div class="form-group mb-4">
                 <label class="mb-2"><b><i class="fas fa-exclamation-circle"></i> Action</b></label>
                 <input type="text" class="form-control" id="repaction" placeholder="Action">
-            </div>
-            <div class="form-group mb-4">
-                <label class="mb-2"><b><i class="fas fa-wallet"></i> Subject Address</b></label>
-                <input type="text" class="form-control" id="repwallet" placeholder="User wallet address">
             </div>
             <div class="form-group mb-4">
                 <label class="mb-2"><b><i class="fas fa-sort-numeric-up-alt"></i> Amount</b></label>
@@ -310,12 +338,26 @@
                 <label class="mb-2"><b><i class="fas fa-star"></i> Stake</b></label>
                 <input type="text" class="form-control" id="repstake" placeholder="Stake">
             </div>
+
+            <p>*You must fill username OR public key</p>
+
         </div>
         <div class="voteInputSection d-none" id="slashingDiv">
-            <div class="form-group mb-4">
-                <label class="mb-2"><b><i class="fas fa-user"></i> Address To Slash</b></label>
-                <input type="text" class="form-control" id="slashaddress" placeholder="User's wallet address">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-4">
+                        <label class="mb-2"><b><i class="fas fa-id-badge"></i> VA Username</b></label>
+                        <input type="text" class="form-control" id="slashusername" placeholder="Username">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-4">
+                        <label class="mb-2"><b><i class="fas fa-user"></i> Address To Slash</b></label>
+                        <input type="text" class="form-control" id="slashaddress" placeholder="User's public key">
+                    </div>
+                </div>
             </div>
+
             <div class="form-group mb-4">
                 <label class="mb-2"><b><i class="fas fa-percentage"></i> Slash Ratio</b></label>
                 <input type="text" class="form-control" id="slashraito" placeholder="Slash Ratio">
@@ -324,6 +366,8 @@
                 <label class="mb-2"><b><i class="fas fa-star"></i> Stake</b></label>
                 <input type="text" class="form-control" id="slashstake" placeholder="Stake">
             </div>
+
+            <p>*You must fill username OR public key</p>
         </div>
 
         <div class="d-flex justify-content-end my-3">
@@ -335,495 +379,501 @@
 
 @section Scripts{
 
-<script>
-    var votetype = "";
+    <script>
+        var votetype = "";
 
-    $(document).ready(function () {
-        if (document.body.classList.contains('dark-theme')) {
-            CKEDITOR.replace('description', {
-                skin: 'moono-dark'
-            });
-        }
-        else {
-            CKEDITOR.replace('description', {
-                skin: 'moono-lisa'
-            });
-        }
-    });
+        $(document).ready(function () {
+            if (document.body.classList.contains('dark-theme')) {
+                CKEDITOR.replace('description', {
+                    skin: 'moono-dark'
+                });
+            }
+            else {
+                CKEDITOR.replace('description', {
+                    skin: 'moono-lisa'
+                });
+            }
+        });
 
-    function ShowVoteTypes(){
-        $('.voteInputSection').removeClass("d-none");
-        $('#typeSelectionDiv').removeClass("d-none");
-        $('#voteInputsDiv').addClass("d-none");
-    }
-
-    function SelectVoteType(voteType){
-        $('.voteInputSection').addClass("d-none");
-        $('#typeSelectionDiv').addClass("d-none");
-        $('#voteInputsDiv').removeClass("d-none");
-        $('#' + voteType + "Div").removeClass("d-none");
-        votetype = voteType;
-    }
-
-    //Add new simple vote function
-    async function StartNewVote() {
-
-        if (votetype == "simple") {
-            startOnchainSimpleVote();
+        function ShowVoteTypes() {
+            $('.voteInputSection').removeClass("d-none");
+            $('#typeSelectionDiv').removeClass("d-none");
+            $('#voteInputsDiv').addClass("d-none");
         }
-        else if (votetype == "vaonboarding") {
-            startOnchainVaOnboardingVote();
+
+        function SelectVoteType(voteType) {
+            $('.voteInputSection').addClass("d-none");
+            $('#typeSelectionDiv').addClass("d-none");
+            $('#voteInputsDiv').removeClass("d-none");
+            $('#' + voteType + "Div").removeClass("d-none");
+            votetype = voteType;
         }
-        else if (votetype == "repo") {
-            startOnchainRepoVote();
-        }
+
+        //Add new simple vote function
+        async function StartNewVote() {
+
+            if (votetype == "simple") {
+                startOnchainSimpleVote();
+            }
+            else if (votetype == "vaonboarding") {
+                startOnchainVaOnboardingVote();
+            }
+            else if (votetype == "repo") {
+                startOnchainRepoVote();
+            }
             else if (votetype == "kyc") {
-            startOnchainKycVote();
-        }
-        else if (votetype == "reputation") {
-            startOnchainReputationVote();
-        }
+                startOnchainKycVote();
+            }
+            else if (votetype == "reputation") {
+                startOnchainReputationVote();
+            }
             else if (votetype == "slashing") {
-            startOnchainSlashingVote();
+                startOnchainSlashingVote();
+            }
         }
-    }
 
-    async function CreateAndSendDeploy(requestUrl, sendDeployFunction) {
-        const isConnected = await window.casperlabsHelper.isConnected();
-        if (isConnected) {
-            ShowLoader("Creating deploy object...");
+        async function CreateAndSendDeploy(requestUrl, sendDeployFunction) {
+            const isConnected = await window.casperlabsHelper.isConnected();
+            if (isConnected) {
+                ShowLoader("Creating deploy object...");
+                //Ajax post action
+                $.ajax({
+                    type: "GET",
+                    url: requestUrl,
+                    success: async function (result) {
+                        if (result.success) {
+                            ShowLoader("Waiting for sign...");
+                            //const publicKeyHex = await window.casperlabsHelper.getActivePublicKey();
+                            var deployJson = { "deploy": JSON.parse(result.message) };
+
+                            // Sign transcation using casper-signer.
+                            const signature = await window.casperlabsHelper.sign(deployJson);
+
+                            ShowLoader("Sending signed deploy. This may take few minutes...");
+
+                            $.confirm({
+                                title: 'Confirmation',
+                                content: '<p>Are you sure you want to start vote process ?</p>',
+                                columnClass: 'col-md-8 col-md-offset-2',
+                                buttons: {
+                                    cancel: {
+                                        text: 'Cancel'
+                                    },
+                                    confirm: {
+                                        text: 'Continue',
+                                        btnClass: 'btn btn-primary',
+                                        action: function () {
+                                            sendDeployFunction(signature.deploy)
+                                        }
+
+                                    }
+                                }
+                            });
+                            //SendSignedDeploy(signature.deploy, "KYC Contract Call");
+                        }
+                        else {
+                            HideLoader();
+                            toastr.warning(result.message);
+                        }
+                    },
+                    failure: function (response) {
+                        HideLoader();
+                        toastr.warning("@Lang.ConnectionError");
+                    },
+                    error: function (response) {
+                        HideLoader();
+                        toastr.error("@Lang.UnexpectedError");
+                    }
+                });
+            }
+            else {
+                toastr.warning("Please connect the Casper Signer browser extension.");
+            }
+        }
+
+        function startSimpleVote(signedDeployJson) {
+
+            //Simple Vote parameters
+            var documentHash = $("#simpledocumenthash").val();
+            var title = $("#title").val();
+            var description = CKEDITOR.instances["description"].getData();
+            var stake = $("#simplestake").val();
+
             //Ajax post action
             $.ajax({
-                type: "GET",
-                url: requestUrl,
-                success: async function (result) {
+                type: "POST",
+                url: "../Home/New_Vote_Simple",
+                data: {
+                    "stake": stake,
+                    "documentHash": documentHash,
+                    "title": title,
+                    "description": description,
+                    "signedDeployJson": JSON.stringify(signedDeployJson)
+                },
+                success: function (result) {
                     if (result.success) {
-                        ShowLoader("Waiting for sign...");
-                        //const publicKeyHex = await window.casperlabsHelper.getActivePublicKey();
-                        var deployJson = { "deploy": JSON.parse(result.message) };
-
-                        // Sign transcation using casper-signer.
-                        const signature = await window.casperlabsHelper.sign(deployJson);
-
-                        ShowLoader("Sending signed deploy. This may take few minutes...");
-
-                        $.confirm({
-                            title: 'Confirmation',
-                            content: '<p>Are you sure you want to start vote process ?</p>',
-                            columnClass: 'col-md-8 col-md-offset-2',
-                            buttons: {
-                                cancel: {
-                                    text: 'Cancel'
-                                },
-                                confirm: {
-                                    text: 'Continue',
-                                    btnClass: 'btn btn-primary',
-                                    action: function () {
-                                        sendDeployFunction(signature.deploy)
-                                    }
-
-                                }
-                            }
-                        });
-                        //SendSignedDeploy(signature.deploy, "KYC Contract Call");
+                        window.location.reload();
                     }
                     else {
-                        HideLoader();
                         toastr.warning(result.message);
                     }
                 },
                 failure: function (response) {
-                    HideLoader();
                     toastr.warning("@Lang.ConnectionError");
                 },
                 error: function (response) {
-                    HideLoader();
+                    toastr.error("@Lang.UnexpectedError");
+                }
+            });
+
+        }
+
+        function startVaOnboardingVote(signedDeployJson) {
+            //VA Onboarding Vote parameters
+            var newvausername = $("#vausername").val();
+            var vaaddress = $("#vaaddress").val();
+            var reason = $("#reason").val();
+            var stake = $("#vaonboardingstake").val();
+
+            //Ajax post action
+            $.ajax({
+                type: "POST",
+                url: "../Home/New_Vote_VaOnboarding",
+                data: {
+                    "stake": stake,
+                    "reason": reason,
+                    "newvausername": newvausername,
+                    "newvaaddress": vaaddress,
+                    "signedDeployJson": JSON.stringify(signedDeployJson)
+                },
+                success: function (result) {
+                    if (result.success) {
+                        window.location.reload();
+                    }
+                    else {
+                        toastr.warning(result.message);
+                    }
+                },
+                failure: function (response) {
+                    toastr.warning("@Lang.ConnectionError");
+                },
+                error: function (response) {
                     toastr.error("@Lang.UnexpectedError");
                 }
             });
         }
-        else {
-            toastr.warning("Please connect the Casper Signer browser extension.");
+
+        function startRepoVote(signedDeployJson) {
+            //VA Repo Vote parameters
+            var key = $("#repokey").val();
+            var value = $("#repovalue").val();
+            var stake = $("#repostake").val();
+
+            //Ajax post action
+            $.ajax({
+                type: "POST",
+                url: "../Home/New_Vote_Governance",
+                data: {
+                    "stake": stake,
+                    "key": key,
+                    "value": value,
+                    "signedDeployJson": JSON.stringify(signedDeployJson)
+                },
+                success: function (result) {
+                    if (result.success) {
+                        window.location.reload();
+                    }
+                    else {
+                        toastr.warning(result.message);
+                    }
+                },
+                failure: function (response) {
+                    toastr.warning("@Lang.ConnectionError");
+                },
+                error: function (response) {
+                    toastr.error("@Lang.UnexpectedError");
+                }
+            });
         }
-    }
 
-    function startSimpleVote(signedDeployJson) {
+        function startKycVote(signedDeployJson) {
 
-        //Simple Vote parameters
-        var documentHash = $("#simpledocumenthash").val();
-        var title = $("#title").val();
-        var description = CKEDITOR.instances["description"].getData();
-        var stake = $("#simplestake").val();
+            //KYC Vote parameters
+            var kycUserName = $("#kycusername").val();
+            var stake = $("#kycstake").val();
 
-        //Ajax post action
-        $.ajax({
-            type: "POST",
-            url: "../Home/New_Vote_Simple",
-            data: {
-                "stake": stake,
-                "documentHash": documentHash,
-                "title": title,
-                "description": description,
-                "signedDeployJson": JSON.stringify(signedDeployJson)
-            },
-            success: function (result) {
-                if (result.success) {
-                    window.location.reload();
-                }
-                else {
-                    toastr.warning(result.message);
-                }
-            },
-            failure: function (response) {
-                toastr.warning("@Lang.ConnectionError");
-            },
-            error: function (response) {
-                toastr.error("@Lang.UnexpectedError");
-            }
-        });
-
-    }
-
-    function startVaOnboardingVote(signedDeployJson) {
-        //VA Onboarding Vote parameters
-        var newvausername = $("#vausername").val();
-        var reason = $("#reason").val();
-        var stake = $("#vaonboardingstake").val();
-
-        //Ajax post action
-        $.ajax({
-            type: "POST",
-            url: "../Home/New_Vote_VaOnboarding",
-            data: {
-                "stake": stake,
-                "reason": reason,
-                "newvausername": newvausername,
-                "signedDeployJson": JSON.stringify(signedDeployJson)
-            },
-            success: function (result) {
-                if (result.success) {
-                    window.location.reload();
-                }
-                else {
-                    toastr.warning(result.message);
-                }
-            },
-            failure: function (response) {
-                toastr.warning("@Lang.ConnectionError");
-            },
-            error: function (response) {
-                toastr.error("@Lang.UnexpectedError");
-            }
-        });
-    }
-
-    function startRepoVote(signedDeployJson) {
-        //VA Repo Vote parameters
-        var key = $("#repokey").val();
-        var value = $("#repovalue").val();
-        var stake = $("#repostake").val();
-
-        //Ajax post action
-        $.ajax({
-            type: "POST",
-            url: "../Home/New_Vote_Governance",
-            data: {
-                "stake": stake,
-                "key": key,
-                "value": value,
-                "signedDeployJson": JSON.stringify(signedDeployJson)
-            },
-            success: function (result) {
-                if (result.success) {
-                    window.location.reload();
-                }
-                else {
-                    toastr.warning(result.message);
-                }
-            },
-            failure: function (response) {
-                toastr.warning("@Lang.ConnectionError");
-            },
-            error: function (response) {
-                toastr.error("@Lang.UnexpectedError");
-            }
-        });
-    }
-
-    function startKycVote(signedDeployJson) {
-
-        //KYC Vote parameters
-        var kycUserName = $("#kycusername").val();
-        var stake = $("#kycstake").val();
-
-        //Ajax post action
-        $.ajax({
-            type: "POST",
-            url: "../Home/New_Vote_KYC",
-            data: {
-                "stake": stake,
-                "kycUserName": kycUserName,
-                "signedDeployJson": JSON.stringify(signedDeployJson)
-            },
-            success: function (result) {
-                if (result.success) {
-                    window.location.reload();
-                }
-                else {
-                    toastr.warning(result.message);
-                }
-            },
-            failure: function (response) {
-                toastr.warning("@Lang.ConnectionError");
-            },
-            error: function (response) {
-                toastr.error("@Lang.UnexpectedError");
-            }
-        });
-
-    }
-
-    function startReputationVote(signedDeployJson) {
-
-        //Reputation Vote parameters
-        var action = parseInt($("#repaction").val());
-        var subjectaddress = $("#repwallet").val();
-        var amount = $("#repamount").val();
-        var documenthash = $("#repdocumenthash").val();
-        var stake = $("#repstake").val();
-
-        //Ajax post action
-        $.ajax({
-            type: "POST",
-            url: "../Home/New_Vote_Reputation",
-            data: {
-                "action": action,
-                "subjectaddress": subjectaddress,
-                "amount": amount,
-                "documenthash": documenthash,
-                "stake": stake,
-                "signedDeployJson": JSON.stringify(signedDeployJson)
-            },
-            success: function (result) {
-                if (result.success) {
-                    window.location.reload();
-                }
-                else {
-                    toastr.warning(result.message);
-                }
-            },
-            failure: function (response) {
-                toastr.warning("@Lang.ConnectionError");
-            },
-            error: function (response) {
-                toastr.error("@Lang.UnexpectedError");
-            }
-        });
-
-    }
-
-    function startSlashingVote(signedDeployJson) {
-
-        //Reputation Vote parameters
-        var address_to_slash = $("#slashaddress").val();
-        var slash_ratio = $("#slashratio").val();
-        var stake = $("#slashstake").val();
-
-        //Ajax post action
-        $.ajax({
-            type: "POST",
-            url: "../Home/New_Vote_Slashing",
-            data: {
-                "addresstoslash": address_to_slash,
-                "slashratio": slash_ratio,
-                "stake": stake,
-                "signedDeployJson": JSON.stringify(signedDeployJson)
-            },
-            success: function (result) {
-                if (result.success) {
-                    window.location.reload();
-                }
-                else {
-                    toastr.warning(result.message);
-                }
-            },
-            failure: function (response) {
-                toastr.warning("@Lang.ConnectionError");
-            },
-            error: function (response) {
-                toastr.error("@Lang.UnexpectedError");
-            }
-        });
-
-    }
-
-</script>
-
-@if(Program._settings.DaoBlockchain == Helpers.Constants.Enums.Blockchain.Casper)
-{
-<script>
-
-    async function startOnchainSimpleVote() {
-        CreateAndSendDeploy("../CasperChain/GetSimpleVoteDeploy?documenthash=" + $("#documenthash").val() + "&stake=" + $("#simplestake").val(), startSimpleVote);
-    }
-
-    async function startOnchainVaOnboardingVote() {
-        CreateAndSendDeploy("../CasperChain/GetVaOnboardingVoteDeploy?username=" + $("#vausername").val() + "&reason=" + $("#reason").val(), startVaOnboardingVote);
-    }
-
-    async function startOnchainRepoVote() {
-        CreateAndSendDeploy("../CasperChain/GetRepoVoteDeploy?key=" + $("#repokey").val() + "&value=" + $("#repovalue").val() + "&stake=" + $("#repostake").val(), startRepoVote);
-    }
-
-    async function startOnchainKycVote() {
-        CreateAndSendDeploy("../CasperChain/GetKYCVoteDeploy?username=" + $("#kycusername").val() + "&stake=" + $("#kycstake").val(), startKycVote);
-    }
-
-    async function startOnchainReputationVote() {
-        CreateAndSendDeploy("../CasperChain/GetReputationVoteDeploy?action=" + $("#repaction").val() + "&stake=" + $("#repstake").val() + "&subjectaddress=" + $("#repwallet").val() + "&amount=" + $("#repamount").val() + "&documenthash=" + $("#repdocumenthash").val(), startReputationVote);
-    }
-
-    async function startOnchainSlashingVote() {
-        CreateAndSendDeploy("../CasperChain/GetSlashingVoteDeploy?addresstoslash=" + $("#slashaddress").val() + "&slashratio=" + $("#slashratio").val() + "&stake=" + $("#slashstake").val(), startSlashingVote);
-    }
-</script>
-}
-else if(Program._settings.DaoBlockchain == null)
-{
-@* Start votes without any onchain process *@
-<script>
-    function startOnchainSimpleVote() {
-        $.confirm({
-            title: 'Confirmation',
-            content: '<p>Are you sure you want to start vote process ?</p>',
-            columnClass: 'col-md-8 col-md-offset-2',
-            buttons: {
-                cancel: {
-                    text: 'Cancel'
+            //Ajax post action
+            $.ajax({
+                type: "POST",
+                url: "../Home/New_Vote_KYC",
+                data: {
+                    "stake": stake,
+                    "kycUserName": kycUserName,
+                    "signedDeployJson": JSON.stringify(signedDeployJson)
                 },
-                confirm: {
-                    text: 'Continue',
-                    btnClass: 'btn btn-primary',
-                    action: function () {
-                        startSimpleVote("")
+                success: function (result) {
+                    if (result.success) {
+                        window.location.reload();
                     }
-
-                }
-            }
-        });
-    }
-
-    function startOnchainVaOnboardingVote() {
-        $.confirm({
-            title: 'Confirmation',
-            content: '<p>Are you sure you want to start vote process ?</p>',
-            columnClass: 'col-md-8 col-md-offset-2',
-            buttons: {
-                cancel: {
-                    text: 'Cancel'
+                    else {
+                        toastr.warning(result.message);
+                    }
                 },
-                confirm: {
-                    text: 'Continue',
-                    btnClass: 'btn btn-primary',
-                    action: function () {
-                        startVaOnboardingVote("")
-                    }
-
-                }
-            }
-        });
-    }
-
-    function startOnchainRepoVote() {
-        $.confirm({
-            title: 'Confirmation',
-            content: '<p>Are you sure you want to start vote process ?</p>',
-            columnClass: 'col-md-8 col-md-offset-2',
-            buttons: {
-                cancel: {
-                    text: 'Cancel'
+                failure: function (response) {
+                    toastr.warning("@Lang.ConnectionError");
                 },
-                confirm: {
-                    text: 'Continue',
-                    btnClass: 'btn btn-primary',
-                    action: function () {
-                        startRepoVote("")
-                    }
-
+                error: function (response) {
+                    toastr.error("@Lang.UnexpectedError");
                 }
-            }
-        });
-    }
+            });
 
-    function startOnchainKycVote() {
-        $.confirm({
-            title: 'Confirmation',
-            content: '<p>Are you sure you want to start vote process ?</p>',
-            columnClass: 'col-md-8 col-md-offset-2',
-            buttons: {
-                cancel: {
-                    text: 'Cancel'
+        }
+
+        function startReputationVote(signedDeployJson) {
+
+            //Reputation Vote parameters
+            var action = parseInt($("#repaction").val());
+            var subjectaddress = $("#repwallet").val();
+            var amount = $("#repamount").val();
+            var documenthash = $("#repdocumenthash").val();
+            var stake = $("#repstake").val();
+            var repusername = $("#repusername").val();
+
+            //Ajax post action
+            $.ajax({
+                type: "POST",
+                url: "../Home/New_Vote_Reputation",
+                data: {
+                    "action": action,
+                    "subjectaddress": subjectaddress,
+                    "amount": amount,
+                    "documenthash": documenthash,
+                    "stake": stake,
+                    "repusername": repusername,
+                    "signedDeployJson": JSON.stringify(signedDeployJson)
                 },
-                confirm: {
-                    text: 'Continue',
-                    btnClass: 'btn btn-primary',
-                    action: function () {
-                        startKycVote("")
+                success: function (result) {
+                    if (result.success) {
+                        window.location.reload();
                     }
-
-                }
-            }
-        });
-    }
-
-    function startOnchainReputationVote() {
-        $.confirm({
-            title: 'Confirmation',
-            content: '<p>Are you sure you want to start vote process ?</p>',
-            columnClass: 'col-md-8 col-md-offset-2',
-            buttons: {
-                cancel: {
-                    text: 'Cancel'
+                    else {
+                        toastr.warning(result.message);
+                    }
                 },
-                confirm: {
-                    text: 'Continue',
-                    btnClass: 'btn btn-primary',
-                    action: function () {
-                        startReputationVote("")
-                    }
-
-                }
-            }
-        });
-    }
-
-    function startOnchainSlashingVote() {
-        $.confirm({
-            title: 'Confirmation',
-            content: '<p>Are you sure you want to start vote process ?</p>',
-            columnClass: 'col-md-8 col-md-offset-2',
-            buttons: {
-                cancel: {
-                    text: 'Cancel'
+                failure: function (response) {
+                    toastr.warning("@Lang.ConnectionError");
                 },
-                confirm: {
-                    text: 'Continue',
-                    btnClass: 'btn btn-primary',
-                    action: function () {
-                        startSlashingVote("")
-                    }
-
+                error: function (response) {
+                    toastr.error("@Lang.UnexpectedError");
                 }
+            });
+
+        }
+
+        function startSlashingVote(signedDeployJson) {
+
+            //Reputation Vote parameters
+            var address_to_slash = $("#slashaddress").val();
+            var slash_ratio = $("#slashratio").val();
+            var stake = $("#slashstake").val();
+            var slashusername = $("#slashusername").val();
+
+            //Ajax post action
+            $.ajax({
+                type: "POST",
+                url: "../Home/New_Vote_Slashing",
+                data: {
+                    "addresstoslash": address_to_slash,
+                    "slashratio": slash_ratio,
+                    "stake": stake,
+                    "slashusername": slashusername,
+                    "signedDeployJson": JSON.stringify(signedDeployJson)
+                },
+                success: function (result) {
+                    if (result.success) {
+                        window.location.reload();
+                    }
+                    else {
+                        toastr.warning(result.message);
+                    }
+                },
+                failure: function (response) {
+                    toastr.warning("@Lang.ConnectionError");
+                },
+                error: function (response) {
+                    toastr.error("@Lang.UnexpectedError");
+                }
+            });
+
+        }
+
+    </script>
+
+    @if (Program._settings.DaoBlockchain == Helpers.Constants.Enums.Blockchain.Casper)
+    {
+        <script>
+
+            async function startOnchainSimpleVote() {
+                CreateAndSendDeploy("../CasperChain/GetSimpleVoteDeploy?documenthash=" + $("#documenthash").val() + "&stake=" + $("#simplestake").val(), startSimpleVote);
             }
-        });
+
+            async function startOnchainVaOnboardingVote() {
+                CreateAndSendDeploy("../CasperChain/GetVaOnboardingVoteDeploy?username=" + $("#vausername").val() + "&newvaaddress=" + $("#vaaddress").val() + "&reason=" + $("#reason").val(), startVaOnboardingVote);
+            }
+
+            async function startOnchainRepoVote() {
+                CreateAndSendDeploy("../CasperChain/GetRepoVoteDeploy?key=" + $("#repokey").val() + "&value=" + $("#repovalue").val() + "&stake=" + $("#repostake").val(), startRepoVote);
+            }
+
+            async function startOnchainKycVote() {
+                CreateAndSendDeploy("../CasperChain/GetKYCVoteDeploy?username=" + $("#kycusername").val() + "&stake=" + $("#kycstake").val(), startKycVote);
+            }
+
+            async function startOnchainReputationVote() {
+                CreateAndSendDeploy("../CasperChain/GetReputationVoteDeploy?action=" + $("#repaction").val() + "&stake=" + $("#repstake").val() + "&subjectaddress=" + $("#repwallet").val() + "&amount=" + $("#repamount").val() + "&documenthash=" + $("#repdocumenthash").val() + "&repusername=" + $("#repusername").val(), startReputationVote);
+            }
+
+            async function startOnchainSlashingVote() {
+                CreateAndSendDeploy("../CasperChain/GetSlashingVoteDeploy?addresstoslash=" + $("#slashaddress").val() + "&slashratio=" + $("#slashratio").val() + "&stake=" + $("#slashstake").val() + "&slashusername=" + $("#slashusername").val(), startSlashingVote);
+            }
+        </script>
     }
-</script>
-}
+    else if (Program._settings.DaoBlockchain == null)
+    {
+        @* Start votes without any onchain process *@
+        <script>
+            function startOnchainSimpleVote() {
+                $.confirm({
+                    title: 'Confirmation',
+                    content: '<p>Are you sure you want to start vote process ?</p>',
+                    columnClass: 'col-md-8 col-md-offset-2',
+                    buttons: {
+                        cancel: {
+                            text: 'Cancel'
+                        },
+                        confirm: {
+                            text: 'Continue',
+                            btnClass: 'btn btn-primary',
+                            action: function () {
+                                startSimpleVote("")
+                            }
+
+                        }
+                    }
+                });
+            }
+
+            function startOnchainVaOnboardingVote() {
+                $.confirm({
+                    title: 'Confirmation',
+                    content: '<p>Are you sure you want to start vote process ?</p>',
+                    columnClass: 'col-md-8 col-md-offset-2',
+                    buttons: {
+                        cancel: {
+                            text: 'Cancel'
+                        },
+                        confirm: {
+                            text: 'Continue',
+                            btnClass: 'btn btn-primary',
+                            action: function () {
+                                startVaOnboardingVote("")
+                            }
+
+                        }
+                    }
+                });
+            }
+
+            function startOnchainRepoVote() {
+                $.confirm({
+                    title: 'Confirmation',
+                    content: '<p>Are you sure you want to start vote process ?</p>',
+                    columnClass: 'col-md-8 col-md-offset-2',
+                    buttons: {
+                        cancel: {
+                            text: 'Cancel'
+                        },
+                        confirm: {
+                            text: 'Continue',
+                            btnClass: 'btn btn-primary',
+                            action: function () {
+                                startRepoVote("")
+                            }
+
+                        }
+                    }
+                });
+            }
+
+            function startOnchainKycVote() {
+                $.confirm({
+                    title: 'Confirmation',
+                    content: '<p>Are you sure you want to start vote process ?</p>',
+                    columnClass: 'col-md-8 col-md-offset-2',
+                    buttons: {
+                        cancel: {
+                            text: 'Cancel'
+                        },
+                        confirm: {
+                            text: 'Continue',
+                            btnClass: 'btn btn-primary',
+                            action: function () {
+                                startKycVote("")
+                            }
+
+                        }
+                    }
+                });
+            }
+
+            function startOnchainReputationVote() {
+                $.confirm({
+                    title: 'Confirmation',
+                    content: '<p>Are you sure you want to start vote process ?</p>',
+                    columnClass: 'col-md-8 col-md-offset-2',
+                    buttons: {
+                        cancel: {
+                            text: 'Cancel'
+                        },
+                        confirm: {
+                            text: 'Continue',
+                            btnClass: 'btn btn-primary',
+                            action: function () {
+                                startReputationVote("")
+                            }
+
+                        }
+                    }
+                });
+            }
+
+            function startOnchainSlashingVote() {
+                $.confirm({
+                    title: 'Confirmation',
+                    content: '<p>Are you sure you want to start vote process ?</p>',
+                    columnClass: 'col-md-8 col-md-offset-2',
+                    buttons: {
+                        cancel: {
+                            text: 'Cancel'
+                        },
+                        confirm: {
+                            text: 'Continue',
+                            btnClass: 'btn btn-primary',
+                            action: function () {
+                                startSlashingVote("")
+                            }
+
+                        }
+                    }
+                });
+            }
+        </script>
+    }
 
 }
 
 
-@*
+    @*
     //OLD SCRIPT
     //Create job model
     var title = $('#title').val();
