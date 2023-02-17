@@ -139,6 +139,8 @@ namespace DAO_WebPortal.Providers
                 {
                     return new SimpleResponse { Success = false, Message = "User's wallet address could not be found. " + username + " needs to connect a wallet first." };
                 }
+
+
             }
             else if (!string.IsNullOrEmpty(address))
             {
@@ -191,7 +193,7 @@ namespace DAO_WebPortal.Providers
                 profileModel.WalletAddress = address_to_slash;
             }
 
-            return new SimpleResponse { Success = true };
+            return new SimpleResponse { Success = true, Content = new { user = profileModel } };
         }
 
     }

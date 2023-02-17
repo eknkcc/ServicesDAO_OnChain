@@ -270,7 +270,7 @@ namespace DAO_WebPortal.Controllers
                 if (controlResult.Success == false) return base.Json(controlResult);
 
                 //Get model from ApiGateway
-                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/ReputationVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&stake=" + stake + "&subjectaddress=" + subjectaddress + "&action=" + action + "&amount=" + amount + "&documenthash=" + documenthash);
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/ReputationVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&stake=" + stake + "&subjectaddress=" + ((UserDto)((dynamic)controlResult.Content).user).WalletAddress + "&action=" + action + "&amount=" + amount + "&documenthash=" + documenthash);
                 //Parse response
                 SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
 
@@ -294,7 +294,7 @@ namespace DAO_WebPortal.Controllers
                 if (controlResult.Success == false) return base.Json(controlResult);
 
                 //Get model from ApiGateway
-                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/SlashingVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&addresstoslash=" + addresstoslash + "&slashratio=" + slashratio + "&stake=" + stake);
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/SlashingVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&addresstoslash=" + ((UserDto)((dynamic)controlResult.Content).user).WalletAddress + "&slashratio=" + slashratio + "&stake=" + stake);
                 //Parse response
                 SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
 

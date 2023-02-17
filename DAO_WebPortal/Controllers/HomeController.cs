@@ -2026,7 +2026,7 @@ namespace DAO_WebPortal.Controllers
                     }).Start();
 
                     //Set server side toastr because page will be redirected
-                    TempData["toastr-message"] = "Your request successfully submitted. Blockchain request can be followed from <a href='../CasperChain/ChainActionDetail?id=" + chainAction.ChainActionId + "'>here</a>";
+                    TempData["toastr-message"] = "Your request successfully submitted. ";
                     TempData["toastr-type"] = "success";
 
                     return Json(new SimpleResponse() { Success = true });
@@ -2088,7 +2088,7 @@ namespace DAO_WebPortal.Controllers
                     }).Start();
 
                     //Set server side toastr because page will be redirected
-                    TempData["toastr-message"] = "Your request successfully submitted. Blockchain request can be followed from <a href='../CasperChain/ChainActionDetail?id=" + chainAction.ChainActionId + "'>here</a>";
+                    TempData["toastr-message"] = "Your request successfully submitted. ";
                     TempData["toastr-type"] = "success";
 
                     return Json(new SimpleResponse() { Success = true });
@@ -2150,7 +2150,7 @@ namespace DAO_WebPortal.Controllers
                     }).Start();
 
                     //Set server side toastr because page will be redirected
-                    TempData["toastr-message"] = "Your request successfully submitted. Blockchain request can be followed from <a href='../CasperChain/ChainActionDetail?id=" + chainAction.ChainActionId + "'>here</a>";
+                    TempData["toastr-message"] = "Your request successfully submitted. ";
                     TempData["toastr-type"] = "success";
 
                     return Json(new SimpleResponse() { Success = true });
@@ -2212,7 +2212,7 @@ namespace DAO_WebPortal.Controllers
                     }).Start();
 
                     //Set server side toastr because page will be redirected
-                    TempData["toastr-message"] = "Your request successfully submitted. Blockchain request can be followed from <a href='../CasperChain/ChainActionDetail?id=" + chainAction.ChainActionId + "'>here</a>";
+                    TempData["toastr-message"] = "Your request successfully submitted. ";
                     TempData["toastr-type"] = "success";
 
                     return Json(new SimpleResponse() { Success = true });
@@ -2266,7 +2266,8 @@ namespace DAO_WebPortal.Controllers
                         //Central db operations
                         if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
                         {
-                            VoteDbOperations("Reputation vote for account '" + Utility.StringHelper.ShortenWallet(model.subjectaddress) + "'", "Reputation vote details <br><br> Account: " + model.subjectaddress + " <br> Action: " + model.action + " <br> Amount: " + model.amount + " <br> Document Hash: " + model.documenthash + " <br> Stake: " + model.stake, deployResult.DeployHash, userid, token, ip, port);
+                            model.subjectaddress = Utility.StringHelper.ShortenWallet(((UserDto)((dynamic)controlResult.Content).user).WalletAddress);
+                            VoteDbOperations("Reputation vote for account '" + model.subjectaddress + "'", "Reputation vote details <br><br> Account: " + model.subjectaddress + " <br> Action: " + model.action + " <br> Amount: " + model.amount + " <br> Document Hash: " + model.documenthash + " <br> Stake: " + model.stake, deployResult.DeployHash, userid, token, ip, port);
                         }
 
                         Program.chainQue.RemoveAt(Program.chainQue.IndexOf(chainAction));
@@ -2274,7 +2275,7 @@ namespace DAO_WebPortal.Controllers
                     }).Start();
 
                     //Set server side toastr because page will be redirected
-                    TempData["toastr-message"] = "Your request successfully submitted. Blockchain request can be followed from <a href='../CasperChain/ChainActionDetail?id=" + chainAction.ChainActionId + "'>here</a>";
+                    TempData["toastr-message"] = "Your request successfully submitted. ";
                     TempData["toastr-type"] = "success";
 
                     return Json(new SimpleResponse() { Success = true });
@@ -2328,7 +2329,8 @@ namespace DAO_WebPortal.Controllers
                         //Central db operations
                         if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
                         {
-                            VoteDbOperations("Slashing vote for account '" + Utility.StringHelper.ShortenWallet(model.addresstoslash) + "'", "Slashing vote details <br><br> Account: " + model.addresstoslash + " <br> Slash Ratio: " + model.slashratio + " <br> Stake: " + model.stake, deployResult.DeployHash, userid, token, ip, port);
+                            model.addresstoslash = Utility.StringHelper.ShortenWallet(((UserDto)((dynamic)controlResult.Content).user).WalletAddress);
+                            VoteDbOperations("Slashing vote for account '" + model.addresstoslash + "'", "Slashing vote details <br><br> Account: " + model.addresstoslash + " <br> Slash Ratio: " + model.slashratio + " <br> Stake: " + model.stake, deployResult.DeployHash, userid, token, ip, port);
                         }
 
                         Program.chainQue.RemoveAt(Program.chainQue.IndexOf(chainAction));
@@ -2336,7 +2338,7 @@ namespace DAO_WebPortal.Controllers
                     }).Start();
 
                     //Set server side toastr because page will be redirected
-                    TempData["toastr-message"] = "Your request successfully submitted. Blockchain request can be followed from <a href='../CasperChain/ChainActionDetail?id=" + chainAction.ChainActionId + "'>here</a>";
+                    TempData["toastr-message"] = "Your request successfully submitted. ";
                     TempData["toastr-type"] = "success";
 
                     return Json(new SimpleResponse() { Success = true });

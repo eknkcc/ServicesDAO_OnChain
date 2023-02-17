@@ -22,4 +22,14 @@
   </ItemGroup>
 
 
+  <ItemGroup>
+    <Content Remove="wwwroot\wasms\" />
+    <Content Remove="wwwroot\wasms\onboarding_request_contract.wasm" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="wwwroot\wasms\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="wwwroot\wasms\onboarding_request_contract.wasm" />
+  </ItemGroup>
 </Project>

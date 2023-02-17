@@ -214,6 +214,114 @@ namespace DAO_CasperChainService.Controllers
 
         #endregion
 
+        #region Bid Escrow
+
+        [HttpGet("BidEscrowPostJobOffer", Name = "BidEscrowPostJobOffer")]
+        public SimpleResponse BidEscrow_PostJobOffer(string expectedtimeframe, int budget)
+        {
+            try
+            {
+               
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false };
+            }
+        }
+
+        [HttpGet("BidEscrowSubmitBid", Name = "BidEscrowSubmitBid")]
+        public SimpleResponse BidEscrow_SubmitBid(int jobofferid, string time, int payment, int repstake, bool onboard)
+        {
+            try
+            {
+               
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false };
+            }
+        }
+
+        [HttpGet("BidEscrowCancelBid", Name = "BidEscrowCancelBid")]
+        public SimpleResponse BidEscrow_CancelBid(int bidid)
+        {
+            try
+            {
+               
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false };
+            }
+        }
+
+        [HttpGet("BidEscrowPickBid", Name = "BidEscrowPickBid")]
+        public SimpleResponse BidEscrow_PickBid(int jobid, int bidid)
+        {
+            try
+            {
+               
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false };
+            }
+        }
+
+        [HttpGet("BidEscrowSubmitJobProof", Name = "BidEscrowSubmitJobProof")]
+        public SimpleResponse BidEscrow_SubmitJobProof(int jobid, string documenthash)
+        {
+            try
+            {
+               
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false };
+            }
+        }
+
+        [HttpGet("BidEscrowSubmitJobProofGracePeriod", Name = "BidEscrowSubmitJobProofGracePeriod")]
+        public SimpleResponse BidEscrow_SubmitJobProofGracePeriod(int jobid, string documenthash, int repstake, bool onboard)
+        {
+            try
+            {
+               
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false };
+            }
+        }
+
+        [HttpGet("BidEscrowStartVote", Name = "BidEscrowStartVote")]
+        public SimpleResponse BidEscrow_StartVote()
+        {
+            try
+            {
+               
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false };
+            }
+        }
+
+        #endregion
 
         #region Voters
 
@@ -257,10 +365,12 @@ namespace DAO_CasperChainService.Controllers
             {
                 PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
 
+                URef testuref = new URef("uref-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff-007");
+
                 var namedArgs = new List<NamedArg>()
                 {
                     new NamedArg("reason", CLValue.String(reason)),
-                    new NamedArg("purse", CLValue.URef(purse))
+                    new NamedArg("purse", testuref)
                 };
 
                 //Create deploy object
