@@ -16,6 +16,8 @@ using Helpers.Constants;
 using System.Text;
 using Ubiety.Dns.Core;
 using System.Collections;
+using Microsoft.AspNetCore.Hosting;
+using System.IO;
 
 namespace DAO_CasperChainService.Controllers
 {
@@ -23,6 +25,7 @@ namespace DAO_CasperChainService.Controllers
     [ApiController]
     public class ContractsController : ControllerBase
     {
+
         [HttpGet("GetUserChainProfile", Name = "GetUserChainProfile")]
         public UserChainProfile GetUserChainProfile(string publicAddress)
         {
@@ -216,110 +219,110 @@ namespace DAO_CasperChainService.Controllers
 
         #region Bid Escrow
 
-        [HttpGet("BidEscrowPostJobOffer", Name = "BidEscrowPostJobOffer")]
-        public SimpleResponse BidEscrow_PostJobOffer(string expectedtimeframe, int budget)
-        {
-            try
-            {
+        //[HttpGet("BidEscrowPostJobOffer", Name = "BidEscrowPostJobOffer")]
+        //public SimpleResponse BidEscrow_PostJobOffer(string expectedtimeframe, int budget)
+        //{
+        //    try
+        //    {
                
 
-            }
-            catch (Exception ex)
-            {
-                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-                return new SimpleResponse { Success = false };
-            }
-        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+        //        return new SimpleResponse { Success = false };
+        //    }
+        //}
 
-        [HttpGet("BidEscrowSubmitBid", Name = "BidEscrowSubmitBid")]
-        public SimpleResponse BidEscrow_SubmitBid(int jobofferid, string time, int payment, int repstake, bool onboard)
-        {
-            try
-            {
+        //[HttpGet("BidEscrowSubmitBid", Name = "BidEscrowSubmitBid")]
+        //public SimpleResponse BidEscrow_SubmitBid(int jobofferid, string time, int payment, int repstake, bool onboard)
+        //{
+        //    try
+        //    {
                
 
-            }
-            catch (Exception ex)
-            {
-                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-                return new SimpleResponse { Success = false };
-            }
-        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+        //        return new SimpleResponse { Success = false };
+        //    }
+        //}
 
-        [HttpGet("BidEscrowCancelBid", Name = "BidEscrowCancelBid")]
-        public SimpleResponse BidEscrow_CancelBid(int bidid)
-        {
-            try
-            {
+        //[HttpGet("BidEscrowCancelBid", Name = "BidEscrowCancelBid")]
+        //public SimpleResponse BidEscrow_CancelBid(int bidid)
+        //{
+        //    try
+        //    {
                
 
-            }
-            catch (Exception ex)
-            {
-                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-                return new SimpleResponse { Success = false };
-            }
-        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+        //        return new SimpleResponse { Success = false };
+        //    }
+        //}
 
-        [HttpGet("BidEscrowPickBid", Name = "BidEscrowPickBid")]
-        public SimpleResponse BidEscrow_PickBid(int jobid, int bidid)
-        {
-            try
-            {
+        //[HttpGet("BidEscrowPickBid", Name = "BidEscrowPickBid")]
+        //public SimpleResponse BidEscrow_PickBid(int jobid, int bidid)
+        //{
+        //    try
+        //    {
                
 
-            }
-            catch (Exception ex)
-            {
-                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-                return new SimpleResponse { Success = false };
-            }
-        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+        //        return new SimpleResponse { Success = false };
+        //    }
+        //}
 
-        [HttpGet("BidEscrowSubmitJobProof", Name = "BidEscrowSubmitJobProof")]
-        public SimpleResponse BidEscrow_SubmitJobProof(int jobid, string documenthash)
-        {
-            try
-            {
+        //[HttpGet("BidEscrowSubmitJobProof", Name = "BidEscrowSubmitJobProof")]
+        //public SimpleResponse BidEscrow_SubmitJobProof(int jobid, string documenthash)
+        //{
+        //    try
+        //    {
                
 
-            }
-            catch (Exception ex)
-            {
-                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-                return new SimpleResponse { Success = false };
-            }
-        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+        //        return new SimpleResponse { Success = false };
+        //    }
+        //}
 
-        [HttpGet("BidEscrowSubmitJobProofGracePeriod", Name = "BidEscrowSubmitJobProofGracePeriod")]
-        public SimpleResponse BidEscrow_SubmitJobProofGracePeriod(int jobid, string documenthash, int repstake, bool onboard)
-        {
-            try
-            {
+        //[HttpGet("BidEscrowSubmitJobProofGracePeriod", Name = "BidEscrowSubmitJobProofGracePeriod")]
+        //public SimpleResponse BidEscrow_SubmitJobProofGracePeriod(int jobid, string documenthash, int repstake, bool onboard)
+        //{
+        //    try
+        //    {
                
 
-            }
-            catch (Exception ex)
-            {
-                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-                return new SimpleResponse { Success = false };
-            }
-        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+        //        return new SimpleResponse { Success = false };
+        //    }
+        //}
 
-        [HttpGet("BidEscrowStartVote", Name = "BidEscrowStartVote")]
-        public SimpleResponse BidEscrow_StartVote()
-        {
-            try
-            {
+        //[HttpGet("BidEscrowStartVote", Name = "BidEscrowStartVote")]
+        //public SimpleResponse BidEscrow_StartVote()
+        //{
+        //    try
+        //    {
                
 
-            }
-            catch (Exception ex)
-            {
-                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-                return new SimpleResponse { Success = false };
-            }
-        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+        //        return new SimpleResponse { Success = false };
+        //    }
+        //}
 
         #endregion
 
@@ -359,28 +362,53 @@ namespace DAO_CasperChainService.Controllers
         }
 
         [HttpGet("VaOnboardingVoterCreateVoting", Name = "VaOnboardingVoterCreateVoting")]
-        public SimpleResponse VaOnboarding_CreateVoting(string userwallet, string reason, string purse)
+        public SimpleResponse VaOnboarding_CreateVoting(string userwallet, string reason)
         {
             try
             {
                 PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
+                var onboardingKey = GlobalStateKey.FromString("account-hash-c6a92faa8aed465bcd34d91301d7729933d4283b0d4ac2205bb5c832b45ab8eb");
 
-                URef testuref = new URef("uref-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff-007");
+                var wasmFile = "./wwwroot/wasms/onboarding_request_contract.wasm";
+                var wasmBytes = System.IO.File.ReadAllBytes(wasmFile);
 
-                var namedArgs = new List<NamedArg>()
+                var header = new DeployHeader()
                 {
-                    new NamedArg("reason", CLValue.String(reason)),
-                    new NamedArg("purse", testuref)
+                    Account = myAccountPK,
+                    Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
+                    Ttl = 1800000,
+                    ChainName = Program._settings.ChainName,
+                    GasPrice = 3_000_000_000_000                   
                 };
+                var payment = new ModuleBytesDeployItem(3_000_000_000_000);
 
-                //Create deploy object
-                HashKey contractHash = new HashKey(Program._settings.OnboardingRequestContract);
-                var deploy = DeployTemplates.ContractCall(contractHash,
-                       "create_voting",
-                       namedArgs,
-                       myAccountPK,
-                       150_000_000_000,
-                       Program._settings.ChainName);
+                List<NamedArg> runtimeArgs = new List<NamedArg>();
+                runtimeArgs.Add(new NamedArg("onboarding_address", CLValue.Key(onboardingKey)));
+                runtimeArgs.Add(new NamedArg("cspr_amount", CLValue.U512(150_000_000_000)));
+                runtimeArgs.Add(new NamedArg("reason", CLValue.String(reason)));
+
+                var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
+
+                var deploy = new Deploy(header, payment, session);
+
+                // PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
+
+                // URef testuref = new URef("uref-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff-007");
+
+                // var namedArgs = new List<NamedArg>()
+                // {
+                //     new NamedArg("reason", CLValue.String(reason)),
+                //     new NamedArg("purse", testuref)
+                // };
+
+                // //Create deploy object
+                // HashKey contractHash = new HashKey(Program._settings.OnboardingRequestContract);
+                // var deploy = DeployTemplates.ContractCall(contractHash,
+                //        "create_voting",
+                //        namedArgs,
+                //        myAccountPK,
+                //        150_000_000_000,
+                //        Program._settings.ChainName);
 
                 //Return deploy object in JSON
                 return new SimpleResponse { Success = true, Message = deploy.SerializeToJson() };

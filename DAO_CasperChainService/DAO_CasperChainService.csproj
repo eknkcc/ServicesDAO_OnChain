@@ -25,6 +25,9 @@
   <ItemGroup>
     <Content Remove="wwwroot\wasms\" />
     <Content Remove="wwwroot\wasms\onboarding_request_contract.wasm" />
+    <Content Include="wwwroot\wasms\*">
+        <CopyToPublishDirectory>always</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\wasms\" />
