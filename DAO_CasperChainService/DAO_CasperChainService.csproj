@@ -9,6 +9,12 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'DAO_CasperChainService.Production' " />
+
+  <ItemGroup>
+    <None Include="wwwroot\jquery.js" />
+    <None Include="wwwroot\wasms\submit_onboarding_request.d" />
+    <None Include="wwwroot\wasms\submit_onboarding_request.wasm" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="10.1.1" />
     <PackageReference Include="Casper.Network.SDK" Version="1.1.1" />
@@ -19,20 +25,5 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Helpers\Helpers.csproj" />
-  </ItemGroup>
-
-
-  <ItemGroup>
-    <Content Remove="wwwroot\wasms\" />
-    <Content Remove="wwwroot\wasms\onboarding_request_contract.wasm" />
-    <Content Include="wwwroot\wasms\*">
-        <CopyToPublishDirectory>always</CopyToPublishDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="wwwroot\wasms\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="wwwroot\wasms\onboarding_request_contract.wasm" />
   </ItemGroup>
 </Project>

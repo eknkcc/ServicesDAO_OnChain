@@ -334,7 +334,7 @@ namespace DAO_CasperChainService.Controllers
             try
             {
                 PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
-
+                
                 var namedArgs = new List<NamedArg>()
                 {
                     new NamedArg("document_hash", CLValue.String(documenthash)),
@@ -367,9 +367,9 @@ namespace DAO_CasperChainService.Controllers
             try
             {
                 PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
-                var onboardingKey = GlobalStateKey.FromString("account-hash-c6a92faa8aed465bcd34d91301d7729933d4283b0d4ac2205bb5c832b45ab8eb");
+                var onboardingKey = GlobalStateKey.FromString("hash-c6a92faa8aed465bcd34d91301d7729933d4283b0d4ac2205bb5c832b45ab8eb");
 
-                var wasmFile = "./wwwroot/wasms/onboarding_request_contract.wasm";
+                var wasmFile = "./wwwroot/wasms/submit_onboarding_request.wasm";
                 var wasmBytes = System.IO.File.ReadAllBytes(wasmFile);
 
                 var header = new DeployHeader()
@@ -378,14 +378,15 @@ namespace DAO_CasperChainService.Controllers
                     Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
                     Ttl = 1800000,
                     ChainName = Program._settings.ChainName,
-                    GasPrice = 3_000_000_000_000                   
+                    GasPrice = 1                   
                 };
-                var payment = new ModuleBytesDeployItem(3_000_000_000_000);
+                var payment = new ModuleBytesDeployItem(150_000_000_000);
 
                 List<NamedArg> runtimeArgs = new List<NamedArg>();
                 runtimeArgs.Add(new NamedArg("onboarding_address", CLValue.Key(onboardingKey)));
                 runtimeArgs.Add(new NamedArg("cspr_amount", CLValue.U512(150_000_000_000)));
                 runtimeArgs.Add(new NamedArg("reason", CLValue.String(reason)));
+                runtimeArgs.Add(new NamedArg("amount", CLValue.U512(150_000_000_000)));
 
                 var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
 
