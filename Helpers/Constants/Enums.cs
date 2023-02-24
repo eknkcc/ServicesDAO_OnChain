@@ -82,7 +82,8 @@
             Failed,
             Expired,
             Rejected,
-            FailRestart
+            FailRestart,
+            ChainApprovalPending
         }
 
         /// <summary>
