@@ -40,6 +40,8 @@ namespace DAO_CasperChainService
             public string OnboardingRequestContract { get; set; }
             public string KycVoterContract { get; set; }
             public string BidEscrowContract { get; set; }
+            public string VAOnboardingPackageHash { get; set; }
+            public string BidEscrowContractPackageHash { get; set; }
 
         }
 
