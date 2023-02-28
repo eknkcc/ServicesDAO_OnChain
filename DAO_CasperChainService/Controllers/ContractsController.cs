@@ -219,42 +219,101 @@ namespace DAO_CasperChainService.Controllers
 
         #region Bid Escrow
 
-        //[HttpGet("BidEscrowPostJobOffer", Name = "BidEscrowPostJobOffer")]
-        //public SimpleResponse BidEscrow_PostJobOffer(string expectedtimeframe, int budget)
-        //{
-        //    try
-        //    {
+        [HttpGet("BidEscrowPostJobOffer", Name = "BidEscrowPostJobOffer")]
+        public SimpleResponse BidEscrow_PostJobOffer(ulong expectedtimeframe, ulong budget, string userwallet)
+        {
+            try
+            {
+                PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
+                var bidEscrowAddress = GlobalStateKey.FromString(Program._settings.BidEscrowContractPackageHash);
 
+                var wasmFile = "./wwwroot/wasms/post_job_offer.wasm";
+                var wasmBytes = System.IO.File.ReadAllBytes(wasmFile);
 
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-        //        return new SimpleResponse { Success = false };
-        //    }
-        //}
+                var header = new DeployHeader()
+                {
+                    Account = myAccountPK,
+                    Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
+                    Ttl = 1800000,
+                    ChainName = Program._settings.ChainName,
+                    GasPrice = 1
+                };
+                var payment = new ModuleBytesDeployItem(150_000_000_000);
 
-        //[HttpGet("BidEscrowSubmitBid", Name = "BidEscrowSubmitBid")]
-        //public SimpleResponse BidEscrow_SubmitBid(int jobofferid, string time, int payment, int repstake, bool onboard)
-        //{
-        //    try
-        //    {
+                List<NamedArg> runtimeArgs = new List<NamedArg>();
+                runtimeArgs.Add(new NamedArg("bid_escrow_address", CLValue.Key(bidEscrowAddress)));
+                runtimeArgs.Add(new NamedArg("cspr_amount", CLValue.U512(150_000_000_000)));
+                runtimeArgs.Add(new NamedArg("expected_timeframe", CLValue.U64(expectedtimeframe)));
+                runtimeArgs.Add(new NamedArg("budget", CLValue.U512(budget)));
 
+                var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
 
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-        //        return new SimpleResponse { Success = false };
-        //    }
-        //}
+                var deploy = new Deploy(header, payment, session);
+
+                //Return deploy object in JSON
+                return new SimpleResponse { Success = true, Message = deploy.SerializeToJson() };
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false };
+            }
+        }
+
+        [HttpGet("BidEscrowSubmitBid", Name = "BidEscrowSubmitBid")]
+        public SimpleResponse BidEscrow_SubmitBid(uint jobofferid, ulong time, ulong userpayment, ulong repstake, bool onboard, string userwallet)
+        {
+            try
+            {
+                PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
+                var bidEscrowAddress = GlobalStateKey.FromString(Program._settings.BidEscrowContractPackageHash);
+
+                var wasmFile = "./wwwroot/wasms/submit_bid.wasm";
+                var wasmBytes = System.IO.File.ReadAllBytes(wasmFile);
+
+                var header = new DeployHeader()
+                {
+                    Account = myAccountPK,
+                    Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
+                    Ttl = 1800000,
+                    ChainName = Program._settings.ChainName,
+                    GasPrice = 1
+                };
+                var payment = new ModuleBytesDeployItem(150_000_000_000);
+
+                List<NamedArg> runtimeArgs = new List<NamedArg>();
+                runtimeArgs.Add(new NamedArg("bid_escrow_address", CLValue.Key(bidEscrowAddress)));
+                runtimeArgs.Add(new NamedArg("job_offer_id", CLValue.U32(jobofferid)));
+                runtimeArgs.Add(new NamedArg("time", CLValue.U64(time)));
+                runtimeArgs.Add(new NamedArg("payment", CLValue.U512(userpayment)));
+                runtimeArgs.Add(new NamedArg("reputation_stake", CLValue.U512(repstake)));
+                runtimeArgs.Add(new NamedArg("onboard", CLValue.Bool(onboard)));
+                runtimeArgs.Add(new NamedArg("cspr_amount", CLValue.U512(150_000_000_000)));
+
+                var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
+
+                var deploy = new Deploy(header, payment, session);
+
+                //Return deploy object in JSON
+                return new SimpleResponse { Success = true, Message = deploy.SerializeToJson() };
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false };
+            }
+        }
 
         //[HttpGet("BidEscrowCancelBid", Name = "BidEscrowCancelBid")]
-        //public SimpleResponse BidEscrow_CancelBid(int bidid)
+        //public SimpleResponse BidEscrow_CancelBid(int bidid, string userwallet)
         //{
         //    try
         //    {
 
+        //        //Return deploy object in JSON
+        //        return new SimpleResponse { Success = true, Message = deploy.SerializeToJson() };
 
         //    }
         //    catch (Exception ex)
@@ -264,20 +323,47 @@ namespace DAO_CasperChainService.Controllers
         //    }
         //}
 
-        //[HttpGet("BidEscrowPickBid", Name = "BidEscrowPickBid")]
-        //public SimpleResponse BidEscrow_PickBid(int jobid, int bidid)
-        //{
-        //    try
-        //    {
+        [HttpGet("BidEscrowPickBid", Name = "BidEscrowPickBid")]
+        public SimpleResponse BidEscrow_PickBid(uint jobid, uint bidid, string userwallet)
+        {
+            try
+            {
+                PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
+                var bidEscrowAddress = GlobalStateKey.FromString(Program._settings.BidEscrowContractPackageHash);
 
+                var wasmFile = "./wwwroot/wasms/pick_bid.wasm";
+                var wasmBytes = System.IO.File.ReadAllBytes(wasmFile);
 
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-        //        return new SimpleResponse { Success = false };
-        //    }
-        //}
+                var header = new DeployHeader()
+                {
+                    Account = myAccountPK,
+                    Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
+                    Ttl = 1800000,
+                    ChainName = Program._settings.ChainName,
+                    GasPrice = 1
+                };
+                var payment = new ModuleBytesDeployItem(150_000_000_000);
+
+                List<NamedArg> runtimeArgs = new List<NamedArg>();
+                runtimeArgs.Add(new NamedArg("bid_escrow_address", CLValue.Key(bidEscrowAddress)));
+                runtimeArgs.Add(new NamedArg("cspr_amount", CLValue.U512(150_000_000_000)));
+                runtimeArgs.Add(new NamedArg("job_offer_id", CLValue.U32(jobid)));
+                runtimeArgs.Add(new NamedArg("bid_id", CLValue.U32(bidid)));
+
+                var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
+
+                var deploy = new Deploy(header, payment, session);
+
+                //Return deploy object in JSON
+                return new SimpleResponse { Success = true, Message = deploy.SerializeToJson() };
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false };
+            }
+        }
 
         //[HttpGet("BidEscrowSubmitJobProof", Name = "BidEscrowSubmitJobProof")]
         //public SimpleResponse BidEscrow_SubmitJobProof(int jobid, string documenthash)
@@ -294,20 +380,49 @@ namespace DAO_CasperChainService.Controllers
         //    }
         //}
 
-        //[HttpGet("BidEscrowSubmitJobProofGracePeriod", Name = "BidEscrowSubmitJobProofGracePeriod")]
-        //public SimpleResponse BidEscrow_SubmitJobProofGracePeriod(int jobid, string documenthash, int repstake, bool onboard)
-        //{
-        //    try
-        //    {
+        [HttpGet("BidEscrowSubmitJobProofGracePeriod", Name = "BidEscrowSubmitJobProofGracePeriod")]
+        public SimpleResponse BidEscrow_SubmitJobProofGracePeriod(uint jobid, string proof, uint repstake, bool onboard, string userwallet)
+        {
+            try
+            {
+                PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
+                var bidEscrowAddress = GlobalStateKey.FromString(Program._settings.BidEscrowContractPackageHash);
 
+                var wasmFile = "./wwwroot/wasms/submit_job_proof_during_grace_period.wasm";
+                var wasmBytes = System.IO.File.ReadAllBytes(wasmFile);
 
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-        //        return new SimpleResponse { Success = false };
-        //    }
-        //}
+                var header = new DeployHeader()
+                {
+                    Account = myAccountPK,
+                    Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
+                    Ttl = 1800000,
+                    ChainName = Program._settings.ChainName,
+                    GasPrice = 1
+                };
+                var payment = new ModuleBytesDeployItem(150_000_000_000);
+
+                List<NamedArg> runtimeArgs = new List<NamedArg>();
+                runtimeArgs.Add(new NamedArg("bid_escrow_address", CLValue.Key(bidEscrowAddress)));
+                runtimeArgs.Add(new NamedArg("cspr_amount", CLValue.U512(150_000_000_000)));
+                runtimeArgs.Add(new NamedArg("job_id", CLValue.U32(jobid)));
+                runtimeArgs.Add(new NamedArg("proof", CLValue.String(proof)));
+                runtimeArgs.Add(new NamedArg("reputation_stake", CLValue.U512(repstake)));
+                runtimeArgs.Add(new NamedArg("onboard", CLValue.Bool(onboard)));
+
+                var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
+
+                var deploy = new Deploy(header, payment, session);
+
+                //Return deploy object in JSON
+                return new SimpleResponse { Success = true, Message = deploy.SerializeToJson() };
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false };
+            }
+        }
 
         //[HttpGet("BidEscrowStartVote", Name = "BidEscrowStartVote")]
         //public SimpleResponse BidEscrow_StartVote()
@@ -333,40 +448,40 @@ namespace DAO_CasperChainService.Controllers
             try
             {
                 string contractAddress = "";
-                if(votetype == VoteTypes.Simple)
+                if (votetype == VoteTypes.Simple)
                 {
                     contractAddress = Program._settings.SimpleVoterContract;
                 }
-                else if(votetype == VoteTypes.Governance)
+                else if (votetype == VoteTypes.Governance)
                 {
                     contractAddress = Program._settings.RepoVoterContract;
                 }
-                else if(votetype == VoteTypes.Admin)
+                else if (votetype == VoteTypes.Admin)
                 {
                     contractAddress = Program._settings.AdminContract;
                 }
-                else if(votetype == VoteTypes.JobCompletion)
+                else if (votetype == VoteTypes.JobCompletion)
                 {
                     contractAddress = Program._settings.BidEscrowContract;
                 }
-                else if(votetype == VoteTypes.VAOnboarding)
+                else if (votetype == VoteTypes.VAOnboarding)
                 {
-                    contractAddress = Program._settings.OnboardingRequestContract;           
+                    contractAddress = Program._settings.OnboardingRequestContract;
                 }
-                else if(votetype == VoteTypes.KYC)
+                else if (votetype == VoteTypes.KYC)
                 {
                     contractAddress = Program._settings.KycVoterContract;
                 }
-                else if(votetype == VoteTypes.Reputation)
+                else if (votetype == VoteTypes.Reputation)
                 {
                     contractAddress = Program._settings.ReputationVoterContract;
                 }
-                else if(votetype == VoteTypes.Slashing)
+                else if (votetype == VoteTypes.Slashing)
                 {
                     contractAddress = Program._settings.SlashingVoterContract;
                 }
 
-                PublicKey myAccountPK = PublicKey.FromHexString(userwallet);           
+                PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
 
                 var namedArgs = new List<NamedArg>()
                 {
@@ -402,7 +517,7 @@ namespace DAO_CasperChainService.Controllers
             try
             {
                 PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
-                
+
                 var namedArgs = new List<NamedArg>()
                 {
                     new NamedArg("document_hash", CLValue.String(documenthash)),
@@ -435,7 +550,7 @@ namespace DAO_CasperChainService.Controllers
             try
             {
                 PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
-                var onboardingKey = GlobalStateKey.FromString("hash-c6a92faa8aed465bcd34d91301d7729933d4283b0d4ac2205bb5c832b45ab8eb");
+                var onboardingKey = GlobalStateKey.FromString(Program._settings.VAOnboardingPackageHash);
 
                 var wasmFile = "./wwwroot/wasms/submit_onboarding_request.wasm";
                 var wasmBytes = System.IO.File.ReadAllBytes(wasmFile);
@@ -446,7 +561,7 @@ namespace DAO_CasperChainService.Controllers
                     Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
                     Ttl = 1800000,
                     ChainName = Program._settings.ChainName,
-                    GasPrice = 1                   
+                    GasPrice = 1
                 };
                 var payment = new ModuleBytesDeployItem(150_000_000_000);
 
@@ -459,25 +574,6 @@ namespace DAO_CasperChainService.Controllers
                 var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
 
                 var deploy = new Deploy(header, payment, session);
-
-                // PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
-
-                // URef testuref = new URef("uref-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff-007");
-
-                // var namedArgs = new List<NamedArg>()
-                // {
-                //     new NamedArg("reason", CLValue.String(reason)),
-                //     new NamedArg("purse", testuref)
-                // };
-
-                // //Create deploy object
-                // HashKey contractHash = new HashKey(Program._settings.OnboardingRequestContract);
-                // var deploy = DeployTemplates.ContractCall(contractHash,
-                //        "create_voting",
-                //        namedArgs,
-                //        myAccountPK,
-                //        150_000_000_000,
-                //        Program._settings.ChainName);
 
                 //Return deploy object in JSON
                 return new SimpleResponse { Success = true, Message = deploy.SerializeToJson() };
@@ -497,7 +593,7 @@ namespace DAO_CasperChainService.Controllers
             {
                 PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
 
-                if(string.IsNullOrEmpty(repo))
+                if (string.IsNullOrEmpty(repo))
                 {
                     repo = "13216e15d887f1963af7685fc683b4e571a666a78965eace725cf5f4ba08dd96";
                 }
