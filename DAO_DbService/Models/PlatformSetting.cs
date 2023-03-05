@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace DAO_DbService.Models
 {
+    //THIS TABLE IS DEPRECATED DUE TO ONCHAIN TRANSITION (Follow "DaoSetting" instead)
     public class PlatformSetting
     {
         [Key]

@@ -55,8 +55,6 @@ namespace DAO_WebPortal
         {
             var config = configuration.GetSection("PlatformSettings");
             config.Bind(_settings);
-
-            LoadDaoSettings(null, null);
         }
 
 
@@ -68,6 +66,8 @@ namespace DAO_WebPortal
             Helpers.Encryption.EncryptionKey = Program._settings.EncryptionKey;
 
             monitizer = new Monitizer(_settings.RabbitMQUrl, _settings.RabbitMQUsername, _settings.RabbitMQPassword);
+
+            LoadDaoSettings(null, null);
 
             ApplicationStartResult rabbitControl = rabbitMq.Initialize(_settings.RabbitMQUrl, _settings.RabbitMQUsername, _settings.RabbitMQPassword);
             if (!rabbitControl.Success)
@@ -87,110 +87,36 @@ namespace DAO_WebPortal
         ///  Loads platform settings from db if exists.
         /// </summary>
         public static void LoadDaoSettings(Object source, ElapsedEventArgs e)
-        {            
+        {
             //Ensure db service is up and running
             Thread.Sleep(10000);
 
-            //Get latest platform settings (DAO variables from db)
-            string settingsJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/PublicActions/GetLatestSetting");
-            //If custom settings found
-            if (!string.IsNullOrEmpty(settingsJson))
+            try
             {
-                PlatformSettingDto settings = Serializers.DeserializeJson<PlatformSettingDto>(settingsJson);
-
-                if (!string.IsNullOrEmpty(settings.DosCurrencies))
+                //Get latest platform settings (DAO variables from db)
+                string settingsJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/PublicActions/GetAllSettings");
+                //If custom settings found
+                if (!string.IsNullOrEmpty(settingsJson))
                 {
-                    Program._settings.DosCurrencies = settings.DosCurrencies.Split(',').ToList();
-                }
-
-                if (!string.IsNullOrEmpty(settings.DosFees))
-                {
-                    Program._settings.DosFees = settings.DosFees.Split(',').ToList().Select(x => double.Parse(x)).ToList();
-                }
-
-                if (settings.DefaultPolicingRate != null)
-                {
-                    Program._settings.DefaultPolicingRate = Convert.ToDouble(settings.DefaultPolicingRate);
-                }
-
-                if (settings.MinPolicingRate != null)
-                {
-                    Program._settings.MinPolicingRate = Convert.ToDouble(settings.MinPolicingRate);
-                }
-
-                if (settings.MaxPolicingRate != null)
-                {
-                    Program._settings.MaxPolicingRate = Convert.ToDouble(settings.MaxPolicingRate);
-                }
-
-                Program._settings.ForumKYCRequired = settings.ForumKYCRequired;
-
-                if (settings.QuorumRatio != null)
-                {
-                    Program._settings.QuorumRatio = Convert.ToDouble(settings.QuorumRatio);
-                }
-
-                if (settings.InternalAuctionTime != null)
-                {
-                    Program._settings.InternalAuctionTime = Convert.ToInt32(settings.InternalAuctionTime);
-                }
-
-                if (settings.PublicAuctionTime != null)
-                {
-                    Program._settings.PublicAuctionTime = Convert.ToInt32(settings.PublicAuctionTime);
-                }
-
-                if (!string.IsNullOrEmpty(settings.AuctionTimeType))
-                {
-                    Program._settings.AuctionTimeType = settings.AuctionTimeType;
-                }
-
-                if (settings.VotingTime != null)
-                {
-                    Program._settings.VotingTime = Convert.ToInt32(settings.VotingTime);
-                }
-
-                if (!string.IsNullOrEmpty(settings.VotingTimeType))
-                {
-                    Program._settings.VotingTimeType = settings.VotingTimeType;
-                }
-
-                if (settings.ReputationConversionRate != null)
-                {
-                    Program._settings.ReputationConversionRate = Convert.ToDouble(settings.ReputationConversionRate);
-                }
-
-                if (settings.SimpleVotingTime != null)
-                {
-                    Program._settings.SimpleVotingTime = Convert.ToInt32(settings.SimpleVotingTime);
+                    List<DaoSettingDto> settings = Serializers.DeserializeJson<List<DaoSettingDto>>(settingsJson);
+                    if (settings.Count > 0)
+                    {
+                        Program._settings.DaoSettings = settings;
+                    }
+                    else
+                    {
+                        monitizer.startSuccesful = -1;
+                    }
                 }
                 else
                 {
-                    Program._settings.SimpleVotingTime = Convert.ToInt32(settings.VotingTime);
+                    monitizer.startSuccesful = -1;
                 }
-
-                if (!string.IsNullOrEmpty(settings.SimpleVotingTimeType))
-                {
-                    Program._settings.SimpleVotingTimeType = settings.SimpleVotingTimeType;
-                }
-                else
-                {
-                    Program._settings.SimpleVotingTimeType = settings.VotingTimeType;
-                }
-
-                if (settings.GovernancePaymentRatio != null)
-                {
-                    Program._settings.GovernancePaymentRatio = Convert.ToDouble(settings.GovernancePaymentRatio);
-                }
-
-                if (!string.IsNullOrEmpty(settings.GovernanceWallet))
-                {
-                    Program._settings.GovernanceWallet = settings.GovernanceWallet;
-                }
-
-                Program._settings.VAOnboardingSimpleVote = settings.VAOnboardingSimpleVote;        
-
-                Program._settings.DistributePaymentWithoutVote = settings.DistributePaymentWithoutVote;   
+            }
+            catch(Exception ex)
+            {
+                monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                monitizer.startSuccesful = -1;
             }
         }
 
@@ -230,7 +156,7 @@ namespace DAO_WebPortal
             {
                 options.IdleTimeout = TimeSpan.FromHours(1);
                 options.Cookie.HttpOnly = true;
-                options.Cookie.IsEssential = true;                
+                options.Cookie.IsEssential = true;
             });
 
             //services.AddHsts(options =>

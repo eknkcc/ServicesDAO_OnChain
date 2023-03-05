@@ -3,14 +3,16 @@ using System;
 using DAO_VotingEngine.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DAO_VotingEngine.Migrations
 {
     [DbContext(typeof(dao_votesdb_context))]
-    partial class dao_votesdb_contextModelSnapshot : ModelSnapshot
+    [Migration("20230305135925_BlockchainVoteID_added")]
+    partial class BlockchainVoteID_added
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

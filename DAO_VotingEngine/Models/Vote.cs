@@ -17,5 +17,7 @@ namespace DAO_VotingEngine.Models
         public StakeType Direction { get; set; }
         public string DeployHash { get; set; }
         public string WalletAddress { get; set; }
+        public int? BlockchainVoteID { get; set; }
+
     }
 }

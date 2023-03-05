@@ -30,63 +30,8 @@ namespace DAO_WebPortal
 
             public string EncryptionKey { get; set; }
 
-            //DAO VARIABLES
-
-            //Dos fee currencies
-            public List<string> DosCurrencies { get; set; }
-
-            //Dos fee list (The amount that people pay to be post a job)
-            public List<double> DosFees { get; set; }
-
-            //Default policing rate (What % goes to the DAO Members vs what % goes to the OP)
-            public double DefaultPolicingRate { get; set; }
-
-            //Min policing rate (What is the minimum policing rate that a user can set on a job�s price - non-retroactive)
-            public double MinPolicingRate { get; set; }
-
-            //Max policing rate (What is the maximum policing rate that a user can set on a job�s price - non-retroactive)
-            public double MaxPolicingRate { get; set; }
-
-            //KYC for normal forum user (Do forum users need to do KYC)
-            public bool ForumKYCRequired { get; set; }
-
-            //Quorum ratio (% of quorum needed to pass informal and formal votes)
-            public double QuorumRatio { get; set; }
-
-            //Timeframe for internal auction
-            public int InternalAuctionTime { get; set; }
-
-            //Timeframe for external auction
-            public int PublicAuctionTime { get; set; }
-
-            //Time type for auction (Weeks, days, minutes)
-            public string AuctionTimeType { get; set; }
-
-            //Timeframe for votings
-            public int VotingTime { get; set; }
-
-            //Time type for votings (Weeks, days, minutes)
-            public string VotingTimeType { get; set; }
-
-            //Cost -> Reputation conversion rate (Specifies the conversion rate from a job�s bid price amount when minting reputation for a proposal to the system)
-            public double ReputationConversionRate { get; set; }
-            
-            //Determines if a new user can be onboarded as a VA with a simple vote
-            public bool VAOnboardingSimpleVote { get; set; }
-
-            //Timeframe for simple votings
-            public double SimpleVotingTime { get; set; }
-            
-            //Time type for simple votings (Weeks, days, minutes)
-            public string SimpleVotingTimeType { get; set; }
-
-            //If true -> All VAs get payment from completed jobs according to their total reputation without participation to the vote
-            public bool DistributePaymentWithoutVote { get; set; }
-
-            //Ratio of the governance payments for jobs
-            public double? GovernancePaymentRatio { get; set; }
-            //Governance wallet address
-            public string GovernanceWallet { get; set; }
+            //DAO Settings 
+            public List<DaoSettingDto> DaoSettings { get; set; } = new List<DaoSettingDto>();
 
             //CHAIN SETTINGS
             public Blockchain? DaoBlockchain { get; set; }

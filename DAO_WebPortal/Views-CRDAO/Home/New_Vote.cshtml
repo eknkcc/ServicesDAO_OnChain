@@ -128,170 +128,6 @@
                     <label class="mb-2"><b><i class="fas fa-star"></i> Reputation Stake</b></label>
                     <input type="text" class="form-control" id="repostake" placeholder="Stake">
                 </div>
-
-                <table class="table table-striped table-hover mt-3 d-none">
-                    <thead>
-                        <tr>
-                            <th scope="col">Name</th>
-                            <th scope="col">Value</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Default Policing Rate</td>
-                            <td>
-                                <input type="text" class="form-control" id="DefaultPolicingRate"
-                                       value="@Program._settings.DefaultPolicingRate" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Max Policing Rate</td>
-                            <td>
-                                <input type="text" class="form-control" id="MaxPolicingRate"
-                                       value="@Program._settings.MaxPolicingRate" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Min Policing Rate</td>
-                            <td>
-                                <input type="text" class="form-control" id="MinPolicingRate"
-                                       value="@Program._settings.MinPolicingRate" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Forum KYC Required</td>
-                            <td>
-                                <select class="form-control" id="ForumKYCRequired"
-                                        value="@Convert.ToInt32(Program._settings.ForumKYCRequired)">
-                                    <!option value="1" @(Program._settings.ForumKYCRequired == true ? "selected" : "")>
-                                    True</!option>
-                                    <!option value="-1" @(Program._settings.ForumKYCRequired == false ? "selected" :
-                                    "")>False</!option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Quorum Ratio</td>
-                            <td>
-                                <input type="text" class="form-control" id="QuorumRatio"
-                                       value="@Program._settings.QuorumRatio" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Internal Auction Time</td>
-                            <td>
-                                <input type="text" class="form-control" id="InternalAuctionTime"
-                                       value="@Program._settings.InternalAuctionTime" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Public Auction Time</td>
-                            <td>
-                                <input type="text" class="form-control" id="PublicAuctionTime"
-                                       value="@Program._settings.PublicAuctionTime" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Auction Time Type</td>
-                            <td>
-                                <select class="form-control" id="AuctionTimeType">
-                                    <!option @(Program._settings.AuctionTimeType == "week" ? "selected" : "")
-                                    value="week">Week</!option>
-                                    <!option @(Program._settings.AuctionTimeType == "day" ? "selected" : "")
-                                    value="day">Day</!option>
-                                    <!option @(Program._settings.AuctionTimeType == "minute" ? "selected" : "")
-                                    value="minute">Minute</!option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Voting Time</td>
-                            <td>
-                                <input type="text" class="form-control" id="VotingTime"
-                                       value="@Program._settings.VotingTime" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Voting Time Type</td>
-                            <td>
-                                <select class="form-control" id="VotingTimeType"
-                                        value="@Program._settings.VotingTimeType">
-                                    <!option @(Program._settings.VotingTimeType == "week" ? "selected" : "")
-                                    value="week">Week</!option>
-                                    <!option @(Program._settings.VotingTimeType == "day" ? "selected" : "") value="day">
-                                    Day</!option>
-                                    <!option @(Program._settings.VotingTimeType == "minute" ? "selected" : "")
-                                    value="minute">Minute</!option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Reputation Conversion Rate</td>
-                            <td>
-                                <input type="text" class="form-control" id="ReputationConversionRate"
-                                       value="@Program._settings.ReputationConversionRate" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>VA Onboarding Simple Vote</td>
-                            <td>
-                                <select class="form-control" id="VAOnboardingSimpleVote"
-                                        value="@Program._settings.VAOnboardingSimpleVote">
-                                    <!option @(Program._settings.VAOnboardingSimpleVote == true ? "selected" : "")
-                                    value="1">True</!option>
-                                    <!option @(Program._settings.VAOnboardingSimpleVote == false ? "selected" : "")
-                                    value="-1">False</!option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Simple Voting Time</td>
-                            <td>
-                                <input type="text" class="form-control" id="SimpleVotingTime"
-                                       value="@Program._settings.SimpleVotingTime" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Simple Voting Time Type</td>
-                            <td>
-                                <select class="form-control" id="SimpleVotingTimeType"
-                                        value="@Program._settings.SimpleVotingTimeType">
-                                    <!option @(Program._settings.SimpleVotingTimeType == "week" ? "selected" : "")
-                                    value="week">Week</!option>
-                                    <!option @(Program._settings.SimpleVotingTimeType == "day" ? "selected" : "")
-                                    value="day">Day</!option>
-                                    <!option @(Program._settings.SimpleVotingTimeType == "minute" ? "selected" : "")
-                                    value="minute">Minute</!option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Payment Without Participation</td>
-                            <td>
-                                <select class="form-control" id="DistributePaymentWithoutVote"
-                                        value="@Program._settings.DistributePaymentWithoutVote">
-                                    <!option @(Program._settings.DistributePaymentWithoutVote == true ? "selected" : "")
-                                    value="1">True</!option>
-                                    <!option @(Program._settings.DistributePaymentWithoutVote == false ? "selected" :
-                                    "") value="-1">False</!option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Governance Fee Ratio</td>
-                            <td>
-                                <input type="text" class="form-control" id="GovernancePaymentRatio"
-                                       value="@Program._settings.GovernancePaymentRatio" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Governance Wallet</td>
-                            <td>
-                                <input type="text" class="form-control" id="GovernanceWallet" value="@Program._settings.GovernanceWallet" />
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
             </div>
         </div>
         <div class="voteInputSection d-none" id="kycDiv">
@@ -362,7 +198,7 @@
 
             <div class="form-group mb-4">
                 <label class="mb-2"><b><i class="fas fa-percentage"></i> Slash Ratio</b></label>
-                <input type="text" class="form-control" id="slashraito" placeholder="Slash Ratio">
+                <input type="text" class="form-control" id="slashraito" placeholder="Slash ratio. (Eg. 0.05 for 5%)">
             </div>
             <div class="form-group mb-4">
                 <label class="mb-2"><b><i class="fas fa-star"></i> Stake</b></label>
@@ -676,7 +512,7 @@
 
             //Reputation Vote parameters
             var address_to_slash = $("#slashaddress").val();
-            var slash_ratio = $("#slashratio").val();
+            var slash_ratio = $("#slashratio").val() * 1000;
             var stake = $("#slashstake").val();
             var slashusername = $("#slashusername").val();
 

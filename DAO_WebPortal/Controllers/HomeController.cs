@@ -433,7 +433,7 @@ namespace DAO_WebPortal.Controllers
             try
             {
                 //KYC Control
-                if (Program._settings.ForumKYCRequired && HttpContext.Session.GetString("KYCStatus") != "true")
+                if (Convert.ToBoolean(Program._settings.DaoSettings.First(x=>x.Key == "ForumKycRequired").Value) && HttpContext.Session.GetString("KYCStatus") != "true")
                 {
                     result.Success = false;
                     result.Message = "Please complete the KYC from User Profile to add a new comment";
@@ -785,7 +785,7 @@ namespace DAO_WebPortal.Controllers
             try
             {
                 //KYC Control
-                if (Program._settings.ForumKYCRequired && HttpContext.Session.GetString("KYCStatus") != "true")
+                if (Convert.ToBoolean(Program._settings.DaoSettings.First(x => x.Key == "ForumKycRequired").Value) && HttpContext.Session.GetString("KYCStatus") != "true")
                 {
                     result.Success = false;
                     result.Message = "Please complete the KYC from User Profile";
@@ -915,19 +915,11 @@ namespace DAO_WebPortal.Controllers
                     Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "User added a new job (Restart) #" + model.JobID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
 
                     //Set auction end dates
-                    DateTime internalAuctionEndDate = DateTime.Now.AddDays(Program._settings.InternalAuctionTime);
-                    DateTime publicAuctionEndDate = DateTime.Now.AddDays(Program._settings.InternalAuctionTime + Program._settings.PublicAuctionTime);
+                    int InternalAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "InternalAuctionTime").Value);
+                    int PublicAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "PublicAuctionTime").Value);
 
-                    if (Program._settings.AuctionTimeType == "week")
-                    {
-                        internalAuctionEndDate = DateTime.Now.AddDays(Program._settings.InternalAuctionTime * 7);
-                        publicAuctionEndDate = DateTime.Now.AddDays((Program._settings.InternalAuctionTime + Program._settings.PublicAuctionTime) * 7);
-                    }
-                    else if (Program._settings.AuctionTimeType == "minute")
-                    {
-                        internalAuctionEndDate = DateTime.Now.AddMinutes(Program._settings.InternalAuctionTime);
-                        publicAuctionEndDate = DateTime.Now.AddMinutes(Program._settings.InternalAuctionTime + Program._settings.PublicAuctionTime);
-                    }
+                    DateTime internalAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime);
+                    DateTime publicAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime + PublicAuctionTime);
 
                     AuctionDto AuctionModel = new AuctionDto()
                     {
@@ -1316,12 +1308,16 @@ namespace DAO_WebPortal.Controllers
                         SimpleResponse stakeReleaseResponse = Helpers.Serializers.DeserializeJson<SimpleResponse>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationStake/ReleaseStakes?referenceProcessID=" + auction.AuctionID + "&reftype=" + Helpers.Constants.Enums.StakeType.Bid, HttpContext.Session.GetString("Token")));
 
                         //Mint new reputation with (ReputationConversionRate(DAO Variable) * Bid Price)
-                        UserReputationStakeDto stake = new UserReputationStakeDto() { UserID = auctionBid.UserId, Amount = auctionBid.Price * Program._settings.ReputationConversionRate, CreateDate = DateTime.Now, Type = StakeType.Mint, ReferenceID = auction.JobID, ReferenceProcessID = auction.JobID, Status = ReputationStakeStatus.Staked };
+
+                        double ReputationConversionRate = Convert.ToDouble(Program._settings.DaoSettings.First(x => x.Key == "ReputationConversionRate").Value) / Convert.ToDouble(1000);
+                        double DefaultPolicingRate = Convert.ToDouble(Program._settings.DaoSettings.First(x => x.Key == "DefaultPolicingRate").Value) / Convert.ToDouble(1000);
+
+                        UserReputationStakeDto stake = new UserReputationStakeDto() { UserID = auctionBid.UserId, Amount = auctionBid.Price * ReputationConversionRate, CreateDate = DateTime.Now, Type = StakeType.Mint, ReferenceID = auction.JobID, ReferenceProcessID = auction.JobID, Status = ReputationStakeStatus.Staked };
 
                         //If winner is external user and doesnt want to get onboarded as VA.
                         if (auctionBid.VaOnboarding == false && userModel.UserType == Enums.UserIdentityType.Associate.ToString())
                         {
-                            stake.Amount = auctionBid.Price * Program._settings.DefaultPolicingRate * Program._settings.ReputationConversionRate;
+                            stake.Amount = auctionBid.Price * DefaultPolicingRate * ReputationConversionRate;
                         }
 
                         //Post model to ApiGateway
@@ -1588,6 +1584,10 @@ namespace DAO_WebPortal.Controllers
                 //Parse response
                 UserDto userModel = Helpers.Serializers.DeserializeJson<UserDto>(userJson);
 
+                double DefaultPolicingRate = Convert.ToDouble(Program._settings.DaoSettings.First(x => x.Key == "DefaultPolicingRate").Value) / Convert.ToDouble(1000);
+                double InformalQuorumRatio = Convert.ToDouble(Program._settings.DaoSettings.First(x => x.Key == "InformalQuorumRatio").Value) / Convert.ToDouble(1000);
+                int InformalVotingTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "InformalVotingTime").Value);
+
                 //Start informal voting
                 VotingDto informalVoting = new VotingDto();
                 informalVoting.JobID = jobid;
@@ -1600,20 +1600,11 @@ namespace DAO_WebPortal.Controllers
                 else
                 {
                     //Job doer will earn reputation and will be onboarded as VA
-                    informalVoting.PolicingRate = Program._settings.DefaultPolicingRate;
+                    informalVoting.PolicingRate = DefaultPolicingRate;
                 }
-                informalVoting.QuorumRatio = Program._settings.QuorumRatio;
+                informalVoting.QuorumRatio = InformalQuorumRatio;
                 informalVoting.Type = Enums.VoteTypes.JobCompletion;
-                informalVoting.EndDate = DateTime.Now.AddDays(Program._settings.VotingTime);
-
-                if (Program._settings.VotingTimeType == "week")
-                {
-                    informalVoting.EndDate = DateTime.Now.AddDays(Program._settings.VotingTime * 7);
-                }
-                else if (Program._settings.VotingTimeType == "minute")
-                {
-                    informalVoting.EndDate = DateTime.Now.AddMinutes(Program._settings.VotingTime);
-                }
+                informalVoting.EndDate = DateTime.Now.AddSeconds(InformalVotingTime);
 
                 //Get related job post
                 var jobJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/GetId?id=" + jobid, HttpContext.Session.GetString("Token"));
@@ -1624,7 +1615,7 @@ namespace DAO_WebPortal.Controllers
                 //Eligible user count = VA Count
                 informalVoting.EligibleUserCount = daoMemberCount;
                 //Quorum count is calculated with total user count - 2(job poster, job doer)
-                informalVoting.QuorumCount = Convert.ToInt32(Math.Ceiling(Program._settings.QuorumRatio * Convert.ToDouble(informalVoting.EligibleUserCount)));
+                informalVoting.QuorumCount = Convert.ToInt32(Math.Ceiling(InformalQuorumRatio * Convert.ToDouble(informalVoting.EligibleUserCount)));
 
                 string jsonResult = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Voting/Voting/StartInformalVoting", Helpers.Serializers.SerializeJson(informalVoting), HttpContext.Session.GetString("Token"));
                 res = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResult);
@@ -1939,31 +1930,28 @@ namespace DAO_WebPortal.Controllers
             {
                 if (jobPostModel != null && jobPostModel.JobID > 0)
                 {
+
+                    double DefaultPolicingRate = Convert.ToDouble(Program._settings.DaoSettings.First(x => x.Key == "DefaultPolicingRate").Value) / Convert.ToDouble(1000);
+                    double InformalQuorumRatio = Convert.ToDouble(Program._settings.DaoSettings.First(x => x.Key == "InformalQuorumRatio").Value) / Convert.ToDouble(1000);
+                    int InformalVotingTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "InformalVotingTime").Value);
+
+
                     //Start informal voting
                     VotingDto informalVoting = new VotingDto();
                     informalVoting.JobID = jobPostModel.JobID;
                     informalVoting.StartDate = DateTime.Now;
-                    informalVoting.PolicingRate = Program._settings.DefaultPolicingRate;
-                    informalVoting.QuorumRatio = Program._settings.QuorumRatio;
+                    informalVoting.PolicingRate = DefaultPolicingRate;
+                    informalVoting.QuorumRatio = InformalQuorumRatio;
                     informalVoting.Type = Enums.VoteTypes.KYC;
                     informalVoting.DeployHash = deployHash;
-                    informalVoting.EndDate = DateTime.Now.AddDays(Program._settings.SimpleVotingTime);
-
-                    if (Program._settings.SimpleVotingTimeType == "week")
-                    {
-                        informalVoting.EndDate = DateTime.Now.AddDays(Program._settings.SimpleVotingTime * 7);
-                    }
-                    else if (Program._settings.SimpleVotingTimeType == "minute")
-                    {
-                        informalVoting.EndDate = DateTime.Now.AddMinutes(Program._settings.SimpleVotingTime);
-                    }
+                    informalVoting.EndDate = DateTime.Now.AddSeconds(InformalVotingTime);
 
                     //Get total dao member count
                     int daoMemberCount = Convert.ToInt32(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Users/GetCount?type=" + UserIdentityType.VotingAssociate, token));
                     //Eligible user count = VA Count - 1 (Job Doer)
                     informalVoting.EligibleUserCount = daoMemberCount - 1;
                     //Quorum count is calculated with total user count - 2(job poster, job doer)
-                    informalVoting.QuorumCount = Convert.ToInt32(Program._settings.QuorumRatio * Convert.ToDouble(informalVoting.EligibleUserCount));
+                    informalVoting.QuorumCount = Convert.ToInt32(InformalQuorumRatio * Convert.ToDouble(informalVoting.EligibleUserCount));
 
                     string jsonResult = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Voting/Voting/StartInformalVoting", Helpers.Serializers.SerializeJson(informalVoting), token);
                     var voteResult = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResult);
@@ -2626,19 +2614,12 @@ namespace DAO_WebPortal.Controllers
                 //Set Auction model
 
                 //Set auction end dates
-                DateTime internalAuctionEndDate = DateTime.Now.AddDays(Program._settings.InternalAuctionTime);
-                DateTime publicAuctionEndDate = DateTime.Now.AddDays(Program._settings.InternalAuctionTime + Program._settings.PublicAuctionTime);
+                int InternalAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "InternalAuctionTime").Value);
+                int PublicAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "PublicAuctionTime").Value);
 
-                if (Program._settings.AuctionTimeType == "week")
-                {
-                    internalAuctionEndDate = DateTime.Now.AddDays(Program._settings.InternalAuctionTime * 7);
-                    publicAuctionEndDate = DateTime.Now.AddDays((Program._settings.InternalAuctionTime + Program._settings.PublicAuctionTime) * 7);
-                }
-                else if (Program._settings.AuctionTimeType == "minute")
-                {
-                    internalAuctionEndDate = DateTime.Now.AddMinutes(Program._settings.InternalAuctionTime);
-                    publicAuctionEndDate = DateTime.Now.AddMinutes(Program._settings.InternalAuctionTime + Program._settings.PublicAuctionTime);
-                }
+                DateTime internalAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime);
+                DateTime publicAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime + PublicAuctionTime);
+
 
                 AuctionDto AuctionModel = new AuctionDto()
                 {
@@ -2818,19 +2799,11 @@ namespace DAO_WebPortal.Controllers
                     //Set Auction model
 
                     //Set auction end dates
-                    DateTime internalAuctionEndDate = DateTime.Now.AddDays(Program._settings.InternalAuctionTime);
-                    DateTime publicAuctionEndDate = DateTime.Now.AddDays(Program._settings.InternalAuctionTime + Program._settings.PublicAuctionTime);
+                    int InternalAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "InternalAuctionTime").Value);
+                    int PublicAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "PublicAuctionTime").Value);
 
-                    if (Program._settings.AuctionTimeType == "week")
-                    {
-                        internalAuctionEndDate = DateTime.Now.AddDays(Program._settings.InternalAuctionTime * 7);
-                        publicAuctionEndDate = DateTime.Now.AddDays((Program._settings.InternalAuctionTime + Program._settings.PublicAuctionTime) * 7);
-                    }
-                    else if (Program._settings.AuctionTimeType == "minute")
-                    {
-                        internalAuctionEndDate = DateTime.Now.AddMinutes(Program._settings.InternalAuctionTime);
-                        publicAuctionEndDate = DateTime.Now.AddMinutes(Program._settings.InternalAuctionTime + Program._settings.PublicAuctionTime);
-                    }
+                    DateTime internalAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime);
+                    DateTime publicAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime + PublicAuctionTime);
 
                     AuctionDto AuctionModel = new AuctionDto()
                     {
@@ -3004,24 +2977,23 @@ namespace DAO_WebPortal.Controllers
         [HttpPost]
         [AuthorizeAdmin]
         [Route("DaoVariablesPost")]
-        public JsonResult DaoVariablesPost(PlatformSettingDto model)
+        public JsonResult DaoVariablesPost(DaoSettingDto model)
         {
             SimpleResponse result = new SimpleResponse();
 
             try
             {
-                model.CreateDate = DateTime.Now;
-                model.UserID = HttpContext.Session.GetInt32("UserID");
+                model.LastModified = DateTime.Now;
 
                 //Post model to ApiGateway
-                string jsonResult = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Db/PlatformSetting/Post", Helpers.Serializers.SerializeJson(model), HttpContext.Session.GetString("Token"));
+                string jsonResult = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Db/DaoSetting/PostOrUpdate", Helpers.Serializers.SerializeJson(model), HttpContext.Session.GetString("Token"));
                 //Parse result
-                PlatformSettingDto resultParsed = Helpers.Serializers.DeserializeJson<PlatformSettingDto>(jsonResult);
+                DaoSettingDto resultParsed = Helpers.Serializers.DeserializeJson<DaoSettingDto>(jsonResult);
 
-                if (resultParsed.PlatformSettingID > 0)
+                if (resultParsed.DaoSettingID > 0)
                 {
                     result.Success = true;
-                    result.Message = "DAO Variables changed successfully.";
+                    result.Message = "DAO setting changed successfully.";
 
                     //Set server side toastr because page will be redirected
                     TempData["toastr-message"] = result.Message;
@@ -3261,19 +3233,11 @@ namespace DAO_WebPortal.Controllers
                 auction.Status = AuctionStatusTypes.InternalBidding;
 
                 //Set auction end dates
-                DateTime internalAuctionEndDate = DateTime.Now.AddDays(Program._settings.InternalAuctionTime);
-                DateTime publicAuctionEndDate = DateTime.Now.AddDays(Program._settings.InternalAuctionTime + Program._settings.PublicAuctionTime);
+                int InternalAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "InternalAuctionTime").Value);
+                int PublicAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "PublicAuctionTime").Value);
 
-                if (Program._settings.AuctionTimeType == "week")
-                {
-                    internalAuctionEndDate = DateTime.Now.AddDays(Program._settings.InternalAuctionTime * 7);
-                    publicAuctionEndDate = DateTime.Now.AddDays((Program._settings.InternalAuctionTime + Program._settings.PublicAuctionTime) * 7);
-                }
-                else if (Program._settings.AuctionTimeType == "minute")
-                {
-                    internalAuctionEndDate = DateTime.Now.AddMinutes(Program._settings.InternalAuctionTime);
-                    publicAuctionEndDate = DateTime.Now.AddMinutes(Program._settings.InternalAuctionTime + Program._settings.PublicAuctionTime);
-                }
+                DateTime internalAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime);
+                DateTime publicAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime + PublicAuctionTime);
 
                 auction.InternalAuctionEndDate = internalAuctionEndDate;
                 auction.PublicAuctionEndDate = publicAuctionEndDate;

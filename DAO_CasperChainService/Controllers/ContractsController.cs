@@ -245,6 +245,7 @@ namespace DAO_CasperChainService.Controllers
                 runtimeArgs.Add(new NamedArg("cspr_amount", CLValue.U512(150_000_000_000)));
                 runtimeArgs.Add(new NamedArg("expected_timeframe", CLValue.U64(expectedtimeframe)));
                 runtimeArgs.Add(new NamedArg("budget", CLValue.U512(budget)));
+                runtimeArgs.Add(new NamedArg("amount", CLValue.U512(150_000_000_000)));
 
                 var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
 
@@ -290,6 +291,7 @@ namespace DAO_CasperChainService.Controllers
                 runtimeArgs.Add(new NamedArg("reputation_stake", CLValue.U512(repstake)));
                 runtimeArgs.Add(new NamedArg("onboard", CLValue.Bool(onboard)));
                 runtimeArgs.Add(new NamedArg("cspr_amount", CLValue.U512(150_000_000_000)));
+                runtimeArgs.Add(new NamedArg("amount", CLValue.U512(150_000_000_000)));
 
                 var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
 
@@ -306,22 +308,37 @@ namespace DAO_CasperChainService.Controllers
             }
         }
 
-        //[HttpGet("BidEscrowCancelBid", Name = "BidEscrowCancelBid")]
-        //public SimpleResponse BidEscrow_CancelBid(int bidid, string userwallet)
-        //{
-        //    try
-        //    {
+        [HttpGet("BidEscrowCancelBid", Name = "BidEscrowCancelBid")]
+        public SimpleResponse BidEscrow_CancelBid(uint bidid, string userwallet)
+        {
+            try
+            {
+                PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
 
-        //        //Return deploy object in JSON
-        //        return new SimpleResponse { Success = true, Message = deploy.SerializeToJson() };
+                var namedArgs = new List<NamedArg>()
+                {
+                    new NamedArg("bid_id", CLValue.U32(bidid))
+                };
 
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-        //        return new SimpleResponse { Success = false };
-        //    }
-        //}
+                //Create deploy object
+                HashKey contractHash = new HashKey(Program._settings.BidEscrowContract);
+                var deploy = DeployTemplates.ContractCall(contractHash,
+                       "cancel_bid",
+                       namedArgs,
+                       myAccountPK,
+                       150_000_000_000,
+                       Program._settings.ChainName);
+
+                //Return deploy object in JSON
+                return new SimpleResponse { Success = true, Message = deploy.SerializeToJson() };
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false };
+            }
+        }
 
         [HttpGet("BidEscrowPickBid", Name = "BidEscrowPickBid")]
         public SimpleResponse BidEscrow_PickBid(uint jobid, uint bidid, string userwallet)
@@ -349,6 +366,7 @@ namespace DAO_CasperChainService.Controllers
                 runtimeArgs.Add(new NamedArg("cspr_amount", CLValue.U512(150_000_000_000)));
                 runtimeArgs.Add(new NamedArg("job_offer_id", CLValue.U32(jobid)));
                 runtimeArgs.Add(new NamedArg("bid_id", CLValue.U32(bidid)));
+                runtimeArgs.Add(new NamedArg("amount", CLValue.U512(150_000_000_000)));
 
                 var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
 
@@ -365,20 +383,38 @@ namespace DAO_CasperChainService.Controllers
             }
         }
 
-        //[HttpGet("BidEscrowSubmitJobProof", Name = "BidEscrowSubmitJobProof")]
-        //public SimpleResponse BidEscrow_SubmitJobProof(int jobid, string documenthash)
-        //{
-        //    try
-        //    {
+        [HttpGet("BidEscrowSubmitJobProof", Name = "BidEscrowSubmitJobProof")]
+        public SimpleResponse BidEscrow_SubmitJobProof(uint jobid, string documenthash, string userwallet)
+        {
+            try
+            {
+                PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
 
+                var namedArgs = new List<NamedArg>()
+                {
+                    new NamedArg("job_id", CLValue.U32(jobid)),
+                    new NamedArg("proof", CLValue.String(documenthash))
+                };
 
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-        //        return new SimpleResponse { Success = false };
-        //    }
-        //}
+                //Create deploy object
+                HashKey contractHash = new HashKey(Program._settings.BidEscrowContract);
+                var deploy = DeployTemplates.ContractCall(contractHash,
+                       "submit_job_proof",
+                       namedArgs,
+                       myAccountPK,
+                       150_000_000_000,
+                       Program._settings.ChainName);
+
+                //Return deploy object in JSON
+                return new SimpleResponse { Success = true, Message = deploy.SerializeToJson() };
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false };
+            }
+        }
 
         [HttpGet("BidEscrowSubmitJobProofGracePeriod", Name = "BidEscrowSubmitJobProofGracePeriod")]
         public SimpleResponse BidEscrow_SubmitJobProofGracePeriod(uint jobid, string proof, uint repstake, bool onboard, string userwallet)
@@ -408,6 +444,7 @@ namespace DAO_CasperChainService.Controllers
                 runtimeArgs.Add(new NamedArg("proof", CLValue.String(proof)));
                 runtimeArgs.Add(new NamedArg("reputation_stake", CLValue.U512(repstake)));
                 runtimeArgs.Add(new NamedArg("onboard", CLValue.Bool(onboard)));
+                runtimeArgs.Add(new NamedArg("amount", CLValue.U512(150_000_000_000)));
 
                 var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
 
@@ -424,26 +461,12 @@ namespace DAO_CasperChainService.Controllers
             }
         }
 
-        //[HttpGet("BidEscrowStartVote", Name = "BidEscrowStartVote")]
-        //public SimpleResponse BidEscrow_StartVote()
-        //{
-        //    try
-        //    {
-
-
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-        //        return new SimpleResponse { Success = false };
-        //    }
-        //}
-
         #endregion
 
         #region Voters
+
         [HttpGet("SubmitVote", Name = "SubmitVote")]
-        public SimpleResponse SubmitVote(Helpers.Constants.Enums.VoteTypes votetype, byte isFormal, uint votingid, byte choice, int stake, string userwallet)
+        public SimpleResponse SubmitVote(Enums.VoteTypes votetype, byte isFormal, uint votingid, byte choice, int stake, string userwallet)
         {
             try
             {

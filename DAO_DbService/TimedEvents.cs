@@ -352,23 +352,19 @@ namespace DAO_DbService
                                     string key = job.Title.Split("'")[1].Split("'")[0].Trim();
                                     string value = job.JobDescription.Split("New value:")[1].Trim();
 
-                                    PlatformSettingController contr = new PlatformSettingController();
-                                    PlatformSettingDto lastSettings = contr.GetLatestSetting();
-
-                                    PlatformSetting settings = DAO_DbService.Mapping.AutoMapperBase._mapper.Map<PlatformSettingDto, PlatformSetting>(lastSettings);
-                                    settings.PlatformSettingID = 0;
-
-                                    var propertyInfo = settings.GetType().GetProperty(key);
-                                    propertyInfo.SetValue(settings, value, null);
-
-                                    if (settings != null)
+                                    if (db.DaoSettings.Count(x => x.Key == key) > 0)
                                     {
-                                        settings.UserID = job.UserID;
-                                        settings.CreateDate = DateTime.Now;
-                                        db.PlatformSettings.Add(settings);
+                                        DaoSetting sts = db.DaoSettings.First(x => x.Key == key);
+                                        sts.Value = value;
+                                        sts.LastModified = DateTime.Now;
                                         db.SaveChanges();
 
-                                        Program.monitizer.AddApplicationLog(LogTypes.ApplicationLog, "Platform settings changed with governance vote #" + voting.VotingID);
+                                        Program.monitizer.AddApplicationLog(LogTypes.ApplicationLog, "Dao settings changed with governance vote #" + voting.VotingID);
+                                    }
+                                    else
+                                    {
+                                        db.DaoSettings.Add(new DaoSetting() { Key = key, Value = value, LastModified = DateTime.Now });
+                                        db.SaveChanges();
                                     }
                                 }
                                 //KYC formal vote passed
@@ -408,8 +404,7 @@ namespace DAO_DbService
         {
             using (dao_maindb_context db = new dao_maindb_context())
             {
-                PlatformSettingController contr = new PlatformSettingController();
-                PlatformSettingDto lastSettings = contr.GetLatestSetting();
+                DaoSettingController contr = new DaoSettingController();
 
                 //Get reputation stakes from reputation service
                 var reputationsJson = Helpers.Request.Get(Program._settings.Service_Reputation_Url + "/UserReputationStake/GetByProcessId?referenceProcessID=" + voting.VotingID + "&reftype=" + StakeType.For);
@@ -426,7 +421,8 @@ namespace DAO_DbService
 
                 List<int> userIds = new List<int>();
                 //Create Payment History model for dao members who participated into voting
-                if (lastSettings.DistributePaymentWithoutVote)
+                bool distributeWithoutVote = Convert.ToBoolean(db.DaoSettings.OrderByDescending(x => x.DaoSettingID).First(x => x.Key == "DistributePaymentToNonVoters").Value);
+                if (distributeWithoutVote)
                 {
                     userIds = allVAs.ToList();
                     reputationsTotalJson = Helpers.Request.Post(Program._settings.Service_Reputation_Url + "/UserReputationHistory/GetLastReputationByUserIds", Helpers.Serializers.SerializeJson(allVAs.ToList()));
@@ -439,27 +435,29 @@ namespace DAO_DbService
                     reputationsTotal = Helpers.Serializers.DeserializeJson<List<UserReputationHistoryDto>>(reputationsTotalJson);
                 }
 
-
-                //Create governance payment
                 double remainingJobAmount = auctionWinnerBid.Price;
-                if (lastSettings.GovernancePaymentRatio != null && lastSettings.GovernancePaymentRatio > 0)
-                {
-                    PaymentHistory paymentGovernance = new PaymentHistory
-                    {
-                        JobID = job.JobID,
-                        Amount = remainingJobAmount * Convert.ToDouble(lastSettings.GovernancePaymentRatio),
-                        CreateDate = DateTime.Now,
-                        IBAN = "",
-                        UserID = 0,
-                        WalletAddress = lastSettings.GovernanceWallet,
-                        Explanation = "Governance payment"
-                    };
 
-                    remainingJobAmount = remainingJobAmount - (remainingJobAmount * Convert.ToDouble(lastSettings.GovernancePaymentRatio));
+                // NOT AVAILABLE IN THE ONCHAIN VERSION
+                //Create governance payment
+                //
+                //if (lastSettings.GovernancePaymentRatio != null && lastSettings.GovernancePaymentRatio > 0)
+                //{
+                //    PaymentHistory paymentGovernance = new PaymentHistory
+                //    {
+                //        JobID = job.JobID,
+                //        Amount = remainingJobAmount * Convert.ToDouble(lastSettings.GovernancePaymentRatio),
+                //        CreateDate = DateTime.Now,
+                //        IBAN = "",
+                //        UserID = 0,
+                //        WalletAddress = lastSettings.GovernanceWallet,
+                //        Explanation = "Governance payment"
+                //    };
 
-                    db.PaymentHistories.Add(paymentGovernance);
-                    db.SaveChanges();
-                }
+                //    remainingJobAmount = remainingJobAmount - (remainingJobAmount * Convert.ToDouble(lastSettings.GovernancePaymentRatio));
+
+                //    db.PaymentHistories.Add(paymentGovernance);
+                //    db.SaveChanges();
+                //}
 
                 foreach (var userId in userIds)
                 {
@@ -501,12 +499,12 @@ namespace DAO_DbService
                 var reputationsTotalJson = Helpers.Request.Post(Program._settings.Service_Reputation_Url + "/UserReputationHistory/GetLastReputationByUserIds", Helpers.Serializers.SerializeJson(participatedUsers.Select(x => x.UserID)));
                 var reputationsTotal = Helpers.Serializers.DeserializeJson<List<UserReputationHistoryDto>>(reputationsTotalJson);
 
-                PlatformSettingController contr = new PlatformSettingController();
-                PlatformSettingDto lastSettings = contr.GetLatestSetting();
+                DaoSettingController contr = new DaoSettingController();
 
                 List<int> userIds = new List<int>();
                 //Create Payment History model for dao members who participated into voting
-                if (lastSettings.DistributePaymentWithoutVote)
+                bool distributeWithoutVote = Convert.ToBoolean(db.DaoSettings.OrderByDescending(x => x.DaoSettingID).First(x => x.Key == "DistributePaymentToNonVoters").Value);
+                if (distributeWithoutVote)
                 {
                     userIds = db.Users.Where(x => x.UserType == Enums.UserIdentityType.VotingAssociate.ToString()).Select(x => x.UserId).ToList();
                 }
@@ -515,26 +513,32 @@ namespace DAO_DbService
                     userIds = participatedUsers.GroupBy(x => x.UserID).Select(x => x.Key).ToList();
                 }
 
-                //Create governance payment
                 double remainingJobAmount = auctionWinnerBid.Price;
-                if (lastSettings.GovernancePaymentRatio != null && lastSettings.GovernancePaymentRatio > 0)
-                {
-                    PaymentHistory paymentGovernance = new PaymentHistory
-                    {
-                        JobID = job.JobID,
-                        Amount = remainingJobAmount * Convert.ToDouble(lastSettings.GovernancePaymentRatio),
-                        CreateDate = DateTime.Now,
-                        IBAN = "",
-                        UserID = 0,
-                        WalletAddress = lastSettings.GovernanceWallet,
-                        Explanation = "Governance payment"
-                    };
 
-                    remainingJobAmount = remainingJobAmount - (remainingJobAmount * Convert.ToDouble(lastSettings.GovernancePaymentRatio));
+                // NOT AVAILABLE IN THE ONCHAIN VERSION
+                //Create governance payment
+                //double remainingJobAmount = auctionWinnerBid.Price;
+                //if (lastSettings.GovernancePaymentRatio != null && lastSettings.GovernancePaymentRatio > 0)
+                //{
+                //    PaymentHistory paymentGovernance = new PaymentHistory
+                //    {
+                //        JobID = job.JobID,
+                //        Amount = remainingJobAmount * Convert.ToDouble(lastSettings.GovernancePaymentRatio),
+                //        CreateDate = DateTime.Now,
+                //        IBAN = "",
+                //        UserID = 0,
+                //        WalletAddress = lastSettings.GovernanceWallet,
+                //        Explanation = "Governance payment"
+                //    };
 
-                    db.PaymentHistories.Add(paymentGovernance);
-                    db.SaveChanges();
-                }
+                //    remainingJobAmount = remainingJobAmount - (remainingJobAmount * Convert.ToDouble(lastSettings.GovernancePaymentRatio));
+
+                //    db.PaymentHistories.Add(paymentGovernance);
+                //    db.SaveChanges();
+                //}
+
+                //Get default policing rate
+                double defaultPolicingRate = Convert.ToDouble(db.DaoSettings.OrderByDescending(x => x.DaoSettingID).First(x => x.Key == "DefaultPolicingRate").Value) / Convert.ToDouble(1000);
 
                 //Create Payment History model for dao members who participated into voting
                 foreach (var userId in userIds)
@@ -542,7 +546,8 @@ namespace DAO_DbService
                     if (reputationsTotal.Count(x => x.UserID == userId) == 0) continue;
 
                     double usersRepPerc = reputationsTotal.FirstOrDefault(x => x.UserID == userId).LastTotal / reputationsTotal.Sum(x => x.LastTotal);
-                    double memberPayment = remainingJobAmount * usersRepPerc * Convert.ToDouble(lastSettings.DefaultPolicingRate);
+
+                    double memberPayment = remainingJobAmount * usersRepPerc * Convert.ToDouble(defaultPolicingRate);
 
                     var daouser = db.Users.Find(userId);
 
@@ -563,11 +568,12 @@ namespace DAO_DbService
 
 
                 var jobdoeruser = db.Users.Find(job.JobDoerUserID);
+
                 //Create payment of the job doer
                 PaymentHistory paymentExternalMember = new PaymentHistory
                 {
                     JobID = job.JobID,
-                    Amount = remainingJobAmount - (remainingJobAmount * Convert.ToDouble(lastSettings.DefaultPolicingRate)),
+                    Amount = remainingJobAmount - (remainingJobAmount * defaultPolicingRate),
                     CreateDate = DateTime.Now,
                     IBAN = jobdoeruser.IBAN,
                     UserID = jobdoeruser.UserId,

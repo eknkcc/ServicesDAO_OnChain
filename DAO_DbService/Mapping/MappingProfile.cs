@@ -35,11 +35,12 @@ namespace DAO_DbService.Mapping
             CreateMap<PaymentHistory, PaymentHistoryDto>();
             CreateMap<PaymentHistoryDto, PaymentHistory>();
 
-            CreateMap<PlatformSetting, PlatformSettingDto>();
-            CreateMap<PlatformSettingDto, PlatformSetting>();
-
             CreateMap<ChainAction, ChainActionDto>();
             CreateMap<ChainActionDto, ChainAction>();
+
+            CreateMap<DaoSetting, DaoSettingDto>();
+            CreateMap<DaoSettingDto, DaoSetting>();
+
         }
     }
 }

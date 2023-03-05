@@ -13,6 +13,8 @@ namespace DAO_CasperChainService.Controllers
     [ApiController]
     public class CasperMiddlewareController : ControllerBase
     {
+        #region Reputation
+
         [HttpGet("GetReputationChangesList", Name = "GetReputationChangesList")]
         public PaginatedResponse<AggregatedReputationChange> GetReputationChangesList(int? page, string page_size, string order_direction, string order_by, string address)
         {
@@ -79,10 +81,15 @@ namespace DAO_CasperChainService.Controllers
             catch (Exception ex)
             {
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                totalReputation = new SuccessResponse<TotalReputation> { error = new ErrorResult { message = "Request Error" } };
             }
 
             return totalReputation;
         }
+
+        #endregion
+
+        #region Voting
 
         [HttpGet("GetVotesListbyAddress", Name = "GetVotesListbyAddress")]
         public PaginatedResponse<Vote> GetVotesListbyAddress(int? page, string page_size, string order_direction, string order_by, string includes, string address)
@@ -258,5 +265,131 @@ namespace DAO_CasperChainService.Controllers
 
             return votingList;
         }
+
+        #endregion
+
+        #region Settings
+
+        [HttpGet("GetSettings", Name = "GetSettings")]
+        public PaginatedResponse<Setting> GetSettings(int? page, string page_size, string order_direction, string order_by)
+        {
+            PaginatedResponse<Setting> settingList = new PaginatedResponse<Setting>();
+
+            var additionalParameters = new Dictionary<string, string>();
+
+            if (page != null)
+            {
+                additionalParameters.Add("page", Convert.ToString(page));
+            }
+            if (!String.IsNullOrEmpty(page_size))
+            {
+                additionalParameters.Add("page_size", page_size);
+            }
+            if (!String.IsNullOrEmpty(order_direction))
+            {
+                additionalParameters.Add("order_direction", order_direction);
+            }
+            if (!String.IsNullOrEmpty(order_by))
+            {
+                additionalParameters.Add("order_by", order_by);
+            }
+
+            //Additional Query Parameters
+            var additionalParametersStr = "";
+
+            for (int i = 0; i < additionalParameters.Count; i++)
+            {
+                if (i == 0) additionalParametersStr += "?";
+                else additionalParametersStr += "&";
+
+                additionalParametersStr += additionalParameters.ElementAt(i).Key.ToString() + "=" + additionalParameters.ElementAt(i).Value.ToString();
+            }
+
+            try
+            {
+                //Get Voting List  from Middleware
+                string setingJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/settings" + additionalParametersStr);
+                //Parse response
+                settingList = Helpers.Serializers.DeserializeJson<PaginatedResponse<Setting>>(setingJson);
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                settingList = new PaginatedResponse<Setting> { error = new ErrorResult { message = "Request Error" } };
+            }
+
+            return settingList;
+        }
+
+        #endregion
+
+        #region Accounts
+
+        [HttpGet("GetAccounts", Name = "GetAccounts")]
+        public PaginatedResponse<Account> GetAccounts(int? page, string page_size)
+        {
+            PaginatedResponse<Account> accountList = new PaginatedResponse<Account>();
+
+            var additionalParameters = new Dictionary<string, string>();
+
+            if (page != null)
+            {
+                additionalParameters.Add("page", Convert.ToString(page));
+            }
+            if (!String.IsNullOrEmpty(page_size))
+            {
+                additionalParameters.Add("page_size", page_size);
+            }
+
+            //Additional Query Parameters
+            var additionalParametersStr = "";
+
+            for (int i = 0; i < additionalParameters.Count; i++)
+            {
+                if (i == 0) additionalParametersStr += "?";
+                else additionalParametersStr += "&";
+
+                additionalParametersStr += additionalParameters.ElementAt(i).Key.ToString() + "=" + additionalParameters.ElementAt(i).Value.ToString();
+            }
+
+            try
+            {
+                //Get Voting List  from Middleware
+                string setingJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/accounts" + additionalParametersStr);
+                //Parse response
+                accountList = Helpers.Serializers.DeserializeJson<PaginatedResponse<Account>>(setingJson);
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                accountList = new PaginatedResponse<Account> { error = new ErrorResult { message = "Request Error" } };
+            }
+
+            return accountList;
+        }
+
+
+        [HttpGet("GetAccountByAddress", Name = "GetAccountByAddress")]
+        public SuccessResponse<Account> GetAccountByAddress(string address)
+        {
+            SuccessResponse<Account> account = new SuccessResponse<Account>();
+
+            try
+            {
+                //Get Voting List  from Middleware
+                string setingJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/accounts/" + address);
+                //Parse response
+                account = Helpers.Serializers.DeserializeJson<SuccessResponse<Account>>(setingJson);
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                account = new SuccessResponse<Account> { error = new ErrorResult { message = "Request Error" } };
+            }
+
+            return account;
+        }
+
+        #endregion
     }
 }

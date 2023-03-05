@@ -16,91 +16,91 @@ namespace DAO_DbService.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    public class PlatformSettingController : Controller
+    public class DaoSettingController : Controller
     {
         [Route("Get")]
         [HttpGet]
-        public IEnumerable<PlatformSettingDto> Get()
+        public IEnumerable<DaoSettingDto> Get()
         {
-            List<PlatformSetting> model = new List<PlatformSetting>();
+            List<DaoSetting> model = new List<DaoSetting>();
 
             try
             {
                 using (dao_maindb_context db = new dao_maindb_context())
                 {
-                    model = db.PlatformSettings.ToList();
+                    model = db.DaoSettings.ToList();
                 }
             }
             catch (Exception ex)
             {
-                model = new List<PlatformSetting>();
+                model = new List<DaoSetting>();
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
             }
 
-            return _mapper.Map<List<PlatformSetting>, List<PlatformSettingDto>>(model).ToArray();
+            return _mapper.Map<List<DaoSetting>, List<DaoSettingDto>>(model).ToArray();
         }
 
         [Route("GetId")]
         [HttpGet]
-        public PlatformSettingDto GetId(int id)
+        public DaoSettingDto GetId(int id)
         {
-            PlatformSetting model = new PlatformSetting();
+            DaoSetting model = new DaoSetting();
 
             try
             {
                 using (dao_maindb_context db = new dao_maindb_context())
                 {
-                    model = db.PlatformSettings.Find(id);
+                    model = db.DaoSettings.Find(id);
                 }
             }
             catch (Exception ex)
             {
-                model = new PlatformSetting();
+                model = new DaoSetting();
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
             }
 
-            return _mapper.Map<PlatformSetting, PlatformSettingDto>(model);
+            return _mapper.Map<DaoSetting, DaoSettingDto>(model);
         }
 
         [Route("Post")]
         [HttpPost]
-        public PlatformSettingDto Post([FromBody] PlatformSettingDto model)
+        public DaoSettingDto Post([FromBody] DaoSettingDto model)
         {
             try
             {
-                PlatformSetting item = _mapper.Map<PlatformSettingDto, PlatformSetting>(model);
+                DaoSetting item = _mapper.Map<DaoSettingDto, DaoSetting>(model);
                 using (dao_maindb_context db = new dao_maindb_context())
                 {
-                    db.PlatformSettings.Add(item);
+                    db.DaoSettings.Add(item);
                     db.SaveChanges();
                 }
-                return _mapper.Map<PlatformSetting, PlatformSettingDto>(item);
+                return _mapper.Map<DaoSetting, DaoSettingDto>(item);
             }
             catch (Exception ex)
             {
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
-                return new PlatformSettingDto();
+                return new DaoSettingDto();
             }
         }
 
         [Route("PostMultiple")]
         [HttpPost]
-        public List<PlatformSettingDto> PostMultiple([FromBody] List<PlatformSettingDto> model)
+        public List<DaoSettingDto> PostMultiple([FromBody] List<DaoSettingDto> model)
         {
             try
             {
-                List<PlatformSetting> item = _mapper.Map<List<PlatformSettingDto>, List<PlatformSetting>>(model);
+                List<DaoSetting> item = _mapper.Map<List<DaoSettingDto>, List<DaoSetting>>(model);
                 using (dao_maindb_context db = new dao_maindb_context())
                 {
-                    db.PlatformSettings.AddRange(item);
+                    db.DaoSettings.AddRange(item);
                     db.SaveChanges();
                 }
-                return _mapper.Map<List<PlatformSetting>, List<PlatformSettingDto>>(item);
+                return _mapper.Map<List<DaoSetting>, List<DaoSettingDto>>(item);
             }
             catch (Exception ex)
             {
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
-                return new List<PlatformSettingDto>();
+                return new List<DaoSettingDto>();
             }
         }
 
@@ -112,7 +112,7 @@ namespace DAO_DbService.Controllers
             {
                 using (dao_maindb_context db = new dao_maindb_context())
                 {
-                    PlatformSetting item = db.PlatformSettings.FirstOrDefault(s => s.PlatformSettingID == ID);
+                    DaoSetting item = db.DaoSettings.FirstOrDefault(s => s.DaoSettingID == ID);
                     db.Entry(item).State = Microsoft.EntityFrameworkCore.EntityState.Deleted;
                     db.SaveChanges();
                 }
@@ -127,37 +127,37 @@ namespace DAO_DbService.Controllers
 
         [Route("Update")]
         [HttpPut]
-        public PlatformSettingDto Update([FromBody] PlatformSettingDto model)
+        public DaoSettingDto Update([FromBody] DaoSettingDto model)
         {
             try
             {
-                PlatformSetting item = _mapper.Map<PlatformSettingDto, PlatformSetting>(model);
+                DaoSetting item = _mapper.Map<DaoSettingDto, DaoSetting>(model);
                 using (dao_maindb_context db = new dao_maindb_context())
                 {
                     db.Entry(item).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                     db.SaveChanges();
                 }
-                return _mapper.Map<PlatformSetting, PlatformSettingDto>(item);
+                return _mapper.Map<DaoSetting, DaoSettingDto>(item);
             }
             catch (Exception ex)
             {
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
-                return new PlatformSettingDto();
+                return new DaoSettingDto();
             }
         }
 
         [Route("GetPaged")]
         [HttpGet]
-        public PaginationEntity<PlatformSettingDto> GetPaged(int page = 1, int pageCount = 30)
+        public PaginationEntity<DaoSettingDto> GetPaged(int page = 1, int pageCount = 30)
         {
-            PaginationEntity<PlatformSettingDto> res = new PaginationEntity<PlatformSettingDto>();
+            PaginationEntity<DaoSettingDto> res = new PaginationEntity<DaoSettingDto>();
 
             try
             {
                 using (dao_maindb_context db = new dao_maindb_context())
                 {
 
-                    IPagedList<PlatformSettingDto> lst = AutoMapperBase.ToMappedPagedList<PlatformSetting, PlatformSettingDto>(db.PlatformSettings.OrderByDescending(x => x.PlatformSettingID).ToPagedList(page, pageCount));
+                    IPagedList<DaoSettingDto> lst = AutoMapperBase.ToMappedPagedList<DaoSetting, DaoSettingDto>(db.DaoSettings.OrderByDescending(x => x.DaoSettingID).ToPagedList(page, pageCount));
 
                     res.Items = lst;
                     res.MetaData = new PaginationMetaData() { Count = lst.Count, FirstItemOnPage = lst.FirstItemOnPage, HasNextPage = lst.HasNextPage, HasPreviousPage = lst.HasPreviousPage, IsFirstPage = lst.IsFirstPage, IsLastPage = lst.IsLastPage, LastItemOnPage = lst.LastItemOnPage, PageCount = lst.PageCount, PageNumber = lst.PageNumber, PageSize = lst.PageSize, TotalItemCount = lst.TotalItemCount };
@@ -177,18 +177,17 @@ namespace DAO_DbService.Controllers
 
         [Route("GetLatestSetting")]
         [HttpGet]
-        public PlatformSettingDto GetLatestSetting()
+        public DaoSettingDto GetLatestSetting(string key)
         {
             try
             {
-
                 using (dao_maindb_context db = new dao_maindb_context())
                 {
-                    if (db.PlatformSettings.Count() > 0)
+                    if (db.DaoSettings.Count() > 0)
                     {
-                        PlatformSetting result = db.PlatformSettings.OrderByDescending(x => x.PlatformSettingID).First();
+                        DaoSetting result = db.DaoSettings.Where(x => x.Key == key).OrderByDescending(x => x.DaoSettingID).First();
 
-                        return _mapper.Map<PlatformSetting, PlatformSettingDto>(result);
+                        return _mapper.Map<DaoSetting, DaoSettingDto>(result);
                     }
                 }
             }
@@ -198,6 +197,40 @@ namespace DAO_DbService.Controllers
             }
 
             return null;
+        }
+
+        [Route("PostOrUpdate")]
+        [HttpPost]
+        public DaoSettingDto PostOrUpdate([FromBody] DaoSettingDto model)
+        {
+            try
+            {
+                DaoSetting item = _mapper.Map<DaoSettingDto, DaoSetting>(model);
+
+                using (dao_maindb_context db = new dao_maindb_context())
+                {
+                    if (db.DaoSettings.Count(x => x.Key == model.Key) > 0)
+                    {
+                        item = db.DaoSettings.First(x => x.Key == model.Key);
+                        item.Value = model.Value;
+                        item.LastModified = DateTime.Now;
+                        db.Entry(item).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                        db.SaveChanges();
+                    }
+                    else
+                    {
+                        db.DaoSettings.Add(item);
+                        db.SaveChanges();
+                    }
+                }
+
+                return _mapper.Map<DaoSetting, DaoSettingDto>(item);
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return new DaoSettingDto();
+            }
         }
 
     }

@@ -22,6 +22,7 @@ namespace Helpers.Models.DtoModels.MainDbDto
         public string Tags { get; set; }
         public string CodeUrl { get; set; }
         public string DeployHash { get; set; }
+        public int? BlockchainJobPostID { get; set; }
 
     }
 }

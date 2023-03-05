@@ -262,7 +262,7 @@
       "Priority": 2
     },
     {
-      "DownstreamPathTemplate": "/PlatformSetting/GetLatestSetting",
+      "DownstreamPathTemplate": "/DaoSetting/GetLatestSetting",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -271,6 +271,19 @@
         }
       ],
       "UpstreamPathTemplate": "/PublicActions/GetLatestSetting",
+      "UpstreamHttpMethod": [ "GET" ],
+      "Priority": 2
+    },
+    {
+      "DownstreamPathTemplate": "/DaoSetting/Get",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "dao_dbservice",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/PublicActions/GetAllSettings",
       "UpstreamHttpMethod": [ "GET" ],
       "Priority": 2
     },
@@ -284,7 +297,7 @@
         }
       ],
       "UpstreamPathTemplate": "/ChainAction/{everything}",
-      "UpstreamHttpMethod": [ "GET","POST","PUT" ],
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT" ],
       "Priority": 2
     }
   ]

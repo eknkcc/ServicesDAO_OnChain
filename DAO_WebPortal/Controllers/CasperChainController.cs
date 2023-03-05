@@ -196,7 +196,7 @@ namespace DAO_WebPortal.Controllers
                 if (controlResult.Success == false) return base.Json(controlResult);
 
                 //Get model from ApiGateway
-                var deployJson = Helpers.Request.Get("https://localhost:44347/Contracts/VaOnboardingVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&reason=" + reason);
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Contracts/VaOnboardingVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&reason=" + reason);
                 //Parse response
                 SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
 
