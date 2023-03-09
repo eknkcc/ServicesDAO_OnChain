@@ -14,6 +14,7 @@ using System.Timers;
 using static Helpers.Constants.Enums;
 using DAO_DbService.Mapping;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Helpers;
 
 namespace DAO_DbService
 {
@@ -40,29 +41,91 @@ namespace DAO_DbService
         /// </summary>
         public static void StartTimers()
         {
-            CheckAuctionStatus(null, null);
-            CheckJobStatus(null, null);
 
-            //Auction status timer
-            auctionStatusTimer = new System.Timers.Timer(10000);
-            auctionStatusTimer.Elapsed += CheckAuctionStatus;
-            auctionStatusTimer.AutoReset = true;
-            auctionStatusTimer.Enabled = true;
+            if (Program._settings.DaoBlockchain == null)
+            {
+                CheckAuctionStatusOffChain(null, null);
+                CheckJobStatusOffChain(null, null);
 
-            //Job status timer
-            //It sends request to VotinEngine so it has longer interval
-            jobStatusTimer = new System.Timers.Timer(60000);
-            jobStatusTimer.Elapsed += CheckJobStatus;
-            jobStatusTimer.AutoReset = true;
-            jobStatusTimer.Enabled = true;
+                //Auction status timer
+                auctionStatusTimer = new System.Timers.Timer(10000);
+                auctionStatusTimer.Elapsed += CheckAuctionStatusOffChain;
+                auctionStatusTimer.AutoReset = true;
+                auctionStatusTimer.Enabled = true;
+
+                //Job status timer
+                //It sends request to VotinEngine so it has longer interval
+                jobStatusTimer = new System.Timers.Timer(60000);
+                jobStatusTimer.Elapsed += CheckJobStatusOffChain;
+                jobStatusTimer.AutoReset = true;
+                jobStatusTimer.Enabled = true;
+            }
+            else if (Program._settings.DaoBlockchain == Enums.Blockchain.Casper)
+            {
+                CheckAuctionsCasperChain(null, null);
+                CheckJobsCasperChain(null, null);
+
+                //Auction status timer
+                auctionStatusTimer = new System.Timers.Timer(60000);
+                auctionStatusTimer.Elapsed += CheckAuctionsCasperChain;
+                auctionStatusTimer.AutoReset = true;
+                auctionStatusTimer.Enabled = true;
+
+                //Job status timer
+                //It sends request to VotinEngine so it has longer interval
+                jobStatusTimer = new System.Timers.Timer(60000);
+                jobStatusTimer.Elapsed += CheckJobsCasperChain;
+                jobStatusTimer.AutoReset = true;
+                jobStatusTimer.Enabled = true;
+            }
         }
+
+        //WAITING FOR MIDDLEWARE ENDPOINTS
+        private static void CheckJobsCasperChain(Object source, ElapsedEventArgs e)
+        {
+            ////Get voting data from chain and central db
+            //List<JobPost> dbJobs = new List<JobPost>();
+            //List<Helpers.Models.CasperServiceModels.JobPost> chainJobs = new List<Helpers.Models.CasperServiceModels.JobPost>();
+
+            //using (dao_maindb_context db = new dao_maindb_context())
+            //{
+            //    dbJobs = db.JobPosts.Where(x => x.Status == Enums.JobStatusTypes.ChainApprovalPending).ToList();
+            //}
+
+            //chainJobs = Serializers.DeserializeJson<List<Helpers.Models.CasperServiceModels.JobPost>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetVotings?page=1&page_size=1000&has_ended=false"));
+
+            ////Sync blockchainjob ids
+            //foreach (var item in dbJobs.Where(x => x.DeployHash != null && x.BlockchainJobPostID == null))
+            //{
+            //    if (chainJobs.Count(x => x.deploy_hash == item.DeployHash) > 0)
+            //    {
+            //        using (dao_maindb_context db = new dao_maindb_context())
+            //        {
+            //            var chainJob = chainJobs.First(x => x.deploy_hash == item.DeployHash);
+            //            var job = db.JobPosts.Find(item.JobID);
+            //            job.BlockchainVotingID = chainJob.voting_id;
+            //            job.QuorumCount = chainJob.voting_quorum;
+            //            job.CreateDate = Convert.ToDateTime(chainJob.timestamp);
+            //            job.StartDate = job.CreateDate;
+            //            job.EndDate = job.StartDate.AddMilliseconds(Convert.ToInt64(chainJob.voting_time));
+            //            db.SaveChanges();
+            //        }
+            //    }
+            //}
+        }
+
+        private static void CheckAuctionsCasperChain(Object source, ElapsedEventArgs e)
+        {
+
+        }
+
 
         /// <summary>
         ///  Checks auction status 
         /// </summary>
         /// <param name="source"></param>
         /// <param name="e"></param>
-        private static void CheckAuctionStatus(Object source, ElapsedEventArgs e)
+        private static void CheckAuctionStatusOffChain(Object source, ElapsedEventArgs e)
         {
             try
             {
@@ -138,7 +201,7 @@ namespace DAO_DbService
         /// </summary>
         /// <param name="source"></param>
         /// <param name="e"></param>
-        private static void CheckJobStatus(Object source, ElapsedEventArgs e)
+        private static void CheckJobStatusOffChain(Object source, ElapsedEventArgs e)
         {
             //Check completed informal votings and update job status accordingly
             CheckCompletedInformalVotings();

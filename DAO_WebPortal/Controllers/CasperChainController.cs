@@ -20,6 +20,7 @@ using Helpers.Models.DtoModels.MainDbDto;
 using Helpers.Models.WebsiteViewModels;
 using System.Threading;
 using Org.BouncyCastle.Crypto.Tls;
+using Helpers.Constants;
 
 namespace DAO_WebPortal.Controllers
 {
@@ -162,6 +163,153 @@ namespace DAO_WebPortal.Controllers
             return View(chainActionModel);
         }
 
+        #region BidEscrow
+        public JsonResult GetPostJobOfferDeploy(long timeframe, int budget)
+        {
+            try
+            {
+                SimpleResponse controlResult = UserInputControls.ControlPostJobOfferRequest(timeframe, budget);
+
+                if (controlResult.Success == false) return base.Json(controlResult);
+
+                long time = (long)((dynamic)controlResult.Content).timeframe;
+
+                //Get model from ApiGateway
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/BidEscrowPostJobOffer?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&expectedtimeframe=" + time + "&budget=" + budget);
+                //Parse response
+                SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
+
+                //Return deploy object in JSON
+                return base.Json(deployModel);
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+            }
+        }
+        public JsonResult GetSubmitBidDeploy(uint jobofferid, ulong time, ulong userpayment, ulong repstake, bool onboard)
+        {
+            try
+            {
+                SimpleResponse controlResult = UserInputControls.ControlSubmitBidRequest(jobofferid, time, userpayment, repstake, onboard);
+
+                if (controlResult.Success == false) return base.Json(controlResult);
+
+                long timeframe = (long)((dynamic)controlResult.Content).time;
+
+                //Get model from ApiGateway
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/BidEscrowSubmitBid?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&jobofferid=" + jobofferid + "&time=" + timeframe + "&userpayment=" + userpayment + "&repstake=" + repstake + "&onboard=" + onboard);
+                //Parse response
+                SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
+
+                //Return deploy object in JSON
+                return base.Json(deployModel);
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+            }
+        }
+        public JsonResult GetCancelBidDeploy(uint bidid)
+        {
+            try
+            {
+                SimpleResponse controlResult = UserInputControls.ControlCancelBidRequest(bidid);
+
+                if (controlResult.Success == false) return base.Json(controlResult);
+
+                //Get model from ApiGateway
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/BidEscrowCancelBid?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&bidid=" + bidid);
+                //Parse response
+                SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
+
+                //Return deploy object in JSON
+                return base.Json(deployModel);
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+            }
+        }
+        public JsonResult GetPickBidDeploy(uint jobid, uint bidid)
+        {
+            try
+            {
+                SimpleResponse controlResult = UserInputControls.ControlPickBidRequest(bidid, jobid);
+
+                if (controlResult.Success == false) return base.Json(controlResult);
+
+                //Get model from ApiGateway
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/BidEscrowPickBid?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&bidid=" + bidid + "&jobid=" + jobid);
+                //Parse response
+                SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
+
+                //Return deploy object in JSON
+                return base.Json(deployModel);
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+            }
+        }
+        public JsonResult GetSubmitJobProofDeploy(uint jobid, string documenthash)
+        {
+            try
+            {
+                SimpleResponse controlResult = UserInputControls.ControlSubmitJobProofRequest(jobid, documenthash);
+
+                if (controlResult.Success == false) return base.Json(controlResult);
+
+                //Get model from ApiGateway
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/BidEscrowSubmitJobProof?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&documenthash=" + documenthash + "&jobid=" + jobid);
+                //Parse response
+                SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
+
+                //Return deploy object in JSON
+                return base.Json(deployModel);
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+            }
+        }
+        public JsonResult GetSubmitJobProofGracePeriodDeploy(uint jobid, string proof, uint repstake, bool onboard)
+        {
+            try
+            {
+                SimpleResponse controlResult = UserInputControls.ControlSubmitJobProofGracePeriodRequest(jobid, proof, repstake, onboard);
+
+                if (controlResult.Success == false) return base.Json(controlResult);
+
+                //Get model from ApiGateway
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/BidEscrowSubmitJobProofGracePeriod?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&jobid=" + jobid + "&proof=" + proof + "&repstake=" + repstake + "&onboard=" + onboard);
+                //Parse response
+                SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
+
+                //Return deploy object in JSON
+                return base.Json(deployModel);
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+            }
+        }
+
+        #endregion
+
+        #region Voters
 
         public JsonResult GetSimpleVoteDeploy(string documenthash, int stake)
         {
@@ -196,7 +344,7 @@ namespace DAO_WebPortal.Controllers
                 if (controlResult.Success == false) return base.Json(controlResult);
 
                 //Get model from ApiGateway
-                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Contracts/VaOnboardingVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&reason=" + reason);
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/VaOnboardingVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&reason=" + reason);
                 //Parse response
                 SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
 
@@ -309,6 +457,7 @@ namespace DAO_WebPortal.Controllers
             }
         }
 
+        #endregion
 
     }
 }

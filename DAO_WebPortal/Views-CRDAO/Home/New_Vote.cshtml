@@ -198,7 +198,7 @@
 
             <div class="form-group mb-4">
                 <label class="mb-2"><b><i class="fas fa-percentage"></i> Slash Ratio</b></label>
-                <input type="text" class="form-control" id="slashraito" placeholder="Slash ratio. (Eg. 0.05 for 5%)">
+                <input type="text" class="form-control" id="slashratio" placeholder="Slash ratio. (Eg. 0.05 for 5%)">
             </div>
             <div class="form-group mb-4">
                 <label class="mb-2"><b><i class="fas fa-star"></i> Stake</b></label>
@@ -512,7 +512,7 @@
 
             //Reputation Vote parameters
             var address_to_slash = $("#slashaddress").val();
-            var slash_ratio = $("#slashratio").val() * 1000;
+            var slash_ratio = parseFloat($("#slashratio").val()) * 1000;
             var stake = $("#slashstake").val();
             var slashusername = $("#slashusername").val();
 
@@ -572,7 +572,8 @@
             }
 
             async function startOnchainSlashingVote() {
-                CreateAndSendDeploy("../CasperChain/GetSlashingVoteDeploy?addresstoslash=" + $("#slashaddress").val() + "&slashratio=" + $("#slashratio").val() + "&stake=" + $("#slashstake").val() + "&slashusername=" + $("#slashusername").val(), startSlashingVote);
+                var slash_ratio = parseFloat($("#slashratio").val()) * 1000;
+                CreateAndSendDeploy("../CasperChain/GetSlashingVoteDeploy?addresstoslash=" + $("#slashaddress").val() + "&slashratio=" + slash_ratio + "&stake=" + $("#slashstake").val() + "&slashusername=" + $("#slashusername").val(), startSlashingVote);
             }
         </script>
     }

@@ -26,6 +26,10 @@ namespace DAO_DbService
             public string Voting_Engine_Url { get; set; }
             public string Service_Reputation_Url { get; set; }
             public string Service_Log_Url { get; set; }
+            public string Service_CasperChain_Url { get; set; }
+
+            //CHAIN SETTINGS
+            public Blockchain? DaoBlockchain { get; set; }
 
             //DAO VARIABLES
             public string BidEscrowFormalQuorumRatio { get; set; }
@@ -54,9 +58,6 @@ namespace DAO_DbService
             public string VotingClearnessDelta { get; set; }
             public string VotingIdsAddress { get; set; }
             public string VotingStartAfterJobSubmission { get; set; }
-
-            //CHAIN SETTINGS
-            public Blockchain? DaoBlockchain { get; set; }
         }
 
         public static Monitizer monitizer;

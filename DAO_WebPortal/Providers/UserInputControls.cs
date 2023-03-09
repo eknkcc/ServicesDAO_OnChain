@@ -3,11 +3,13 @@ using Helpers.Models.DtoModels.MainDbDto;
 using Helpers.Models.SharedModels;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
+using System;
 
 namespace DAO_WebPortal.Providers
 {
     public static class UserInputControls
     {
+        #region Voters
         public static SimpleResponse ControlSimpleVoteRequest(string documenthash)
         {
             if (string.IsNullOrEmpty(documenthash))
@@ -195,6 +197,106 @@ namespace DAO_WebPortal.Providers
 
             return new SimpleResponse { Success = true, Content = new { user = profileModel } };
         }
+        #endregion
+
+        #region BidEscrow
+        public static SimpleResponse ControlPostJobOfferRequest(long timeframe, int budget)
+        {
+            if (timeframe <= 0)
+            {
+                return new SimpleResponse { Success = false, Message = "Timeframe must be a positive number" };
+            }
+            if (budget <= 0)
+            {
+                return new SimpleResponse { Success = false, Message = "Budget must be a positive number" };
+            }
+
+            try
+            {
+                var enddate = DateTime.Now.AddDays(timeframe);
+                timeframe = ((DateTimeOffset)enddate).ToUnixTimeSeconds();
+            }
+            catch
+            {
+                return new SimpleResponse { Success = false, Message = "Timeframe parse error" };
+            }
+
+            return new SimpleResponse { Success = true, Content = new { timeframe = timeframe } };
+        }
+        public static SimpleResponse ControlSubmitBidRequest(uint jobofferid, ulong time, ulong userpayment, ulong repstake, bool onboard)
+        {
+            if (repstake <= 0)
+            {
+                return new SimpleResponse { Success = false, Message = "Reputation stake must be a positive number" };
+            }
+            if (userpayment <= 0)
+            {
+                return new SimpleResponse { Success = false, Message = "Payment must be a positive number" };
+            }
+            if (time <= 0)
+            {
+                return new SimpleResponse { Success = false, Message = "Timeframe must be a positive number" };
+            }
+            if (jobofferid <= 0)
+            {
+                return new SimpleResponse { Success = false, Message = "Job offer id not found" };
+            }
+
+            return new SimpleResponse { Success = true };
+        }
+        public static SimpleResponse ControlCancelBidRequest(uint bidid)
+        {
+            if (bidid <= 0)
+            {
+                return new SimpleResponse { Success = false, Message = "Bid ID must be a positive number" };
+            }
+
+            return new SimpleResponse { Success = true };
+        }
+        public static SimpleResponse ControlPickBidRequest(uint bidid, uint jobid)
+        {
+            if (bidid <= 0)
+            {
+                return new SimpleResponse { Success = false, Message = "Bid ID must be a positive number" };
+            }
+            if (jobid <= 0)
+            {
+                return new SimpleResponse { Success = false, Message = "Job ID must be a positive number" };
+            }
+
+            return new SimpleResponse { Success = true };
+        }
+        public static SimpleResponse ControlSubmitJobProofRequest(uint jobid, string documenthash)
+        {
+            if (string.IsNullOrEmpty(documenthash))
+            {
+                return new SimpleResponse { Success = false, Message = "Document proof cannot be empty." };
+            }
+            if (jobid <= 0)
+            {
+                return new SimpleResponse { Success = false, Message = "Job ID must be a positive number" };
+            }
+
+            return new SimpleResponse { Success = true };
+        }
+        public static SimpleResponse ControlSubmitJobProofGracePeriodRequest(uint jobid, string proof, uint repstake, bool onboard)
+        {
+            if (string.IsNullOrEmpty(proof))
+            {
+                return new SimpleResponse { Success = false, Message = "Document proof cannot be empty." };
+            }
+            if (jobid <= 0)
+            {
+                return new SimpleResponse { Success = false, Message = "Job ID must be a positive number" };
+            }
+            if (repstake <= 0)
+            {
+                return new SimpleResponse { Success = false, Message = "Reputation stake must be a positive number" };
+            }
+
+            return new SimpleResponse { Success = true };
+        }
+        #endregion
 
     }
 }

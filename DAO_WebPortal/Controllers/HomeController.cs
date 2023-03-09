@@ -198,59 +198,82 @@ namespace DAO_WebPortal.Controllers
         [PreventDuplicateRequest]
         [ValidateAntiForgeryToken]
         [AuthorizeDbUser]
-        public JsonResult New_Job_Post(string title, double amount, string time, string description, string tags, string codeurl)
+        public JsonResult New_Job_Post(string title, int amount, long time, string description, string tags, string codeurl, string signedDeployJson)
         {
-            // if (!ModelState.IsValid)
-            // {
-            //     return Json(new SimpleResponse { Success = false, Message = "Double post action prevented." });
-            // }
-
-            SimpleResponse result = new SimpleResponse();
 
             try
             {
-                //Empty fields control
-                if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(time) || string.IsNullOrEmpty(description) || string.IsNullOrEmpty(codeurl) || amount <= 0)
-                {
-                    result.Success = false;
-                    result.Message = "You must fill all the fields to post a job.";
-                    return Json(result);
-                }
+                //User input controls
+                SimpleResponse controlResult = UserInputControls.ControlPostJobOfferRequest(time, amount);
 
-                //Create JobPost model
-                JobPostDto model = new JobPostDto() { UserID = Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Amount = amount, JobDescription = description, CreateDate = DateTime.Now, TimeFrame = time, LastUpdate = DateTime.Now, Title = title, Tags = tags, CodeUrl = codeurl, Status = Enums.JobStatusTypes.AdminApprovalPending };
+                if (controlResult.Success == false) return base.Json(controlResult);
 
-                //Post model to ApiGateway
-                string jobPostResponseJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/Post", Helpers.Serializers.SerializeJson(model), HttpContext.Session.GetString("Token"));
-                //Parse reponse
-                model = Helpers.Serializers.DeserializeJson<JobPostDto>(jobPostResponseJson);
+                time = (long)((dynamic)controlResult.Content).timeframe;
 
-                if (model != null && model.JobID > 0)
-                {
-                    result.Success = true;
-                    result.Message = "Job posted successfully and will be available after admin review.";
+                int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
+                string token = HttpContext.Session.GetString("Token");
+                string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
+                string port = Utility.IpHelper.GetClientPort(HttpContext);
 
-                    result.Content = model;
+                SimpleResponse res = StartJobFlow(title, description, time, amount, tags, codeurl, ChainActionTypes.Post_Job, signedDeployJson, userid, token, ip, port);
 
-                    Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "User added a new job. #" + model.JobID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
-
-
-                    //Set server side toastr because page will be redirected
-                    try
-                    {
-                        TempData["toastr-message"] = result.Message;
-                        TempData["toastr-type"] = "success";
-                    }
-                    catch (Exception) { }
-
-
-                    return Json(result);
-                }
+                return Json(res);
             }
             catch (Exception ex)
             {
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return Json(new SimpleResponse() { Success = false, Message = "An error occured while processing your request." });
             }
+
+
+            //SimpleResponse result = new SimpleResponse();
+
+            //try
+            //{
+            //    //Empty fields control
+            //    if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(time) || string.IsNullOrEmpty(description) || string.IsNullOrEmpty(codeurl) || amount <= 0)
+            //    {
+            //        result.Success = false;
+            //        result.Message = "You must fill all the fields to post a job.";
+            //        return Json(result);
+            //    }
+
+            //    //Create JobPost model
+            //    JobPostDto model = new JobPostDto() { UserID = Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Amount = amount, JobDescription = description, CreateDate = DateTime.Now, TimeFrame = time, LastUpdate = DateTime.Now, Title = title, Tags = tags, CodeUrl = codeurl, Status = Enums.JobStatusTypes.AdminApprovalPending };
+
+            //    //Post model to ApiGateway
+            //    string jobPostResponseJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/Post", Helpers.Serializers.SerializeJson(model), HttpContext.Session.GetString("Token"));
+            //    //Parse reponse
+            //    model = Helpers.Serializers.DeserializeJson<JobPostDto>(jobPostResponseJson);
+
+            //    if (model != null && model.JobID > 0)
+            //    {
+            //        result = ApproveJob(model.JobID);
+
+            //        // result.Success = true;
+            //        // result.Message = "Job posted successfully and will be available after admin review.";
+
+            //        result.Content = model;
+
+            //        Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "User added a new job. #" + model.JobID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+
+
+            //        //Set server side toastr because page will be redirected
+            //        try
+            //        {
+            //            TempData["toastr-message"] = result.Message;
+            //            TempData["toastr-type"] = "success";
+            //        }
+            //        catch (Exception) { }
+
+
+            //        return Json(result);
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+            //}
 
             return Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
         }
@@ -349,6 +372,157 @@ namespace DAO_WebPortal.Controllers
             return Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
         }
 
+        #region Generic Onchain Job Methods
+
+        public SimpleResponse JobDbOperations_CreatePost(string title, string description, long time, int amount, string tags, string codeurl, int userid, string token)
+        {
+            try
+            {
+                //Create JobPost model
+                JobPostDto jobPostModel = new JobPostDto()
+                {
+                    UserID = userid,
+                    Amount = amount,
+                    JobDescription = description,
+                    Tags = tags,
+                    CodeUrl = codeurl,
+                    CreateDate = DateTime.Now,
+                    LastUpdate = DateTime.Now,
+                    Title = title,
+                    TimeFrame = time.ToString(),
+                    Status = Enums.JobStatusTypes.ChainApprovalPending
+                };
+                //Post model to ApiGateway
+                string jobPostResponseJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/Post", Helpers.Serializers.SerializeJson(jobPostModel), token);
+                //Parse reponse
+                jobPostModel = Helpers.Serializers.DeserializeJson<JobPostDto>(jobPostResponseJson);
+
+                return new SimpleResponse { Success = true, Content = jobPostModel, Message = "" };
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false, Message = "An error occured while processing your request." };
+            }
+        }
+
+        public SimpleResponse JobDbOperations_Complete(JobPostDto jobPostModel, string deployHash, string token, string ip, string port)
+        {
+            try
+            {
+                if (jobPostModel != null && jobPostModel.JobID > 0)
+                {
+                    //Set job status to informal voting
+                    jobPostModel.Status = Enums.JobStatusTypes.InternalAuction;
+                    jobPostModel.DeployHash = deployHash;
+
+                    string updateResponseJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/Update", Helpers.Serializers.SerializeJson(jobPostModel), token);
+
+                    Program.monitizer.AddUserLog(jobPostModel.UserID, Helpers.Constants.Enums.UserLogType.Request, "User created a new job.", ip, port);
+
+                    return new SimpleResponse { Success = true, Message = "Your request successfully submitted." };
+
+                }
+
+                return new SimpleResponse { Success = false, Message = "An error occured while creating the job post." };
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false, Message = "An error occured while processing your request." };
+            }
+        }
+
+        public SimpleResponse JobDbOperations_Fail(JobPostDto jobPostModel, string token)
+        {
+            try
+            {
+                if (jobPostModel != null && jobPostModel.JobID > 0)
+                {
+                    //Set job status to informal voting
+                    jobPostModel.Status = Enums.JobStatusTypes.ChainError;
+                    string updateResponseJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/Update", Helpers.Serializers.SerializeJson(jobPostModel), token);
+                }
+
+                return new SimpleResponse { Success = false, Message = "An error occured while creating the job post." };
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false, Message = "An error occured while processing your request." };
+            }
+        }
+
+        public SimpleResponse StartJobFlow(string title, string description, long time, int jobamount, string tags, string codeurl, ChainActionTypes actionType, string signedDeployJson, int userid, string token, string ip, string port)
+        {
+            ChainActionDto chainAction = new ChainActionDto();
+
+            try
+            {
+                //If platform uses blockchain, process onchain flow
+                if (Program._settings.DaoBlockchain == Blockchain.Casper)
+                {
+                    chainAction = CreateChainActionRecord(signedDeployJson, HttpContext.Session.GetString("WalletAddress"), actionType);
+
+                    new Thread(() =>
+                    {
+                        Thread.CurrentThread.IsBackground = true;
+
+                        SimpleResponse jobPostResponse = JobDbOperations_CreatePost(title, description, time, jobamount, tags, codeurl, userid, token);
+
+                        ChainActionDto deployResult = new ChainActionDto();
+
+                        if (jobPostResponse.Success == false || jobPostResponse.Content == null)
+                        {
+                            chainAction.Status = ChainActionStatus.Error.ToString();
+                            chainAction.Result = "Create new post error.";
+                            deployResult = chainAction;
+                            ChainError(chainAction, null);
+                        }
+                        else
+                        {
+                            JobPostDto jobPost = (JobPostDto)jobPostResponse.Content;
+
+                            deployResult = SendSignedDeploy(chainAction);
+
+                            //Central db operations
+                            if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
+                            {
+                                JobDbOperations_Complete(jobPost, deployResult.DeployHash, token, ip, port);
+                            }
+                            else
+                            {
+                                JobDbOperations_Fail(jobPost, token);
+                            }
+                        }
+
+                        Program.chainQue.RemoveAt(Program.chainQue.IndexOf(chainAction));
+                        Program.chainQue.Add(deployResult);
+                    }).Start();
+
+                    //Set server side toastr because page will be redirected
+                    TempData["toastr-message"] = "Your request successfully submitted. ";
+                    TempData["toastr-type"] = "success";
+
+                    return new SimpleResponse() { Success = true };
+                }
+                else
+                {
+                    //Central db operations
+                    SimpleResponse jobPostResponse = JobDbOperations_CreatePost(title, description, time, jobamount, tags, codeurl, userid, token);
+                    SimpleResponse dbResponse = JobDbOperations_Complete((JobPostDto)jobPostResponse.Content, "", token, ip, port);
+                    return dbResponse;
+                }
+            }
+            catch (Exception ex)
+            {
+                return ChainError(chainAction, ex);
+            }
+        }
+
+        #endregion
+
         #endregion
 
         #region Job Post Detail & Forum
@@ -433,7 +607,7 @@ namespace DAO_WebPortal.Controllers
             try
             {
                 //KYC Control
-                if (Convert.ToBoolean(Program._settings.DaoSettings.First(x=>x.Key == "ForumKycRequired").Value) && HttpContext.Session.GetString("KYCStatus") != "true")
+                if (Convert.ToBoolean(Program._settings.DaoSettings.First(x => x.Key == "ForumKycRequired").Value) && HttpContext.Session.GetString("KYCStatus") != "true")
                 {
                     result.Success = false;
                     result.Message = "Please complete the KYC from User Profile to add a new comment";
@@ -1722,9 +1896,9 @@ namespace DAO_WebPortal.Controllers
         [Route("New-Vote")]
         public IActionResult New_Vote()
         {
-           ViewBag.Title = "Start A New Vote";
+            ViewBag.Title = "Start A New Vote";
 
-           return View();
+            return View();
         }
 
         #region OLD METHODS
@@ -1841,59 +2015,214 @@ namespace DAO_WebPortal.Controllers
         //}
         #endregion
 
-        #region Generic Onchain Vote Methods
-
-        public ChainActionDto CreateChainActionRecord(string signedDeployJson, VoteTypes voteType)
-        {
-            ChainActionDto chainAction = new ChainActionDto();
-
-            Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Sending Deploy: " + signedDeployJson);
-            string walletAddress = HttpContext.Session.GetString("WalletAddress");
-
-            chainAction = new ChainActionDto() { ActionType = voteType.ToString(), CreateDate = DateTime.Now, WalletAddress = walletAddress, DeployJson = signedDeployJson, Status = Enums.ChainActionStatus.InProgress.ToString() };
-            var chainQuePostJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/ChainAction/Post", Helpers.Serializers.SerializeJson(chainAction));
-            chainAction = Helpers.Serializers.DeserializeJson<ChainActionDto>(chainQuePostJson);
-            if (chainAction != null && chainAction.ChainActionId > 0)
-            {
-                Program.chainQue.Add(chainAction);
-            }
-
-            return chainAction;
-        }
-
-        public ChainActionDto SendSignedDeploy(ChainActionDto chainAction)
-        {
-            var chainActionResult = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/SendSignedDeploy", Helpers.Serializers.SerializeJson(chainAction));
-            var chainActionResultModel = Helpers.Serializers.DeserializeJson<ChainActionDto>(chainActionResult);
-
-            if (chainActionResultModel != null && !string.IsNullOrEmpty(chainActionResultModel.Status))
-            {
-                chainAction = chainActionResultModel;
-                var updateJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/ChainAction/Update", Helpers.Serializers.SerializeJson(chainAction));
-            }
-
-            return chainAction;
-        }
-
-        public SimpleResponse ChainError(ChainActionDto chainAction, Exception? ex)
+        /// <summary>
+        ///  New Simple vote post function
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [AuthorizeChainUser]
+        public JsonResult New_Vote_Simple(NewVoteSimpleModel model)
         {
             try
             {
-                chainAction.Status = Enums.ChainActionStatus.Error.ToString();
-                var updateJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/ChainAction/Update", Helpers.Serializers.SerializeJson(chainAction));
+                //User input controls
+                SimpleResponse controlResult = UserInputControls.ControlSimpleVoteRequest(model.documenthash);
 
-                if(ex != null)
-                {
-                    Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-                }
+                if (controlResult.Success == false) return base.Json(controlResult);
+
+                int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
+                string token = HttpContext.Session.GetString("Token");
+                string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
+                string port = Utility.IpHelper.GetClientPort(HttpContext);
+
+                string title = "Simple Vote: " + model.title;
+                string description = model.description;
+
+                SimpleResponse res = StartVoteFlow(title, description, VoteTypes.Simple, ChainActionTypes.Simple_Vote, model.signedDeployJson, userid, token, ip, port);
+
+                return Json(res);
             }
-            catch
+            catch (Exception ex)
             {
-
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return Json(new SimpleResponse() { Success = false, Message = "An error occured while processing your request." });
             }
-
-            return new SimpleResponse { Success = false, Message = "An error occured while sending the deploy to the chain. Please check chain logs for details." };
         }
+
+        /// <summary>
+        ///  New VA Onboarding vote post function
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [AuthorizeChainUser]
+        public JsonResult New_Vote_VaOnboarding(NewVoteVaOnboardingModel model)
+        {
+            try
+            {
+                //User input controls
+                SimpleResponse controlResult = UserInputControls.ControlVaOnboardingVoteRequest(model.newvausername, model.newvaaddress, model.reason, HttpContext.Session.GetString("Token"));
+
+                if (controlResult.Success == false) return base.Json(controlResult);
+
+                int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
+                string token = HttpContext.Session.GetString("Token");
+                string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
+                string port = Utility.IpHelper.GetClientPort(HttpContext);
+
+                string title = "VA Onboarding vote for user '" + model.newvausername + "'";
+                string description = "VA Onboarding vote for user '" + model.newvausername + "' <br><br> Reason: " + model.reason;
+
+                SimpleResponse res = StartVoteFlow(title, description, VoteTypes.VAOnboarding, ChainActionTypes.VA_Onboarding_Vote, model.signedDeployJson, userid, token, ip, port);
+
+                return Json(res);
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return Json(new SimpleResponse() { Success = false, Message = "An error occured while processing your request." });
+            }
+        }
+
+        /// <summary>
+        ///  New Governance/Repo vote post function
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [AuthorizeChainUser]
+        public JsonResult New_Vote_Governance(NewVoteGovernanceModel model)
+        {
+            try
+            {
+                //User input controls
+                SimpleResponse controlResult = UserInputControls.ControlGovernanceVoteRequest(model.key, model.value);
+
+                if (controlResult.Success == false) return base.Json(controlResult);
+
+                int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
+                string token = HttpContext.Session.GetString("Token");
+                string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
+                string port = Utility.IpHelper.GetClientPort(HttpContext);
+
+                string title = "Governance vote for variable: '" + model.key + "'";
+                string description = "Governance vote for variable: '" + model.key + "' <br><br> New value: " + model.value;
+
+                SimpleResponse res = StartVoteFlow(title, description, VoteTypes.Governance, ChainActionTypes.Governance_Vote, model.signedDeployJson, userid, token, ip, port);
+
+                return Json(res);
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return Json(new SimpleResponse() { Success = false, Message = "An error occured while processing your request." });
+            }
+        }
+
+        /// <summary>
+        ///  New KYC vote post function
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [AuthorizeChainUser]
+        public JsonResult New_Vote_KYC(NewVoteKYCModel model)
+        {
+            try
+            {
+                //User input controls
+                SimpleResponse controlResult = UserInputControls.ControlKYCVoteRequest(model.kycUserName, HttpContext.Session.GetString("Token"));
+
+                if (controlResult.Success == false) return base.Json(controlResult);
+
+                int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
+                string token = HttpContext.Session.GetString("Token");
+                string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
+                string port = Utility.IpHelper.GetClientPort(HttpContext);
+
+                string title = "KYC vote for user '" + model.kycUserName + "'";
+                string description = "KYC vote for user '" + model.kycUserName + "' <br><br> Document verification id: " + ((UserKYCDto)((dynamic)controlResult.Content).kyc).VerificationId;
+
+                SimpleResponse res = StartVoteFlow(title, description, VoteTypes.KYC, ChainActionTypes.KYC_Vote, model.signedDeployJson, userid, token, ip, port);
+
+                return Json(res);
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return Json(new SimpleResponse() { Success = false, Message = "An error occured while processing your request." });
+            }
+        }
+
+        /// <summary>
+        ///  New Reputation vote post function
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [AuthorizeChainUser]
+        public JsonResult New_Vote_Reputation(NewVoteReputationModel model)
+        {
+            try
+            {
+                //User input controls
+                SimpleResponse controlResult = UserInputControls.ControlReputationVoteRequest(model.amount, model.documenthash, model.action, model.repusername, model.subjectaddress, HttpContext.Session.GetString("Token"));
+
+                if (controlResult.Success == false) return base.Json(controlResult);
+
+                int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
+                string token = HttpContext.Session.GetString("Token");
+                string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
+                string port = Utility.IpHelper.GetClientPort(HttpContext);
+
+                model.subjectaddress = Utility.StringHelper.ShortenWallet(((UserDto)((dynamic)controlResult.Content).user).WalletAddress);
+
+                string title = "Reputation vote for account '" + model.subjectaddress + "'";
+                string description = "Reputation vote details <br><br> Account: " + model.subjectaddress + " <br> Action: " + model.action + " <br> Amount: " + model.amount + " <br> Document Hash: " + model.documenthash + " <br> Stake: " + model.stake;
+
+                SimpleResponse res = StartVoteFlow(title, description, VoteTypes.Reputation, ChainActionTypes.Reputation_Vote, model.signedDeployJson, userid, token, ip, port);
+
+                return Json(res);
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return Json(new SimpleResponse() { Success = false, Message = "An error occured while processing your request." });
+            }
+        }
+
+        /// <summary>
+        ///  New Slashing vote post function
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [AuthorizeChainUser]
+        public JsonResult New_Vote_Slashing(NewVoteSlashingModel model)
+        {
+            try
+            {
+                //User input controls
+                SimpleResponse controlResult = UserInputControls.ControlSlashingVoteRequest(model.addresstoslash, model.slashusername, HttpContext.Session.GetString("Token"));
+
+                if (controlResult.Success == false) return base.Json(controlResult);
+
+                int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
+                string token = HttpContext.Session.GetString("Token");
+                string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
+                string port = Utility.IpHelper.GetClientPort(HttpContext);
+
+
+                string title = "Slashing vote for account '" + model.addresstoslash + "'";
+                string description = "Slashing vote details <br><br> Account: " + model.addresstoslash + " <br> Slash Ratio: " + model.slashratio + " <br> Stake: " + model.stake;
+
+                SimpleResponse res = StartVoteFlow(title, description, VoteTypes.Slashing, ChainActionTypes.Slashing_Vote, model.signedDeployJson, userid, token, ip, port);
+
+                return Json(res);
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return Json(new SimpleResponse() { Success = false, Message = "An error occured while processing your request." });
+            }
+        }
+
+        #region Generic Onchain Vote Methods
 
         public SimpleResponse VoteDbOperations_CreatePost(string title, string description, int userid, string token)
         {
@@ -1924,7 +2253,7 @@ namespace DAO_WebPortal.Controllers
             }
         }
 
-        public SimpleResponse VoteDbOperations_Complete(JobPostDto jobPostModel, string deployHash, int userid, string token, string ip, string port)
+        public SimpleResponse VoteDbOperations_Complete(VoteTypes voteType, JobPostDto jobPostModel, string deployHash, int userid, string token, string ip, string port)
         {
             try
             {
@@ -1942,7 +2271,7 @@ namespace DAO_WebPortal.Controllers
                     informalVoting.StartDate = DateTime.Now;
                     informalVoting.PolicingRate = DefaultPolicingRate;
                     informalVoting.QuorumRatio = InformalQuorumRatio;
-                    informalVoting.Type = Enums.VoteTypes.KYC;
+                    informalVoting.Type = voteType;
                     informalVoting.DeployHash = deployHash;
                     informalVoting.EndDate = DateTime.Now.AddSeconds(InformalVotingTime);
 
@@ -1960,7 +2289,7 @@ namespace DAO_WebPortal.Controllers
                     {
                         //Set job status to informal voting
                         jobPostModel.Status = Enums.JobStatusTypes.InformalVoting;
-                        string updateResponseJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/Update", Helpers.Serializers.SerializeJson(jobPostModel), HttpContext.Session.GetString("Token"));
+                        string updateResponseJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/Update", Helpers.Serializers.SerializeJson(jobPostModel), token);
 
                         Program.monitizer.AddUserLog(userid, Helpers.Constants.Enums.UserLogType.Request, "User started new simple vote.", ip, port);
 
@@ -1988,7 +2317,27 @@ namespace DAO_WebPortal.Controllers
             }
         }
 
-        public SimpleResponse StartVoteFlow(string title, string description, VoteTypes voteType, string signedDeployJson, int userid, string token, string ip, string port)
+        public SimpleResponse VoteDbOperations_Fail(JobPostDto jobPostModel, string token)
+        {
+            try
+            {
+                if (jobPostModel != null && jobPostModel.JobID > 0)
+                {
+                    //Set job status to informal voting
+                    jobPostModel.Status = Enums.JobStatusTypes.ChainError;
+                    string updateResponseJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/Update", Helpers.Serializers.SerializeJson(jobPostModel), token);
+                }
+
+                return new SimpleResponse { Success = false, Message = "An error occured while creating the job post." };
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false, Message = "An error occured while processing your request." };
+            }
+        }
+
+        public SimpleResponse StartVoteFlow(string title, string description, VoteTypes voteType, ChainActionTypes actionType, string signedDeployJson, int userid, string token, string ip, string port)
         {
             ChainActionDto chainAction = new ChainActionDto();
 
@@ -1997,7 +2346,7 @@ namespace DAO_WebPortal.Controllers
                 //If platform uses blockchain, process onchain flow
                 if (Program._settings.DaoBlockchain == Blockchain.Casper)
                 {
-                    chainAction = CreateChainActionRecord(signedDeployJson, voteType);
+                    chainAction = CreateChainActionRecord(signedDeployJson, HttpContext.Session.GetString("WalletAddress"), actionType);
 
                     new Thread(() =>
                     {
@@ -2023,7 +2372,11 @@ namespace DAO_WebPortal.Controllers
                             //Central db operations
                             if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
                             {
-                                VoteDbOperations_Complete(jobPost, deployResult.DeployHash, userid, token, ip, port);
+                                VoteDbOperations_Complete(voteType, jobPost, deployResult.DeployHash, userid, token, ip, port);
+                            }
+                            else
+                            {
+                                VoteDbOperations_Fail(jobPost, token);
                             }
                         }
 
@@ -2041,7 +2394,7 @@ namespace DAO_WebPortal.Controllers
                 {
                     //Central db operations
                     SimpleResponse jobPostResponse = VoteDbOperations_CreatePost("Simple Vote: " + title, description, userid, token);
-                    SimpleResponse dbResponse = VoteDbOperations_Complete((JobPostDto)jobPostResponse.Content, "", userid, token, ip, port);
+                    SimpleResponse dbResponse = VoteDbOperations_Complete(voteType, (JobPostDto)jobPostResponse.Content, "", userid, token, ip, port);
                     return dbResponse;
                 }
             }
@@ -2050,214 +2403,8 @@ namespace DAO_WebPortal.Controllers
                 return ChainError(chainAction, ex);
             }
         }
+
         #endregion
-
-        /// <summary>
-        ///  New Simple vote post function
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost]
-        [AuthorizeChainUser]
-        public JsonResult New_Vote_Simple(NewVoteSimpleModel model)
-        {
-            try
-            {
-                //User input controls
-                SimpleResponse controlResult = UserInputControls.ControlSimpleVoteRequest(model.documenthash);
-
-                if (controlResult.Success == false) return base.Json(controlResult);
-
-                int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
-                string token = HttpContext.Session.GetString("Token");
-                string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
-                string port =  Utility.IpHelper.GetClientPort(HttpContext);
-
-                string title = "Simple Vote: " + model.title;
-                string description = model.description;
-
-                SimpleResponse res = StartVoteFlow(title, description, VoteTypes.Simple, model.signedDeployJson, userid, token, ip, port);
-
-                return Json(res);
-            }
-            catch (Exception ex)
-            {
-                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
-                return Json(new SimpleResponse() { Success = false, Message = "An error occured while processing your request." });
-            }
-        }
-
-        /// <summary>
-        ///  New VA Onboarding vote post function
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost]
-        [AuthorizeChainUser]
-        public JsonResult New_Vote_VaOnboarding(NewVoteVaOnboardingModel model)
-        {
-            try
-            {
-                //User input controls
-                SimpleResponse controlResult = UserInputControls.ControlVaOnboardingVoteRequest(model.newvausername, model.newvaaddress, model.reason, HttpContext.Session.GetString("Token"));
-
-                if (controlResult.Success == false) return base.Json(controlResult);
-
-                int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
-                string token = HttpContext.Session.GetString("Token");
-                string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
-                string port =  Utility.IpHelper.GetClientPort(HttpContext);
-
-                string title = "VA Onboarding vote for user '" + model.newvausername + "'";
-                string description = "VA Onboarding vote for user '" + model.newvausername + "' <br><br> Reason: " + model.reason;
-
-                SimpleResponse res = StartVoteFlow(title, description, VoteTypes.VAOnboarding, model.signedDeployJson, userid, token, ip, port);
-
-                return Json(res);
-            }
-            catch (Exception ex)
-            {
-                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
-                return Json(new SimpleResponse() { Success = false, Message = "An error occured while processing your request." });
-            }
-        }
-
-        /// <summary>
-        ///  New Governance/Repo vote post function
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost]
-        [AuthorizeChainUser]
-        public JsonResult New_Vote_Governance(NewVoteGovernanceModel model)
-        {
-            try
-            {
-                //User input controls
-                SimpleResponse controlResult = UserInputControls.ControlGovernanceVoteRequest(model.key, model.value);
-
-                if (controlResult.Success == false) return base.Json(controlResult);
-
-                int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
-                string token = HttpContext.Session.GetString("Token");
-                string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
-                string port =  Utility.IpHelper.GetClientPort(HttpContext);
-
-                string title = "Governance vote for variable: '" + model.key + "'";
-                string description = "Governance vote for variable: '" + model.key + "' <br><br> New value: " + model.value;
-
-                SimpleResponse res = StartVoteFlow(title, description, VoteTypes.Governance, model.signedDeployJson, userid, token, ip, port);
-
-                return Json(res);
-            }
-            catch (Exception ex)
-            {
-                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
-                return Json(new SimpleResponse() { Success = false, Message = "An error occured while processing your request." });
-            }
-        }
-
-        /// <summary>
-        ///  New KYC vote post function
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost]
-        [AuthorizeChainUser]
-        public JsonResult New_Vote_KYC(NewVoteKYCModel model)
-        {
-            try
-            {
-                //User input controls
-                SimpleResponse controlResult = UserInputControls.ControlKYCVoteRequest(model.kycUserName, HttpContext.Session.GetString("Token"));
-
-                if (controlResult.Success == false) return base.Json(controlResult);
-
-                int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
-                string token = HttpContext.Session.GetString("Token");
-                string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
-                string port =  Utility.IpHelper.GetClientPort(HttpContext);
-
-                string title = "KYC vote for user '" + model.kycUserName + "'";
-                string description = "KYC vote for user '" + model.kycUserName + "' <br><br> Document verification id: " + ((UserKYCDto)((dynamic)controlResult.Content).kyc).VerificationId;
-
-                SimpleResponse res = StartVoteFlow(title, description, VoteTypes.KYC, model.signedDeployJson, userid, token, ip, port);
-
-                return Json(res);
-            }
-            catch (Exception ex)
-            {
-                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
-                return Json(new SimpleResponse() { Success = false, Message = "An error occured while processing your request." });
-            }
-        }
-
-        /// <summary>
-        ///  New Reputation vote post function
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost]
-        [AuthorizeChainUser]
-        public JsonResult New_Vote_Reputation(NewVoteReputationModel model)
-        {
-            try
-            {
-                //User input controls
-                SimpleResponse controlResult = UserInputControls.ControlReputationVoteRequest(model.amount, model.documenthash, model.action, model.repusername, model.subjectaddress, HttpContext.Session.GetString("Token"));
-
-                if (controlResult.Success == false) return base.Json(controlResult);
-
-                int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
-                string token = HttpContext.Session.GetString("Token");
-                string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
-                string port =  Utility.IpHelper.GetClientPort(HttpContext);
-
-                model.subjectaddress = Utility.StringHelper.ShortenWallet(((UserDto)((dynamic)controlResult.Content).user).WalletAddress);
-
-                string title = "Reputation vote for account '" + model.subjectaddress + "'";
-                string description = "Reputation vote details <br><br> Account: " + model.subjectaddress + " <br> Action: " + model.action + " <br> Amount: " + model.amount + " <br> Document Hash: " + model.documenthash + " <br> Stake: " + model.stake;
-
-                SimpleResponse res = StartVoteFlow(title, description, VoteTypes.Reputation, model.signedDeployJson, userid, token, ip, port);
-
-                return Json(res);
-            }
-            catch (Exception ex)
-            {
-                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
-                return Json(new SimpleResponse() { Success = false, Message = "An error occured while processing your request." });
-            }
-        }
-
-        /// <summary>
-        ///  New Slashing vote post function
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost]
-        [AuthorizeChainUser]
-        public JsonResult New_Vote_Slashing(NewVoteSlashingModel model)
-        {
-            try
-            {
-                //User input controls
-                SimpleResponse controlResult = UserInputControls.ControlSlashingVoteRequest(model.addresstoslash, model.slashusername, HttpContext.Session.GetString("Token"));
-
-                if (controlResult.Success == false) return base.Json(controlResult);
-
-                int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
-                string token = HttpContext.Session.GetString("Token");
-                string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
-                string port =  Utility.IpHelper.GetClientPort(HttpContext);
-
-
-                string title = "Slashing vote for account '" + model.addresstoslash + "'";
-                string description = "Slashing vote details <br><br> Account: " + model.addresstoslash + " <br> Slash Ratio: " + model.slashratio + " <br> Stake: " + model.stake;
-
-                SimpleResponse res = StartVoteFlow(title, description, VoteTypes.Slashing, model.signedDeployJson, userid, token, ip, port);
-
-                return Json(res);
-            }
-            catch (Exception ex)
-            {
-                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
-                return Json(new SimpleResponse() { Success = false, Message = "An error occured while processing your request." });
-            }
-        }
 
         #endregion
 
@@ -2776,6 +2923,13 @@ namespace DAO_WebPortal.Controllers
         [HttpGet]
         public JsonResult AdminJobApproval(int JobId)
         {
+            SimpleResponse result = ApproveJob(JobId);
+
+            return Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+        }
+
+        public SimpleResponse ApproveJob(int JobId)
+        {
             SimpleResponse result = new SimpleResponse();
 
             try
@@ -2823,7 +2977,7 @@ namespace DAO_WebPortal.Controllers
                         result.Message = "There is an existing auction related with this job.";
                         result.Content = AuctionModel;
 
-                        return Json(result);
+                        return result;
                     }
 
                     //Post model to ApiGateway
@@ -2885,7 +3039,7 @@ namespace DAO_WebPortal.Controllers
                 TempData["toastr-message"] = result.Message;
                 TempData["toastr-type"] = "success";
 
-                return Json(result);
+                return result;
 
             }
             catch (Exception ex)
@@ -2893,7 +3047,8 @@ namespace DAO_WebPortal.Controllers
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
             }
 
-            return Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+            return result;
+
         }
 
         /// <summary>
@@ -3458,6 +3613,60 @@ namespace DAO_WebPortal.Controllers
         }
         #endregion
 
+        #region Casper Chain Action Methods
+
+        public ChainActionDto CreateChainActionRecord(string signedDeployJson, string walletAddress, ChainActionTypes voteType)
+        {
+            ChainActionDto chainAction = new ChainActionDto();
+
+            Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Sending Deploy: " + signedDeployJson);
+
+            chainAction = new ChainActionDto() { ActionType = voteType.ToString(), CreateDate = DateTime.Now, WalletAddress = walletAddress, DeployJson = signedDeployJson, Status = Enums.ChainActionStatus.InProgress.ToString() };
+            var chainQuePostJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/ChainAction/Post", Helpers.Serializers.SerializeJson(chainAction));
+            chainAction = Helpers.Serializers.DeserializeJson<ChainActionDto>(chainQuePostJson);
+            if (chainAction != null && chainAction.ChainActionId > 0)
+            {
+                Program.chainQue.Add(chainAction);
+            }
+
+            return chainAction;
+        }
+
+        public ChainActionDto SendSignedDeploy(ChainActionDto chainAction)
+        {
+            var chainActionResult = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/SendSignedDeploy", Helpers.Serializers.SerializeJson(chainAction));
+            var chainActionResultModel = Helpers.Serializers.DeserializeJson<ChainActionDto>(chainActionResult);
+
+            if (chainActionResultModel != null && !string.IsNullOrEmpty(chainActionResultModel.Status))
+            {
+                chainAction = chainActionResultModel;
+                var updateJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/ChainAction/Update", Helpers.Serializers.SerializeJson(chainAction));
+            }
+
+            return chainAction;
+        }
+
+        public SimpleResponse ChainError(ChainActionDto chainAction, Exception? ex)
+        {
+            try
+            {
+                chainAction.Status = Enums.ChainActionStatus.Error.ToString();
+                var updateJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/ChainAction/Update", Helpers.Serializers.SerializeJson(chainAction));
+
+                if (ex != null)
+                {
+                    Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                }
+            }
+            catch
+            {
+
+            }
+
+            return new SimpleResponse { Success = false, Message = "An error occured while sending the deploy to the chain. Please check chain logs for details." };
+        }
+
+        #endregion
 
     }
 }

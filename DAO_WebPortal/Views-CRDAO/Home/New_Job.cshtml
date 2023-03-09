@@ -56,10 +56,10 @@
         </div>
         <div class="form-group">
             <label class="mb-2" for="description"><b><i class="fas fa-file mx-1"></i> Job Description</b></label>
-            <textarea type="text" id="description" name="description"  placeholder="Job Description" rows="10"></textarea>
+            <textarea type="text" id="description" name="description" placeholder="Job Description" rows="10"></textarea>
         </div>
         <div class="d-flex justify-content-end my-3">
-            <button type="submit" class="btn btn-primary" onclick="NewJob();">Submit Job</button>
+            <button type="submit" class="btn btn-primary" onclick="onchainJobPost();">Submit Job</button>
         </div>
     </div>
 </div>
@@ -67,94 +67,191 @@
 @section Scripts{
 
     <script>
-    $(document).ready(function () {
-        if (document.body.classList.contains('dark-theme')) {
-            CKEDITOR.replace('description', {
-                skin: 'moono-dark'
-            });
-        }
-        else {
-            CKEDITOR.replace('description', {
-                skin: 'moono-lisa'
-            });
-        }
-    });
-
-    //Add new job function
-    function NewJob() {
-
-        $.confirm({
-            title: 'Confirmation',
-            content: '<b>By posting a job, you unconditionally and irrevocably agree: </b>' +
-
-                '<div class="form-check m-2"><input class="form-check-input" type="checkbox" value="" id="checkConfirm1"><label class="form-check-label text-justify" for="flexCheckDefault">To be legally bound by the terms and conditions stated in your job posting and the winning bid selected by yourself; that a binding legal relationship is established between you and the winning bidder selected by yourself; to deposit the amount offered by the selected winning bid as remuneration into an escrow smart contract provided by CRDAO; and that unless specified otherwise in your job posting or the winning bid selected by yourself, the relationship between you, the winning bidder, and CRDAO is exclusively governed by the general terms and conditions of CRDAO</label></div>'
-                +'<div class="form-check m-2"><input class="form-check-input" type="checkbox" value="" id="checkConfirm2"><label class="form-check-label text-justify" for="flexCheckDefault">I hereby acknowledge that any work product created by a bidder will be open source and never is or will be the sole property of the job poster.</label></div>'
-            ,
-            columnClass: 'col-md-8 col-md-offset-2',
-            buttons: {
-                cancel: {
-                    text: 'Cancel'
-                },
-                confirm: {
-                    text: 'Continue',
-                    btnClass: 'btn btn-primary',
-                    action: function () {
-
-                        var confirmationControl = true;
-
-                        for (var i = 1; i < 3; i++) {
-                            var checked = $("#checkConfirm" + i).is(':checked');
-
-                            if (checked == false) {
-                                confirmationControl = false;
-                            }
-                        }
-
-                        if (confirmationControl == false) {
-                            toastr.warning("You must confirm agreements.");
-
-                            return false;
-                        }
-
-                        //Create job model
-                        var title = $('#title').val()
-                        var amount = $('#amount').val();
-                        var time = $('#time').val();
-                        var codeurl = $('#codeurl').val();
-                        var tags = $('#tags').val();
-                        var description = CKEDITOR.instances["description"].getData();
-                        var token = $('input[name="__RequestVerificationToken"]', token).val();
-
-                        //Ajax post action
-                        $.ajax({
-                            type: "POST",
-                            url: "../Home/New_Job_Post",
-                            data: { "title": title, "amount": amount, "time": time, "description": description, "tags": tags, "codeurl": codeurl, "__RequestVerificationToken": token },
-                            success: function (result) {
-                                if (result.success) {
-                                    window.location.href = "./My-Jobs";
-                                }
-                                else {
-                                    toastr.warning(result.message);
-                                }
-                            },
-                                failure: function (response) {
-                                    toastr.warning("@Lang.ConnectionError");
-                            },
-                            error: function (response) {
-                                    toastr.error("@Lang.UnexpectedError");
-                            }
-                        });
-
-
-                    }
-
-                }
+        $(document).ready(function () {
+            if (document.body.classList.contains('dark-theme')) {
+                CKEDITOR.replace('description', {
+                    skin: 'moono-dark'
+                });
+            }
+            else {
+                CKEDITOR.replace('description', {
+                    skin: 'moono-lisa'
+                });
             }
         });
 
+        async function CreateAndSendDeploy(requestUrl, sendDeployFunction) {
+            const isConnected = await window.casperlabsHelper.isConnected();
+            if (isConnected) {
+                ShowLoader("Creating deploy object...");
+                //Ajax post action
+                $.ajax({
+                    type: "GET",
+                    url: requestUrl,
+                    success: async function (result) {
+                        if (result.success) {
+                            ShowLoader("Waiting for sign...");
+                            //const publicKeyHex = await window.casperlabsHelper.getActivePublicKey();
+                            var deployJson = { "deploy": JSON.parse(result.message) };
+
+                            // Sign transcation using casper-signer.
+                            const signature = await window.casperlabsHelper.sign(deployJson);
+
+                            ShowLoader("Sending signed deploy. This may take few minutes...");
+
+                            $.confirm({
+                                title: 'Confirmation',
+                                content: '<p>Are you sure you want to start vote process ?</p>',
+                                columnClass: 'col-md-8 col-md-offset-2',
+                                buttons: {
+                                    cancel: {
+                                        text: 'Cancel'
+                                    },
+                                    confirm: {
+                                        text: 'Continue',
+                                        btnClass: 'btn btn-primary',
+                                        action: function () {
+                                            sendDeployFunction(signature.deploy)
+                                        }
+
+                                    }
+                                }
+                            });
+                            //SendSignedDeploy(signature.deploy, "KYC Contract Call");
+                        }
+                        else {
+                            HideLoader();
+                            toastr.warning(result.message);
+                        }
+                    },
+                    failure: function (response) {
+                        HideLoader();
+                        toastr.warning("@Lang.ConnectionError");
+                    },
+                    error: function (response) {
+                        HideLoader();
+                        toastr.error("@Lang.UnexpectedError");
+                    }
+                });
+            }
+            else {
+                toastr.warning("Please connect the Casper Signer browser extension.");
+            }
+        }
+
+        //Add new job function
+        function PostNewJob(signedDeployJson) {
+
+            $.confirm({
+                title: 'Confirmation',
+                content: '<b>By posting a job, you unconditionally and irrevocably agree: </b>' +
+
+                    '<div class="form-check m-2"><input class="form-check-input" type="checkbox" value="" id="checkConfirm1"><label class="form-check-label text-justify" for="flexCheckDefault">To be legally bound by the terms and conditions stated in your job posting and the winning bid selected by yourself; that a binding legal relationship is established between you and the winning bidder selected by yourself; to deposit the amount offered by the selected winning bid as remuneration into an escrow smart contract provided by CRDAO; and that unless specified otherwise in your job posting or the winning bid selected by yourself, the relationship between you, the winning bidder, and CRDAO is exclusively governed by the general terms and conditions of CRDAO</label></div>'
+                    + '<div class="form-check m-2"><input class="form-check-input" type="checkbox" value="" id="checkConfirm2"><label class="form-check-label text-justify" for="flexCheckDefault">I hereby acknowledge that any work product created by a bidder will be open source and never is or will be the sole property of the job poster.</label></div>'
+                ,
+                columnClass: 'col-md-8 col-md-offset-2',
+                buttons: {
+                    cancel: {
+                        text: 'Cancel'
+                    },
+                    confirm: {
+                        text: 'Continue',
+                        btnClass: 'btn btn-primary',
+                        action: function () {
+
+                            var confirmationControl = true;
+
+                            for (var i = 1; i < 3; i++) {
+                                var checked = $("#checkConfirm" + i).is(':checked');
+
+                                if (checked == false) {
+                                    confirmationControl = false;
+                                }
+                            }
+
+                            if (confirmationControl == false) {
+                                toastr.warning("You must confirm agreements.");
+
+                                return false;
+                            }
+
+                            //Create job model
+                            var title = $('#title').val()
+                            var amount = $('#amount').val();
+                            var time = $('#time').val();
+                            var codeurl = $('#codeurl').val();
+                            var tags = $('#tags').val();
+                            var description = CKEDITOR.instances["description"].getData();
+                            var token = $('input[name="__RequestVerificationToken"]', token).val();
+
+                            //Ajax post action
+                            $.ajax({
+                                type: "POST",
+                                url: "../Home/New_Job_Post",
+                                data: { "title": title, "amount": amount, "time": time, "description": description, "tags": tags, "codeurl": codeurl, "__RequestVerificationToken": token, "signedDeployJson": JSON.stringify(signedDeployJson) },
+                                success: function (result) {
+                                    if (result.success) {
+                                        window.location.href = "./My-Jobs";
+                                    }
+                                    else {
+                                        toastr.warning(result.message);
+                                    }
+                                },
+                                failure: function (response) {
+                                    toastr.warning("@Lang.ConnectionError");
+                                },
+                                error: function (response) {
+                                    toastr.error("@Lang.UnexpectedError");
+                                }
+                            });
+
+
+                        }
+
+                    }
+                }
+            });
+
 
         }
+
     </script>
 
+
+    @if (Program._settings.DaoBlockchain == Helpers.Constants.Enums.Blockchain.Casper)
+    {
+        <script>
+
+            async function onchainJobPost() {
+                CreateAndSendDeploy("../CasperChain/GetPostJobOfferDeploy?timeframe=" + $("#time").val() + "&budget=" + $("#amount").val(), PostNewJob);
+            }
+
+        </script>
+    }
+    else if (Program._settings.DaoBlockchain == null)
+    {
+        @* Start votes without any onchain process *@
+        <script>
+            function onchainJobPost() {
+                $.confirm({
+                    title: 'Confirmation',
+                    content: '<p>Are you sure you want to start vote process ?</p>',
+                    columnClass: 'col-md-8 col-md-offset-2',
+                    buttons: {
+                        cancel: {
+                            text: 'Cancel'
+                        },
+                        confirm: {
+                            text: 'Continue',
+                            btnClass: 'btn btn-primary',
+                            action: function () {
+                                PostNewJob("")
+                            }
+
+                        }
+                    }
+                });
+            }
+        </script>
+    }
 }

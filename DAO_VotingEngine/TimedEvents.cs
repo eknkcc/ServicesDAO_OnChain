@@ -167,7 +167,6 @@ namespace DAO_VotingEngine
             }
         }
 
-
         /// <summary>
         ///  Check voting status from casper blockchain
         /// </summary>
@@ -341,7 +340,6 @@ namespace DAO_VotingEngine
                 Program.monitizer.AddConsole("Exception in timer CheckVotingStatusCasperChain. Ex: " + ex.Message);
             }
         }
-
 
         private static void SyncronizeVotesFromChain(Enums.Blockchain blockchain, int voting_chain_id, int votingId)
         {

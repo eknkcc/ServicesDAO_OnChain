@@ -83,7 +83,8 @@
             Expired,
             Rejected,
             FailRestart,
-            ChainApprovalPending
+            ChainApprovalPending,
+            ChainError
         }
 
         /// <summary>
@@ -175,6 +176,29 @@
             Error,
             BlockchainError,
             Failed
+        }
+
+
+        /// <summary>
+        ///  Enum of type of a chain actions
+        /// </summary>
+        public enum ChainActionTypes
+        {
+            Simple_Vote,
+            Governance_Vote,
+            Admin_Vote,
+            Job_Completion_Vote,
+            VA_Onboarding_Vote,
+            KYC_Vote,
+            Reputation_Vote,
+            Slashing_Vote,
+
+            Post_Job,
+            Pick_Bid,
+            Submit_Bid,
+            Cancel_Bid,
+            Submit_JobProof,
+            Submit_JobProof_Grace
         }
     }
 }

@@ -46,6 +46,8 @@ namespace DAO_DbService.Controllers
                                                         let flagcount = db.JobPostComments.Count(x => x.JobID == job.JobID && x.IsFlagged == true)
                                                         let userflagged = db.JobPostComments.Count(x => x.JobID == job.JobID && x.UserID == userid && x.IsFlagged == true) > 0
                                                         where (status == null || job.Status == status) &&
+                                                        job.Status != Enums.JobStatusTypes.ChainApprovalPending &&
+                                                        job.Status != Enums.JobStatusTypes.ChainError &&
                                                         (query == null || job.Title.Contains(query))
                                                         orderby job.CreateDate descending
                                                         select new JobPostViewModel
