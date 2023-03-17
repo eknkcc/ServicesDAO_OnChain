@@ -618,12 +618,10 @@ namespace DAO_CasperChainService.Controllers
 
                 if (string.IsNullOrEmpty(repo))
                 {
-                    repo = "13216e15d887f1963af7685fc683b4e571a666a78965eace725cf5f4ba08dd96";
+                    repo = Program._settings.RepoVoterContractPackageHash;
                 }
 
-                PublicKey repoAccountPK = PublicKey.FromHexString(repo);
-
-                var subjectAddress = new AccountHashKey(repoAccountPK.GetAccountHash());
+                var repoKey = GlobalStateKey.FromString(repo);
 
                 List<CLValue> valueBytes = new List<CLValue>();
                 foreach (var byt in Encoding.ASCII.GetBytes(value))
@@ -633,7 +631,7 @@ namespace DAO_CasperChainService.Controllers
 
                 var namedArgs = new List<NamedArg>()
                 {
-                    new NamedArg("variable_repo_to_edit", CLValue.Key(subjectAddress)),
+                    new NamedArg("variable_repo_to_edit", CLValue.Key(repoKey)),
                     new NamedArg("key", CLValue.String(key)),
                     new NamedArg("value", CLValue.List(valueBytes.ToArray())),
                     new NamedArg("activation_time", CLValue.U64(activationtime)),

@@ -42,7 +42,7 @@ namespace DAO_CasperChainService
             public string BidEscrowContract { get; set; }
             public string VAOnboardingPackageHash { get; set; }
             public string BidEscrowContractPackageHash { get; set; }
-
+            public string RepoVoterContractPackageHash { get; set; }
         }
 
         public static Monitizer monitizer;
