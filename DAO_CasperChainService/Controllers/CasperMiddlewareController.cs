@@ -6,6 +6,9 @@ using System;
 using Helpers.Models.CasperServiceModels;
 using System.Collections.Generic;
 using System.Linq;
+using Casper.Network.SDK;
+using Casper.Network.SDK.Types;
+using Account = Helpers.Models.CasperServiceModels.Account;
 
 namespace DAO_CasperChainService.Controllers
 {
@@ -13,6 +16,52 @@ namespace DAO_CasperChainService.Controllers
     [ApiController]
     public class CasperMiddlewareController : ControllerBase
     {
+
+        [HttpGet("GetUserChainProfile", Name = "GetUserChainProfile")]
+        public UserChainProfile GetUserChainProfile(string publicAddress)
+        {
+            UserChainProfile profile = new UserChainProfile();
+
+            try
+            {
+                var hex = publicAddress;
+                var publicKey = PublicKey.FromHexString(hex);
+                var casperSdk = new NetCasperClient(Program._settings.NodeUrl + ":7777/rpc");
+                var rpcResponse = casperSdk.GetAccountBalance(publicKey).Result;
+
+                double balanceParsed = Convert.ToInt64(rpcResponse.Parse().BalanceValue.ToString()) / (double)1000000000;
+                profile.Balance = balanceParsed.ToString("N2");
+
+                SuccessResponse<TotalReputation> totalRep = GetTotalReputation(publicAddress);
+                if (totalRep.error == null && totalRep.data != null)
+                {
+                    profile.AvailableReputation = totalRep.data.available_amount.ToString();
+                    profile.StakedReputation = totalRep.data.staked_amount.ToString();
+                    profile.Reputation = (totalRep.data.available_amount + totalRep.data.staked_amount).ToString();
+                }
+
+                SuccessResponse<Account> account = GetAccountByAddress(publicAddress);
+                if (account.error == null && account.data != null)
+                {
+                    profile.IsVA = account.data.is_va;
+                    profile.IsKYC = account.data.is_kyc;
+                }
+
+                // Console.WriteLine("Public Key Balance: " + rpcResponse.Parse().BalanceValue);
+
+                // CasperClient casperClient = new CasperClient(rpcUrl);
+                // var result = casperClient.RpcService.GetAccountBalance(publicAddress);
+                // double balanceParsed = Convert.ToInt64(result.result.balance_value) / (double)1000000000;
+                // profile.Balance = balanceParsed.ToString("N2");
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+            }
+
+            return profile;
+        }
+
         #region Reputation
 
         [HttpGet("GetReputationChangesList", Name = "GetReputationChangesList")]

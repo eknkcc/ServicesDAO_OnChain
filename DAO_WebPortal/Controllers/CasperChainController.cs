@@ -45,7 +45,8 @@ namespace DAO_WebPortal.Controllers
 
                 //Get user balance, reputation and VA Status from chain
                 var chainProfile = GetUserChainProfile(publicAddress);
-                if (chainProfile.IsVA)
+
+                if (Convert.ToBoolean(chainProfile.IsVA))
                 {
                     HttpContext.Session.SetString("UserType", "VotingAssociate");
                 }
@@ -53,11 +54,21 @@ namespace DAO_WebPortal.Controllers
                 {
                     HttpContext.Session.SetString("UserType", "Associate");
                 }
+
+                if (Convert.ToBoolean(chainProfile.IsKYC))
+                {
+                    HttpContext.Session.SetString("KYCStatus", "true");
+                }
+                else
+                {
+                    HttpContext.Session.SetString("KYCStatus", "false");
+                }
+
                 HttpContext.Session.SetString("Balance", chainProfile.Balance.ToString());
                 HttpContext.Session.SetString("Reputation", chainProfile.Reputation.ToString());
 
                 //Create model
-                LoginChainModel LoginModelPost = new LoginChainModel() { walletAddress = publicAddress, isVA = chainProfile.IsVA, ip = ip, port = port, application = Helpers.Constants.Enums.AppNames.DAO_WebPortal };
+                LoginChainModel LoginModelPost = new LoginChainModel() { walletAddress = publicAddress, isVA = Convert.ToBoolean(chainProfile.IsVA), ip = ip, port = port, application = Helpers.Constants.Enums.AppNames.DAO_WebPortal };
 
                 //Post model to ApiGateway
                 var loginJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/PublicActions/LoginChain", Helpers.Serializers.SerializeJson(LoginModelPost));
@@ -73,7 +84,6 @@ namespace DAO_WebPortal.Controllers
                 HttpContext.Session.SetString("LoginType", "user");
                 HttpContext.Session.SetString("NameSurname", Utility.StringHelper.ShortenWallet(publicAddress));
                 HttpContext.Session.SetString("ProfileImage", "");
-                HttpContext.Session.SetString("KYCStatus", "");
                 HttpContext.Session.SetString("WalletAddress", loginModel.WalletAddress.ToString());
                 HttpContext.Session.SetInt32("ChainSign", 1);
 
@@ -107,7 +117,8 @@ namespace DAO_WebPortal.Controllers
 
                 //Get user balance, reputation and VA Status from chain
                 var chainProfile = GetUserChainProfile(publicAddress);
-                if (chainProfile.IsVA)
+
+                if (Convert.ToBoolean(chainProfile.IsVA))
                 {
                     HttpContext.Session.SetString("UserType", "VotingAssociate");
                 }
@@ -115,6 +126,16 @@ namespace DAO_WebPortal.Controllers
                 {
                     HttpContext.Session.SetString("UserType", "Associate");
                 }
+
+                if (Convert.ToBoolean(chainProfile.IsKYC))
+                {
+                    HttpContext.Session.SetString("KYCStatus", "true");
+                }
+                else
+                {
+                    HttpContext.Session.SetString("KYCStatus", "false");
+                }
+
                 HttpContext.Session.SetString("Balance", chainProfile.Balance.ToString());
                 HttpContext.Session.SetString("Reputation", chainProfile.Reputation.ToString());
                 HttpContext.Session.SetString("WalletAddress", publicAddress);
@@ -141,7 +162,7 @@ namespace DAO_WebPortal.Controllers
             try
             {
                 //Get model from ApiGateway
-                var userjson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/GetUserChainProfile?publicAddress=" + publicAddress);
+                var userjson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/CasperMiddleware/GetUserChainProfile?publicAddress=" + publicAddress);
                 //Parse response
                 profile = Helpers.Serializers.DeserializeJson<UserChainProfile>(userjson);
             }

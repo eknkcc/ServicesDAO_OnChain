@@ -2620,13 +2620,22 @@ namespace DAO_WebPortal.Controllers
 
                         if (chainProfile != null)
                         {
-                            if (chainProfile.IsVA)
+                            if (Convert.ToBoolean(chainProfile.IsVA))
                             {
                                 HttpContext.Session.SetString("UserType", "VotingAssociate");
                             }
                             else
                             {
                                 HttpContext.Session.SetString("UserType", "Associate");
+                            }
+
+                            if (Convert.ToBoolean(chainProfile.IsKYC))
+                            {
+                                HttpContext.Session.SetString("KYCStatus", "true");
+                            }
+                            else
+                            {
+                                HttpContext.Session.SetString("KYCStatus", "false");
                             }
 
                             HttpContext.Session.SetString("Balance", chainProfile.Balance.ToString());

@@ -440,10 +440,12 @@ namespace DAO_DbService
 
                                     Program.monitizer.AddApplicationLog(LogTypes.ApplicationLog, "New user KYC completed with vote #" + voting.VotingID);
                                 }
+                                //Reputation formal vote passed
                                 else if (voting.Type == VoteTypes.Reputation)
                                 {
 
                                 }
+                                //Slashing formal vote passed
                                 else if (voting.Type == VoteTypes.Slashing)
                                 {
 

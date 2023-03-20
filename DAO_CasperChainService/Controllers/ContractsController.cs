@@ -18,6 +18,8 @@ using Ubiety.Dns.Core;
 using System.Collections;
 using Microsoft.AspNetCore.Hosting;
 using System.IO;
+using Helpers.Models.CasperServiceModels;
+using Account = Helpers.Models.CasperServiceModels.Account;
 
 namespace DAO_CasperChainService.Controllers
 {
@@ -25,37 +27,6 @@ namespace DAO_CasperChainService.Controllers
     [ApiController]
     public class ContractsController : ControllerBase
     {
-
-        [HttpGet("GetUserChainProfile", Name = "GetUserChainProfile")]
-        public UserChainProfile GetUserChainProfile(string publicAddress)
-        {
-            UserChainProfile profile = new UserChainProfile();
-
-            try
-            {
-                var hex = publicAddress;
-                var publicKey = PublicKey.FromHexString(hex);
-                var casperSdk = new NetCasperClient(Program._settings.NodeUrl + ":7777/rpc");
-                var rpcResponse = casperSdk.GetAccountBalance(publicKey).Result;
-
-                double balanceParsed = Convert.ToInt64(rpcResponse.Parse().BalanceValue.ToString()) / (double)1000000000;
-                profile.Balance = balanceParsed.ToString("N2");
-
-                // Console.WriteLine("Public Key Balance: " + rpcResponse.Parse().BalanceValue);
-
-                // CasperClient casperClient = new CasperClient(rpcUrl);
-                // var result = casperClient.RpcService.GetAccountBalance(publicAddress);
-                // double balanceParsed = Convert.ToInt64(result.result.balance_value) / (double)1000000000;
-                // profile.Balance = balanceParsed.ToString("N2");
-            }
-            catch (Exception ex)
-            {
-                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-            }
-
-            return profile;
-        }
-
         [HttpPost("SendSignedDeploy", Name = "SendSignedDeploy")]
         public ChainActionDto SendSignedDeploy(ChainActionDto chainAction)
         {
