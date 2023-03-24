@@ -228,15 +228,68 @@ namespace DAO_ReputationService.Controllers
 
         [Route("GetByUserId")]
         [HttpGet]
-        public IEnumerable<UserReputationHistoryDto> GetByUserId(int userid)
+        public IEnumerable<UserReputationHistoryDto> GetByUserId(int userid, string address)
         {
             List<UserReputationHistory> model = new List<UserReputationHistory>();
 
             try
             {
-                using (dao_reputationserv_context db = new dao_reputationserv_context())
+                if (Program._settings.DaoBlockchain != null)
                 {
-                    model = db.UserReputationHistories.Where(x => x.UserID == userid).OrderByDescending(x => x.UserReputationHistoryID).ToList();
+                    var reputationChanges = Serializers.DeserializeJson<PaginatedResponse<Helpers.Models.CasperServiceModels.AggregatedReputationChange>>(Helpers.Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetReputationChangesList?address=" + address + "&page=1&page_size=100&order_direction=desc"));
+
+                    if (reputationChanges.error == null && reputationChanges.data != null && reputationChanges.data.Count > 0)
+                    {
+                        foreach (var chainRepChange in reputationChanges.data)
+                        {
+                            UserReputationHistory repChange = new UserReputationHistory();
+                            repChange.UserID = userid;
+                            repChange.Title = "";
+                            if (chainRepChange.voting_id != null && chainRepChange.voting_id != 0)
+                            {
+                                repChange.Explanation = "Result of the vote: " + chainRepChange.voting_id;
+                            }
+                            else
+                            {
+                                repChange.Explanation = "-";
+                            }
+                            repChange.EarnedAmount = Convert.ToDouble(chainRepChange.earned_amount);
+                            repChange.LostAmount = Convert.ToDouble(chainRepChange.lost_amount);
+                            repChange.StakedAmount = Convert.ToDouble(chainRepChange.staked_amount);
+                            repChange.StakeReleasedAmount = Convert.ToDouble(chainRepChange.released_amount);
+                            repChange.Date = Convert.ToDateTime(chainRepChange.timestamp);
+                            model.Add(repChange);
+                        }
+                    }
+                    else
+                    {
+                        UserReputationHistory repChange = new UserReputationHistory();
+                        repChange.UserID = userid;
+                        repChange.Title = "";
+                        repChange.Explanation = "-";
+                        repChange.EarnedAmount = 0;
+                        repChange.LostAmount = 0;
+                        repChange.StakedAmount = 0;
+                        repChange.StakeReleasedAmount = 0;
+                        repChange.Date = new DateTime();
+                        model.Add(repChange);
+                    }
+
+                    SuccessResponse<TotalReputation> totalRep = Serializers.DeserializeJson<SuccessResponse<TotalReputation>>(Helpers.Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetTotalReputation?address=" + address));
+                    if(totalRep.error == null)
+                    {
+                        model.First().LastStakedTotal = Convert.ToDouble(totalRep.data.staked_amount);
+                        model.First().LastUsableTotal = Convert.ToDouble(totalRep.data.available_amount);
+                        model.First().LastTotal = Convert.ToDouble(totalRep.data.available_amount) + Convert.ToDouble(totalRep.data.staked_amount);
+                    }
+
+                }
+                else
+                {
+                    using (dao_reputationserv_context db = new dao_reputationserv_context())
+                    {
+                        model = db.UserReputationHistories.Where(x => x.UserID == userid).OrderByDescending(x => x.UserReputationHistoryID).ToList();
+                    }
                 }
             }
             catch (Exception ex)
@@ -374,17 +427,17 @@ namespace DAO_ReputationService.Controllers
                     {
                         if (!string.IsNullOrEmpty(stake.WalletAddress))
                         {
-                            var reputationChanges = Serializers.DeserializeJson<PaginatedResponse<Helpers.Models.CasperServiceModels.AggregatedReputationChange>>(Helpers.Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetReputationChangesList?address=" + stake.WalletAddress + "&page=1&page_size=1&order_direction=desc"));
+                            var reputationChanges = Serializers.DeserializeJson<PaginatedResponse<AggregatedReputationChange>>(Helpers.Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetReputationChangesList?address=" + stake.WalletAddress + "&page=1&page_size=1&order_direction=desc"));
 
                             if (reputationChanges == null) return;
-                            
+
                             foreach (var repChange in reputationChanges.data)
                             {
                                 var lastRepRecord = new UserReputationHistory();
-                                if(db.UserReputationHistories.Count(x => x.UserID == stake.UserID) > 0) lastRepRecord = db.UserReputationHistories.OrderByDescending(x=>x.UserReputationHistoryID).First(x => x.UserID == stake.UserID);
+                                if (db.UserReputationHistories.Count(x => x.UserID == stake.UserID) > 0) lastRepRecord = db.UserReputationHistories.OrderByDescending(x => x.UserReputationHistoryID).First(x => x.UserID == stake.UserID);
 
-                                if ( (jobDoerStakes.Contains(stake) && db.UserReputationHistories.Count(x=> x.UserID == stake.UserID && x.Explanation.Contains("#"+jobId)) == 0)
-                                      || 
+                                if ((jobDoerStakes.Contains(stake) && db.UserReputationHistories.Count(x => x.UserID == stake.UserID && x.Explanation.Contains("#" + jobId)) == 0)
+                                      ||
                                      (voterStakes.Contains(stake) && db.UserReputationHistories.Count(x => x.UserID == stake.UserID && x.Explanation.Contains("#" + repChange.voting_id)) == 0)
                                    )
                                 {
@@ -408,27 +461,27 @@ namespace DAO_ReputationService.Controllers
                                     hist.LastStakedTotal = lastRepRecord.LastStakedTotal;
                                     hist.LastUsableTotal = lastRepRecord.LastUsableTotal;
 
-                                    if(hist.EarnedAmount > 0) 
-                                    {              
-                                        hist.Title = "Reputation Earned";                      
+                                    if (hist.EarnedAmount > 0)
+                                    {
+                                        hist.Title = "Reputation Earned";
                                         hist.LastTotal += hist.EarnedAmount;
                                         hist.LastUsableTotal += hist.EarnedAmount;
                                     }
-                                    if(hist.LostAmount > 0) 
-                                    {                         
-                                        hist.Title = "Reputation Lost";              
+                                    if (hist.LostAmount > 0)
+                                    {
+                                        hist.Title = "Reputation Lost";
                                         hist.LastTotal -= hist.LostAmount;
                                         hist.LastUsableTotal -= hist.LostAmount;
                                     }
-                                    if(hist.StakedAmount > 0)
+                                    if (hist.StakedAmount > 0)
                                     {
-                                        hist.Title = "Staked";   
+                                        hist.Title = "Staked";
                                         hist.LastStakedTotal += hist.StakedAmount;
                                         hist.LastUsableTotal -= hist.StakedAmount;
                                     }
-                                    if(hist.StakeReleasedAmount > 0)
+                                    if (hist.StakeReleasedAmount > 0)
                                     {
-                                        hist.Title = "Stake Released";   
+                                        hist.Title = "Stake Released";
                                         hist.LastStakedTotal -= hist.StakeReleasedAmount;
                                         hist.LastUsableTotal += hist.StakeReleasedAmount;
                                     }

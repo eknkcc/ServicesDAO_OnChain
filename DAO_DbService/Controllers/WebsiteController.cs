@@ -245,6 +245,8 @@ namespace DAO_DbService.Controllers
                                         let flagcount = db.JobPostComments.Count(x => x.JobID == job.JobID && x.IsFlagged == true)
                                         let userflagged = db.JobPostComments.Count(x => x.JobID == job.JobID && x.UserID == userid && x.IsFlagged == true) > 0
                                         where job.UserID == userid &&
+                                        job.Status != Enums.JobStatusTypes.ChainApprovalPending &&
+                                        job.Status != Enums.JobStatusTypes.ChainError &&
                                         (status == null || job.Status == status) &&
                                         (query == null || job.Title.Contains(query))
                                         orderby job.CreateDate descending
@@ -791,7 +793,7 @@ namespace DAO_DbService.Controllers
                 {
 
                     var lastMonthdate = DateTime.Now.AddMonths(-1);
-                    
+
                     //Get Last 10 Comments
                     res.LastComments = db.JobPostComments.OrderByDescending(x => x.JobPostCommentID).Take(10)
                         .Join(db.Users,
@@ -807,7 +809,7 @@ namespace DAO_DbService.Controllers
                             }
                         )
                         .ToList();
-                                 
+
                     //Get Trend Jobs
                     res.PopularJobs = db.JobPostComments.Where(x => x.Date > lastMonthdate)
                                          .GroupBy(x => x.JobID)
@@ -841,15 +843,15 @@ namespace DAO_DbService.Controllers
                                              JobID = cx.JobID,
                                          }
                                          )
-                                         .ToList(); 
+                                         .ToList();
 
-                    
+
                     //User signed in with chain
-                    if(userid == 0)
-                    {     
+                    if (userid == 0)
+                    {
                         res.MyDoerJobs = new List<DashboardJobCardModel>();
                         res.MyOwnerJobs = new List<DashboardJobCardModel>();
-                        return res;                 
+                        return res;
                     }
 
                     //Get job post model from GetVoteJobsByProgressTypes function
@@ -924,7 +926,7 @@ namespace DAO_DbService.Controllers
                 {
 
                     var lastMonthdate = DateTime.Now.AddMonths(-1);
-                    
+
                     //Get Last 10 Comments
                     res.LastComments = db.JobPostComments.OrderByDescending(x => x.JobPostCommentID).Take(10)
                         .Join(db.Users,
@@ -940,7 +942,7 @@ namespace DAO_DbService.Controllers
                             }
                         )
                         .ToList();
-                                 
+
                     //Get Trend Jobs
                     res.PopularJobs = db.JobPostComments.Where(x => x.Date > lastMonthdate)
                                          .GroupBy(x => x.JobID)
@@ -974,15 +976,15 @@ namespace DAO_DbService.Controllers
                                              JobID = cx.JobID,
                                          }
                                          )
-                                         .ToList(); 
+                                         .ToList();
 
-                    
+
                     //User signed in with chain
-                    if(userid == 0)
-                    {     
+                    if (userid == 0)
+                    {
                         res.MyDoerJobs = new List<DashboardJobCardModel>();
                         res.MyOwnerJobs = new List<DashboardJobCardModel>();
-                        return res;                 
+                        return res;
                     }
 
                     res.MyDoerJobs = (from job in db.JobPosts
@@ -1070,8 +1072,8 @@ namespace DAO_DbService.Controllers
                            join actbid in db.AuctionBids on pAuction.AuctionID equals actbid.AuctionID into auctionbid
                            from pAuctionBid in auctionbid.DefaultIfEmpty(new AuctionBid() { AuctionBidID = 0, Price = 0 })
 
-                           let stakedForInformal = (voting.IsFormal && model.Count(x=>x.JobID == job.JobID && x.IsFormal == false) > 0) ? model.First(x=>x.JobID == job.JobID).StakedFor : null
-                           let stakedAgainstInformal = (voting.IsFormal && model.Count(x=>x.JobID == job.JobID && x.IsFormal == false) > 0) ? model.First(x=>x.JobID == job.JobID).StakedAgainst : null
+                           let stakedForInformal = (voting.IsFormal && model.Count(x => x.JobID == job.JobID && x.IsFormal == false) > 0) ? model.First(x => x.JobID == job.JobID).StakedFor : null
+                           let stakedAgainstInformal = (voting.IsFormal && model.Count(x => x.JobID == job.JobID && x.IsFormal == false) > 0) ? model.First(x => x.JobID == job.JobID).StakedAgainst : null
 
                            where (status == null || voting.Status == status) && (pUser == null || pAuctionBid.UserID == pUser.UserId)
                            orderby voting.CreateDate descending
@@ -1095,7 +1097,7 @@ namespace DAO_DbService.Controllers
                                WinnerBidPrice = pAuctionBid.Price,
                                EligibleUserCount = voting.EligibleUserCount,
                                StakedForInformal = stakedForInformal,
-                               StakedAgainstInformal =  stakedAgainstInformal,
+                               StakedAgainstInformal = stakedAgainstInformal,
                                DeployHash = voting.DeployHash
                            }).ToList();
                 }
@@ -1140,7 +1142,7 @@ namespace DAO_DbService.Controllers
                                                          CreateDate = payment.CreateDate,
                                                          Explanation = payment.Explanation,
                                                          Status = payment.Status
-                                                         
+
                                                      }).ToList();
 
                     result.TotalAmount = result.UserPaymentHistoryList.Sum(x => x.PaymentAmount);
@@ -1209,42 +1211,42 @@ namespace DAO_DbService.Controllers
             try
             {
 
-                string votingsJson = Helpers.Request.Get(Program._settings.Voting_Engine_Url + "/Voting/GetVotingByStatus?status="+Helpers.Constants.Enums.VoteStatusTypes.Completed.ToString());
+                string votingsJson = Helpers.Request.Get(Program._settings.Voting_Engine_Url + "/Voting/GetVotingByStatus?status=" + Helpers.Constants.Enums.VoteStatusTypes.Completed.ToString());
                 List<VotingDto> votingmodel = Helpers.Serializers.DeserializeJson<List<VotingDto>>(votingsJson);
 
                 using (dao_maindb_context db = new dao_maindb_context())
                 {
                     var users = db.Users.ToList();
                     var jobs = (from job in db.JobPosts
-                                       join user in db.Users on job.UserID equals user.UserId
-                                       join auction in db.Auctions on job.JobID equals auction.JobID
-                                       join auctionbid in db.AuctionBids on auction.AuctionID equals auctionbid.AuctionID
-                                       let count = db.JobPostComments.Count(x => x.JobID == job.JobID)
-                                       let explanation = job.JobDescription.Substring(0, 250)              
-                                       where auctionbid.AuctionBidID == auction.WinnerAuctionBidID &&
-                                       job.Status == Enums.JobStatusTypes.Completed
-                                       select new JobPostViewModel
-                                       {
-                                           Title = job.Title,
-                                           JobPosterUserName = user.NameSurname,
-                                           CreateDate = job.CreateDate,
-                                           JobDescription = explanation,
-                                           LastUpdate = job.LastUpdate,
-                                           JobID = job.JobID,
-                                           Status = job.Status,
-                                           Amount = auctionbid.Price,
-                                           CommentCount = count,
-                                           JobDoerUserID = job.JobDoerUserID,
-                                           DosFeePaid = job.DosFeePaid,
-                                           JobPosterUserID = job.UserID,
-                                           CodeUrl = job.CodeUrl,
-                                           Tags = job.Tags,
-                                           TimeFrame = job.TimeFrame
-                                       }).ToList();
+                                join user in db.Users on job.UserID equals user.UserId
+                                join auction in db.Auctions on job.JobID equals auction.JobID
+                                join auctionbid in db.AuctionBids on auction.AuctionID equals auctionbid.AuctionID
+                                let count = db.JobPostComments.Count(x => x.JobID == job.JobID)
+                                let explanation = job.JobDescription.Substring(0, 250)
+                                where auctionbid.AuctionBidID == auction.WinnerAuctionBidID &&
+                                job.Status == Enums.JobStatusTypes.Completed
+                                select new JobPostViewModel
+                                {
+                                    Title = job.Title,
+                                    JobPosterUserName = user.NameSurname,
+                                    CreateDate = job.CreateDate,
+                                    JobDescription = explanation,
+                                    LastUpdate = job.LastUpdate,
+                                    JobID = job.JobID,
+                                    Status = job.Status,
+                                    Amount = auctionbid.Price,
+                                    CommentCount = count,
+                                    JobDoerUserID = job.JobDoerUserID,
+                                    DosFeePaid = job.DosFeePaid,
+                                    JobPosterUserID = job.UserID,
+                                    CodeUrl = job.CodeUrl,
+                                    Tags = job.Tags,
+                                    TimeFrame = job.TimeFrame
+                                }).ToList();
 
                     foreach (var item in jobs)
                     {
-                        result.AppendLine(item.JobID+";"+item.Title + ";" +item.JobPosterUserName + ";"+votingmodel.Last(x=>x.JobID == item.JobID && x.IsFormal == true).EndDate+";"+users.First(x=>x.UserId == item.JobDoerUserID).NameSurname+";"+item.Amount);
+                        result.AppendLine(item.JobID + ";" + item.Title + ";" + item.JobPosterUserName + ";" + votingmodel.Last(x => x.JobID == item.JobID && x.IsFormal == true).EndDate + ";" + users.First(x => x.UserId == item.JobDoerUserID).NameSurname + ";" + item.Amount);
                     }
                 }
             }
@@ -1276,8 +1278,8 @@ namespace DAO_DbService.Controllers
                     List<User> users = db.Users.ToList();
 
                     var jobPosts = (from job in db.JobPosts
-                            where job.Status == Enums.JobStatusTypes.Completed
-                            select new JobPost { JobDoerUserID = job.JobDoerUserID, CreateDate = job.CreateDate }).ToList();
+                                    where job.Status == Enums.JobStatusTypes.Completed
+                                    select new JobPost { JobDoerUserID = job.JobDoerUserID, CreateDate = job.CreateDate }).ToList();
 
                     string votingJson = Helpers.Request.Get(Program._settings.Voting_Engine_Url + "/Voting/Get");
                     List<VotingDto> votings = Helpers.Serializers.DeserializeJson<List<VotingDto>>(votingJson);
@@ -1303,24 +1305,24 @@ namespace DAO_DbService.Controllers
                         try
                         {
                             //Get user's jobs as Job Doer to subtract from all jobs
-                            int jobTotal = jobPosts.Count(x=>x.JobDoerUserID == item.UserId && x.CreateDate >= item.DateBecameVA) * 2;
-                            int jobThisMonth = jobPosts.Count(x=>x.JobDoerUserID == item.UserId && x.CreateDate.Month == DateTime.Now.Month && x.CreateDate.Year == DateTime.Now.Year) * 2;
-                            int jobLastMonth = jobPosts.Count(x=>x.JobDoerUserID == item.UserId && x.CreateDate.Month == dt.Month && x.CreateDate.Year == dt.Year) * 2;
+                            int jobTotal = jobPosts.Count(x => x.JobDoerUserID == item.UserId && x.CreateDate >= item.DateBecameVA) * 2;
+                            int jobThisMonth = jobPosts.Count(x => x.JobDoerUserID == item.UserId && x.CreateDate.Month == DateTime.Now.Month && x.CreateDate.Year == DateTime.Now.Year) * 2;
+                            int jobLastMonth = jobPosts.Count(x => x.JobDoerUserID == item.UserId && x.CreateDate.Month == dt.Month && x.CreateDate.Year == dt.Year) * 2;
 
                             //Get user votes
                             int totalVotingCount = votings.Count(x => x.StartDate >= item.DateBecameVA);
-                            int userVoteThisMonth = votes.Where(x => x.UserID == item.UserId && x.Date.Month == DateTime.Now.Month && x.Date.Year == DateTime.Now.Year).GroupBy(x=>x.VotingID).Count();
-                            int userVoteLastMonth = votes.Where(x => x.UserID == item.UserId && x.Date.Month == dt.Month && x.Date.Year == dt.Year).GroupBy(x=>x.VotingID).Count();
-                            int userVoteTotal = votes.Where(x => x.UserID == item.UserId).GroupBy(x=>x.VotingID).Count();
+                            int userVoteThisMonth = votes.Where(x => x.UserID == item.UserId && x.Date.Month == DateTime.Now.Month && x.Date.Year == DateTime.Now.Year).GroupBy(x => x.VotingID).Count();
+                            int userVoteLastMonth = votes.Where(x => x.UserID == item.UserId && x.Date.Month == dt.Month && x.Date.Year == dt.Year).GroupBy(x => x.VotingID).Count();
+                            int userVoteTotal = votes.Where(x => x.UserID == item.UserId).GroupBy(x => x.VotingID).Count();
 
                             //Find user participation percentages
                             vadirectory.TotalRep = userReps.First(x => x.UserID == item.UserId).LastTotal;
-                            if(userVoteLastMonth > 0 && voteLastMonth > 0)
-                            vadirectory.VLastMonth = Math.Round(Convert.ToDouble(userVoteLastMonth) / Convert.ToDouble(voteLastMonth - jobLastMonth) * 100, 2);
-                            if(userVoteThisMonth > 0 && voteThisMonth > 0)
-                            vadirectory.VThisMonth = Math.Round(Convert.ToDouble(userVoteThisMonth) / Convert.ToDouble(voteThisMonth - jobThisMonth) * 100, 2);
-                            if(userVoteTotal > 0 && totalVotingCount > 0)
-                            vadirectory.VTotal = Math.Round(Convert.ToDouble(userVoteTotal) / Convert.ToDouble(totalVotingCount - jobTotal) * 100, 2);
+                            if (userVoteLastMonth > 0 && voteLastMonth > 0)
+                                vadirectory.VLastMonth = Math.Round(Convert.ToDouble(userVoteLastMonth) / Convert.ToDouble(voteLastMonth - jobLastMonth) * 100, 2);
+                            if (userVoteThisMonth > 0 && voteThisMonth > 0)
+                                vadirectory.VThisMonth = Math.Round(Convert.ToDouble(userVoteThisMonth) / Convert.ToDouble(voteThisMonth - jobThisMonth) * 100, 2);
+                            if (userVoteTotal > 0 && totalVotingCount > 0)
+                                vadirectory.VTotal = Math.Round(Convert.ToDouble(userVoteTotal) / Convert.ToDouble(totalVotingCount - jobTotal) * 100, 2);
 
                             vadirectory.DateBecameVA = item.DateBecameVA;
                         }

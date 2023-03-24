@@ -2423,10 +2423,21 @@ namespace DAO_WebPortal.Controllers
             try
             {
                 //Get model from ApiGateway
-                var url = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationHistory/GetByUserId?userid=" + HttpContext.Session.GetInt32("UserID"), HttpContext.Session.GetString("Token"));
+                if (Program._settings.DaoBlockchain != null)
+                {
+                    var url = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationHistory/GetByUserId?address=" + HttpContext.Session.GetString("WalletAddress"), HttpContext.Session.GetString("Token"));
+                    //Parse response
+                    ReputationHistoryModel = Helpers.Serializers.DeserializeJson<List<UserReputationHistoryDto>>(url);
+                    HttpContext.Session.SetString("Reputation", ReputationHistoryModel.First().LastTotal.ToString());
+                }
+                else
+                {
+                    var url = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationHistory/GetByUserId?userid=" + HttpContext.Session.GetInt32("UserID"), HttpContext.Session.GetString("Token"));
+                    //Parse response
+                    ReputationHistoryModel = Helpers.Serializers.DeserializeJson<List<UserReputationHistoryDto>>(url);
+                }
 
-                //Parse response
-                ReputationHistoryModel = Helpers.Serializers.DeserializeJson<List<UserReputationHistoryDto>>(url);
+             
             }
             catch (Exception ex)
             {

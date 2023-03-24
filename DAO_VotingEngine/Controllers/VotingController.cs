@@ -322,6 +322,8 @@ namespace DAO_VotingEngine.Controllers
                     voting.EligibleUserCount = model.EligibleUserCount;
                     voting.QuorumCount = model.QuorumCount;
                     voting.QuorumRatio = model.QuorumRatio;
+                    voting.DeployHash = model.DeployHash;
+
                     db.Votings.Add(voting);
                     db.SaveChanges();
 

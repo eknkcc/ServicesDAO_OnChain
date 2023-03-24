@@ -32,20 +32,6 @@ namespace DAO_CasperChainService.Controllers
                 double balanceParsed = Convert.ToInt64(rpcResponse.Parse().BalanceValue.ToString()) / (double)1000000000;
                 profile.Balance = balanceParsed.ToString("N2");
 
-                SuccessResponse<TotalReputation> totalRep = GetTotalReputation(publicAddress);
-                if (totalRep.error == null && totalRep.data != null)
-                {
-                    profile.AvailableReputation = totalRep.data.available_amount.ToString();
-                    profile.StakedReputation = totalRep.data.staked_amount.ToString();
-                    profile.Reputation = (totalRep.data.available_amount + totalRep.data.staked_amount).ToString();
-                }
-
-                SuccessResponse<Account> account = GetAccountByAddress(publicAddress);
-                if (account.error == null && account.data != null)
-                {
-                    profile.IsVA = account.data.is_va;
-                    profile.IsKYC = account.data.is_kyc;
-                }
 
                 // Console.WriteLine("Public Key Balance: " + rpcResponse.Parse().BalanceValue);
 
@@ -58,6 +44,29 @@ namespace DAO_CasperChainService.Controllers
             {
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
             }
+
+            try
+            {
+                SuccessResponse<TotalReputation> totalRep = GetTotalReputation(publicAddress);
+                if (totalRep != null && totalRep.error == null && totalRep.data != null)
+                {
+                    profile.AvailableReputation = totalRep.data.available_amount.ToString();
+                    profile.StakedReputation = totalRep.data.staked_amount.ToString();
+                    profile.Reputation = (totalRep.data.available_amount + totalRep.data.staked_amount).ToString();
+                }
+
+                SuccessResponse<Account> account = GetAccountByAddress(publicAddress);
+                if (account != null && account.error == null && account.data != null)
+                {
+                    profile.IsVA = account.data.is_va;
+                    profile.IsKYC = account.data.is_kyc;
+                }
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+            }
+
 
             return profile;
         }

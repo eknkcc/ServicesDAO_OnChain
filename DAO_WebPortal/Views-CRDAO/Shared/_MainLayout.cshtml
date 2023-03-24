@@ -305,7 +305,7 @@
                                                         {
                                                             <i class="fas fa-check-circle"></i> 
                                                         }
-                                                        else if(item.Status == "Failed")
+                                                        else if(item.Status == "Failed" || item.Status.ToLower().Contains("error"))
                                                         {
                                                             <i class="fas fa-exclamation-triangle"></i>
                                                         }
