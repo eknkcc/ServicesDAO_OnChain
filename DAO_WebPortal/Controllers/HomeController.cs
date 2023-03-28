@@ -2428,7 +2428,8 @@ namespace DAO_WebPortal.Controllers
                     var url = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationHistory/GetByUserId?address=" + HttpContext.Session.GetString("WalletAddress"), HttpContext.Session.GetString("Token"));
                     //Parse response
                     ReputationHistoryModel = Helpers.Serializers.DeserializeJson<List<UserReputationHistoryDto>>(url);
-                    HttpContext.Session.SetString("Reputation", ReputationHistoryModel.First().LastTotal.ToString());
+                    ReputationHistoryModel = ReputationHistoryModel.OrderByDescending(x => x.Date).ToList();
+                    HttpContext.Session.SetString("Reputation", (ReputationHistoryModel.First().StakeReleasedAmount + ReputationHistoryModel.First().StakedAmount).ToString());
                 }
                 else
                 {
@@ -2437,7 +2438,7 @@ namespace DAO_WebPortal.Controllers
                     ReputationHistoryModel = Helpers.Serializers.DeserializeJson<List<UserReputationHistoryDto>>(url);
                 }
 
-             
+
             }
             catch (Exception ex)
             {

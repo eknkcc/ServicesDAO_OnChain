@@ -47,12 +47,12 @@ namespace DAO_CasperChainService.Controllers
 
             try
             {
-                SuccessResponse<TotalReputation> totalRep = GetTotalReputation(publicAddress);
-                if (totalRep != null && totalRep.error == null && totalRep.data != null)
+                PaginatedResponse<ReputationSnapshot> totalRep = GetTotalReputationSnapshots(publicAddress);
+                if (totalRep != null && totalRep.error == null && totalRep.data != null && totalRep.data.Count > 0)
                 {
-                    profile.AvailableReputation = totalRep.data.available_amount.ToString();
-                    profile.StakedReputation = totalRep.data.staked_amount.ToString();
-                    profile.Reputation = (totalRep.data.available_amount + totalRep.data.staked_amount).ToString();
+                    profile.AvailableReputation = totalRep.data[totalRep.data.Count -1].total_liquid_reputation.ToString();
+                    profile.StakedReputation = totalRep.data[totalRep.data.Count - 1].total_staked_reputation.ToString();
+                    profile.Reputation = (profile.AvailableReputation + profile.StakedReputation).ToString();
                 }
 
                 SuccessResponse<Account> account = GetAccountByAddress(publicAddress);
@@ -66,6 +66,30 @@ namespace DAO_CasperChainService.Controllers
             {
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
             }
+
+
+            //OLD CASPER MIDDLEWARE METHOD
+            //try
+            //{
+            //    SuccessResponse<TotalReputation> totalRep = GetTotalReputation(publicAddress);
+            //    if (totalRep != null && totalRep.error == null && totalRep.data != null)
+            //    {
+            //        profile.AvailableReputation = totalRep.data.available_amount.ToString();
+            //        profile.StakedReputation = totalRep.data.staked_amount.ToString();
+            //        profile.Reputation = (totalRep.data.available_amount + totalRep.data.staked_amount).ToString();
+            //    }
+
+            //    SuccessResponse<Account> account = GetAccountByAddress(publicAddress);
+            //    if (account != null && account.error == null && account.data != null)
+            //    {
+            //        profile.IsVA = account.data.is_va;
+            //        profile.IsKYC = account.data.is_kyc;
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+            //}
 
 
             return profile;
@@ -143,6 +167,27 @@ namespace DAO_CasperChainService.Controllers
             }
 
             return totalReputation;
+        }
+
+        [HttpGet("GetTotalReputationSnapshots", Name = "GetTotalReputationSnapshots")]
+        public PaginatedResponse<ReputationSnapshot> GetTotalReputationSnapshots(string address)
+        {
+            PaginatedResponse<ReputationSnapshot> reputationSnapshots = new PaginatedResponse<ReputationSnapshot>();
+
+            try
+            {
+                //Get Total Reputation of User from Middleware
+                string reputationSnapshotsJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/accounts/" + address + "/total-reputation-snapshots");
+                //Parse response
+                reputationSnapshots = Helpers.Serializers.DeserializeJson<PaginatedResponse<ReputationSnapshot>>(reputationSnapshotsJson);
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                reputationSnapshots = new PaginatedResponse<ReputationSnapshot> { error = new ErrorResult { message = "Request Error" } };
+            }
+
+            return reputationSnapshots;
         }
 
         #endregion

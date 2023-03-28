@@ -236,7 +236,7 @@ namespace DAO_ReputationService.Controllers
             {
                 if (Program._settings.DaoBlockchain != null)
                 {
-                    var reputationChanges = Serializers.DeserializeJson<PaginatedResponse<Helpers.Models.CasperServiceModels.AggregatedReputationChange>>(Helpers.Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetReputationChangesList?address=" + address + "&page=1&page_size=100&order_direction=desc"));
+                    var reputationChanges = Serializers.DeserializeJson<PaginatedResponse<Helpers.Models.CasperServiceModels.ReputationSnapshot>>(Helpers.Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetTotalReputationSnapshots?address=" + address + "&page=1&page_size=100&order_direction=desc"));
 
                     if (reputationChanges.error == null && reputationChanges.data != null && reputationChanges.data.Count > 0)
                     {
@@ -247,16 +247,16 @@ namespace DAO_ReputationService.Controllers
                             repChange.Title = "";
                             if (chainRepChange.voting_id != null && chainRepChange.voting_id != 0)
                             {
-                                repChange.Explanation = "Result of the vote: " + chainRepChange.voting_id;
+                                repChange.Explanation = "Reason: " + chainRepChange.reason.ToString() + " (Vote #" + chainRepChange.voting_id + ")";
                             }
                             else
                             {
-                                repChange.Explanation = "-";
+                                repChange.Explanation = "Reason: " + chainRepChange.reason.ToString();
                             }
-                            repChange.EarnedAmount = Convert.ToDouble(chainRepChange.earned_amount);
-                            repChange.LostAmount = Convert.ToDouble(chainRepChange.lost_amount);
-                            repChange.StakedAmount = Convert.ToDouble(chainRepChange.staked_amount);
-                            repChange.StakeReleasedAmount = Convert.ToDouble(chainRepChange.released_amount);
+                            repChange.EarnedAmount = Convert.ToDouble(chainRepChange.voting_earned_reputation);
+                            repChange.LostAmount = Convert.ToDouble(chainRepChange.voting_lost_reputation);
+                            repChange.StakedAmount = Convert.ToDouble(chainRepChange.total_staked_reputation);
+                            repChange.StakeReleasedAmount = Convert.ToDouble(chainRepChange.total_liquid_reputation);
                             repChange.Date = Convert.ToDateTime(chainRepChange.timestamp);
                             model.Add(repChange);
                         }
@@ -274,15 +274,6 @@ namespace DAO_ReputationService.Controllers
                         repChange.Date = new DateTime();
                         model.Add(repChange);
                     }
-
-                    SuccessResponse<TotalReputation> totalRep = Serializers.DeserializeJson<SuccessResponse<TotalReputation>>(Helpers.Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetTotalReputation?address=" + address));
-                    if(totalRep.error == null)
-                    {
-                        model.First().LastStakedTotal = Convert.ToDouble(totalRep.data.staked_amount);
-                        model.First().LastUsableTotal = Convert.ToDouble(totalRep.data.available_amount);
-                        model.First().LastTotal = Convert.ToDouble(totalRep.data.available_amount) + Convert.ToDouble(totalRep.data.staked_amount);
-                    }
-
                 }
                 else
                 {
@@ -300,6 +291,82 @@ namespace DAO_ReputationService.Controllers
 
             return _mapper.Map<List<UserReputationHistory>, List<UserReputationHistoryDto>>(model).ToArray();
         }
+
+        //USING OLD CASPER MIDDLEWARE METHOD
+        //[Route("GetByUserId")]
+        //[HttpGet]
+        //public IEnumerable<UserReputationHistoryDto> GetByUserId(int userid, string address)
+        //{
+        //    List<UserReputationHistory> model = new List<UserReputationHistory>();
+
+        //    try
+        //    {
+        //        if (Program._settings.DaoBlockchain != null)
+        //        {
+        //            var reputationChanges = Serializers.DeserializeJson<PaginatedResponse<Helpers.Models.CasperServiceModels.AggregatedReputationChange>>(Helpers.Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetReputationChangesList?address=" + address + "&page=1&page_size=100&order_direction=desc"));
+
+        //            if (reputationChanges.error == null && reputationChanges.data != null && reputationChanges.data.Count > 0)
+        //            {
+        //                foreach (var chainRepChange in reputationChanges.data)
+        //                {
+        //                    UserReputationHistory repChange = new UserReputationHistory();
+        //                    repChange.UserID = userid;
+        //                    repChange.Title = "";
+        //                    if (chainRepChange.voting_id != null && chainRepChange.voting_id != 0)
+        //                    {
+        //                        repChange.Explanation = "Result of the vote: " + chainRepChange.voting_id;
+        //                    }
+        //                    else
+        //                    {
+        //                        repChange.Explanation = "-";
+        //                    }
+        //                    repChange.EarnedAmount = Convert.ToDouble(chainRepChange.earned_amount);
+        //                    repChange.LostAmount = Convert.ToDouble(chainRepChange.lost_amount);
+        //                    repChange.StakedAmount = Convert.ToDouble(chainRepChange.staked_amount);
+        //                    repChange.StakeReleasedAmount = Convert.ToDouble(chainRepChange.released_amount);
+        //                    repChange.Date = Convert.ToDateTime(chainRepChange.timestamp);
+        //                    model.Add(repChange);
+        //                }
+        //            }
+        //            else
+        //            {
+        //                UserReputationHistory repChange = new UserReputationHistory();
+        //                repChange.UserID = userid;
+        //                repChange.Title = "";
+        //                repChange.Explanation = "-";
+        //                repChange.EarnedAmount = 0;
+        //                repChange.LostAmount = 0;
+        //                repChange.StakedAmount = 0;
+        //                repChange.StakeReleasedAmount = 0;
+        //                repChange.Date = new DateTime();
+        //                model.Add(repChange);
+        //            }
+
+        //            SuccessResponse<TotalReputation> totalRep = Serializers.DeserializeJson<SuccessResponse<TotalReputation>>(Helpers.Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetTotalReputation?address=" + address));
+        //            if(totalRep.error == null)
+        //            {
+        //                model.First().LastStakedTotal = Convert.ToDouble(totalRep.data.staked_amount);
+        //                model.First().LastUsableTotal = Convert.ToDouble(totalRep.data.available_amount);
+        //                model.First().LastTotal = Convert.ToDouble(totalRep.data.available_amount) + Convert.ToDouble(totalRep.data.staked_amount);
+        //            }
+
+        //        }
+        //        else
+        //        {
+        //            using (dao_reputationserv_context db = new dao_reputationserv_context())
+        //            {
+        //                model = db.UserReputationHistories.Where(x => x.UserID == userid).OrderByDescending(x => x.UserReputationHistoryID).ToList();
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        model = new List<UserReputationHistory>();
+        //        Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+        //    }
+
+        //    return _mapper.Map<List<UserReputationHistory>, List<UserReputationHistoryDto>>(model).ToArray();
+        //}
 
         [Route("GetLastReputation")]
         [HttpGet]

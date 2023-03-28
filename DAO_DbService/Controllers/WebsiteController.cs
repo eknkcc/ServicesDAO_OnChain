@@ -1098,7 +1098,8 @@ namespace DAO_DbService.Controllers
                                EligibleUserCount = voting.EligibleUserCount,
                                StakedForInformal = stakedForInformal,
                                StakedAgainstInformal = stakedAgainstInformal,
-                               DeployHash = voting.DeployHash
+                               DeployHash = voting.DeployHash,
+                               VoteType = voting.Type
                            }).ToList();
                 }
             }

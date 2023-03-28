@@ -30,5 +30,7 @@ namespace Helpers.Models.WebsiteViewModels
         public double? StakedForInformal { get; set; }
         public double? StakedAgainstInformal { get; set; }
         public string DeployHash { get; set; }
+        public VoteTypes VoteType { get; set; }
+
     }
 }

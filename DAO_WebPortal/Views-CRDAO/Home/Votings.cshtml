@@ -31,9 +31,9 @@
     <div class="col-md-6">
         @* @if (httpContextAccessor.HttpContext.Session.GetString("UserType") == Helpers.Constants.Enums.UserIdentityType.Admin.ToString() || httpContextAccessor.HttpContext.Session.GetString("UserType") == Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString())
         {
-            <a href="../New-Vote" class="btn btn-primary float-right mx-2"><i class="fas fa-plus me-1"></i> New Simple Vote</a>
+        <a href="../New-Vote" class="btn btn-primary float-right mx-2"><i class="fas fa-plus me-1"></i> New Simple Vote</a>
         } *@
-         <a href="../New-Vote" class="btn btn-primary float-right mx-2"><i class="fas fa-plus me-1"></i> New Simple Vote</a>
+        <a href="../New-Vote" class="btn btn-primary float-right mx-2"><i class="fas fa-plus me-1"></i> New Simple Vote</a>
     </div>
 </div>
 <!-- Content -->
@@ -58,9 +58,9 @@
                             <thead>
                                 <tr>
                                     <th scope="col">#</th>
-                                    <th scope="col">Job Title</th>
-                                    <th scope="col">Job Price</th>
-                                    <th scope="col">Job Doer</th>
+                                    <th scope="col">Title</th>
+                                    <th scope="col">Type</th>
+                                    <th scope="col">Price</th>
                                     <th scope="col">Time Left</th>
                                     <th scope="col">Quorum</th>
                                     <th scope="col">My Vote</th>
@@ -75,27 +75,28 @@
                                         <tr>
                                             <td>@item.JobID</td>
                                             <td><a href="../Job-Detail/@item.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(item.Title, 25)</a></td>
+                                            <td>@item.VoteType.ToString()</td>
                                             <td>
-                                                @if(!string.IsNullOrWhiteSpace(item.JobDoerUsername))
+                                                @if (!string.IsNullOrWhiteSpace(item.JobDoerUsername))
                                                 {
                                                     <span>@DAO_WebPortal.Utility.StringHelper.FormatPrice(item.WinnerBidPrice)</span>
-                                                } 
-                                                else{
-                                                    <span>Simple Voting</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>-</span>
                                                 }
                                             </td>
-                                            <td>@item.JobDoerUsername</td>
                                             <td><b id="counter_@item.VotingID"></b></td>
                                             <td>
-                                                @if(item.VoteCount >= item.QuorumCount)
+                                                @if (item.VoteCount >= item.QuorumCount)
                                                 {
                                                     <i data-toggle="tooltip" data-placement="top" title="Quorum reached" class="fas fa-check-circle mr-2 text-success"></i>
                                                 }
                                                 else
-                                                {                                                       
+                                                {
                                                     <i data-toggle="tooltip" data-placement="top" title="Quorum not reached" class="fas fa-times-circle mr-2 text-danger"></i>
                                                 }
-                                                 @item.VoteCount / @item.EligibleUserCount                                                
+                                                @item.VoteCount / @item.EligibleUserCount
                                             </td>
                                             @if (item.UserVote == Helpers.Constants.Enums.StakeType.For)
                                             {
@@ -103,7 +104,7 @@
                                             }
                                             else if (item.UserVote == Helpers.Constants.Enums.StakeType.Against)
                                             {
-                                                <td  class="informal-noneligible"><button class="btn btn-sm btn-danger disabled text-white w-100"><b>AGAINST</b></button></td>
+                                                <td class="informal-noneligible"><button class="btn btn-sm btn-danger disabled text-white w-100"><b>AGAINST</b></button></td>
                                             }
                                             else
                                             {
@@ -162,9 +163,9 @@
                             <thead>
                                 <tr>
                                     <th scope="col">#</th>
-                                    <th scope="col">Job Title</th>
-                                    <th scope="col">Job Price</th>
-                                    <th scope="col">Job Doer</th>
+                                    <th scope="col">Title</th>
+                                    <th scope="col">Type</th>
+                                    <th scope="col">Price</th>
                                     <th scope="col">Time Left</th>
                                     <th scope="col">Quorum</th>
                                     <th scope="col">Informal</th>
@@ -180,34 +181,31 @@
                                         <tr>
                                             <th>@item.JobID</th>
                                             <td><a href="../Job-Detail/@item.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(item.Title, 25)</a></td>
+                                            <td>@item.VoteType.ToString()</td>
                                             <td>
-                                                @if(!string.IsNullOrWhiteSpace(item.JobDoerUsername))
+                                                @if (!string.IsNullOrWhiteSpace(item.JobDoerUsername))
                                                 {
                                                     <span>@DAO_WebPortal.Utility.StringHelper.FormatPrice(item.WinnerBidPrice)</span>
-                                                } 
-                                                else{
-                                                    <span>Simple Voting</span>
                                                 }
                                             </td>
-                                            <td>@item.JobDoerUsername</td>
                                             <td><b id="counter_@item.VotingID"></b></td>
                                             <td>
-                                                @if(item.VoteCount >= item.QuorumCount)
+                                                @if (item.VoteCount >= item.QuorumCount)
                                                 {
                                                     <i data-toggle="tooltip" data-placement="top" title="Quorum reached" class="fas fa-check-circle mr-2 text-success"></i>
                                                 }
                                                 else
-                                                {                                                       
+                                                {
                                                     <i data-toggle="tooltip" data-placement="top" title="Quorum not reached" class="fas fa-times-circle mr-2 text-danger"></i>
                                                 }
                                                 @item.VoteCount / @item.EligibleUserCount
                                             </td>
-                                            <td> 
-                                                @{                                        
+                                            <td>
+                                                @{
                                                     double informalPerc = Math.Round(Convert.ToDouble(item.StakedForInformal) / Convert.ToDouble(item.StakedForInformal + item.StakedAgainstInformal) * 100, 2);
                                                     <div><i class="fas fa-caret-up text-success font-lg"></i> <small>@informalPerc</small></div>
                                                     <div><i class="fas fa-caret-down text-danger font-lg"></i> <small>@Math.Round(100-informalPerc,2)</small></div>
-                                                }                              
+                                                }
                                             </td>
                                             @if (item.UserVote == Helpers.Constants.Enums.StakeType.For)
                                             {
@@ -220,7 +218,7 @@
                                             else
                                             {
                                                 //Check if user voted in the informal voting
-                                                bool informalVoted = Model.Count(x=>x.IsFormal == false && x.JobID == item.JobID && x.UserVote != null) > 0;
+                                                bool informalVoted = Model.Count(x => x.IsFormal == false && x.JobID == item.JobID && x.UserVote != null) > 0;
 
                                                 if (informalVoted && httpContextAccessor.HttpContext.Session.GetInt32("UserID") != item.JobDoerUserID && httpContextAccessor.HttpContext.Session.GetString("UserType") == Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString())
                                                 {
@@ -274,9 +272,9 @@
                             <thead>
                                 <tr>
                                     <th scope="col">#</th>
-                                    <th scope="col">Job Title</th>
-                                    <th scope="col">Job Price</th>
-                                    <th scope="col">Job Doer</th>
+                                    <th scope="col">Title</th>
+                                    <th scope="col">Type</th>
+                                    <th scope="col">Price</th>
                                     <th scope="col">Quorum</th>
                                     <th scope="col">My Vote</th>
                                     <th scope="col">Voting Result</th>
@@ -286,25 +284,30 @@
                             </thead>
                             <tbody>
                                 @{
-                                    var informalVotings = Model.Where(x => (x.Status == Helpers.Constants.Enums.VoteStatusTypes.Completed || x.Status == Helpers.Constants.Enums.VoteStatusTypes.Expired) && x.IsFormal == false).OrderByDescending(x=>x.EndDate).ToList();
+                                    var informalVotings = Model.Where(x => (x.Status == Helpers.Constants.Enums.VoteStatusTypes.Completed || x.Status == Helpers.Constants.Enums.VoteStatusTypes.Expired) && x.IsFormal == false).OrderByDescending(x => x.EndDate).ToList();
 
                                     @foreach (var item in informalVotings)
                                     {
                                         <tr>
                                             <th>@item.JobID</th>
                                             <td><a href="../Job-Detail/@item.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(item.Title, 25)</a></td>
-                                            <td>@DAO_WebPortal.Utility.StringHelper.FormatPrice(item.WinnerBidPrice)</td>
-                                            <td>@item.JobDoerUsername</td>
+                                            <td>@item.VoteType.ToString()</td>
                                             <td>
-                                                @if(item.VoteCount >= item.QuorumCount)
+                                                @if (!string.IsNullOrWhiteSpace(item.JobDoerUsername))
+                                                {
+                                                    <span>@DAO_WebPortal.Utility.StringHelper.FormatPrice(item.WinnerBidPrice)</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (item.VoteCount >= item.QuorumCount)
                                                 {
                                                     <i data-toggle="tooltip" data-placement="top" title="Quorum reached" class="fas fa-check-circle mr-2 text-success"></i>
                                                 }
                                                 else
-                                                {                                                       
+                                                {
                                                     <i data-toggle="tooltip" data-placement="top" title="Quorum not reached" class="fas fa-times-circle mr-2 text-danger"></i>
                                                 }
-                                                 @item.VoteCount / @item.EligibleUserCount                                                
+                                                @item.VoteCount / @item.EligibleUserCount
                                             </td>
 
                                             @*User's Vote*@
@@ -366,9 +369,9 @@
                             <thead>
                                 <tr>
                                     <th scope="col">#</th>
-                                    <th scope="col">Job Title</th>
-                                    <th scope="col">Job Price</th>
-                                    <th scope="col">Job Doer</th>
+                                    <th scope="col">Title</th>
+                                    <th scope="col">Type</th>
+                                    <th scope="col">Price</th>
                                     <th scope="col">Quorum</th>
                                     <th scope="col">Informal</th>
                                     <th scope="col">My Vote</th>
@@ -379,28 +382,33 @@
                             </thead>
                             <tbody>
                                 @{
-                                    var formalVotings = Model.Where(x => (x.Status == Helpers.Constants.Enums.VoteStatusTypes.Completed || x.Status == Helpers.Constants.Enums.VoteStatusTypes.Expired) && x.IsFormal == true).OrderByDescending(x=>x.EndDate).ToList();
+                                    var formalVotings = Model.Where(x => (x.Status == Helpers.Constants.Enums.VoteStatusTypes.Completed || x.Status == Helpers.Constants.Enums.VoteStatusTypes.Expired) && x.IsFormal == true).OrderByDescending(x => x.EndDate).ToList();
 
                                     @foreach (var item in formalVotings)
                                     {
                                         <tr>
                                             <th>@item.JobID</th>
                                             <td><a href="../Job-Detail/@item.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(item.Title, 25)</a></td>
-                                            <td>@DAO_WebPortal.Utility.StringHelper.FormatPrice(item.WinnerBidPrice)</td>
-                                            <td>@item.JobDoerUsername</td>
+                                            <td>@item.VoteType.ToString()</td>
                                             <td>
-                                                @if(item.VoteCount >= item.QuorumCount)
+                                                @if (!string.IsNullOrWhiteSpace(item.JobDoerUsername))
+                                                {
+                                                    <span>@DAO_WebPortal.Utility.StringHelper.FormatPrice(item.WinnerBidPrice)</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (item.VoteCount >= item.QuorumCount)
                                                 {
                                                     <i data-toggle="tooltip" data-placement="top" title="Quorum reached" class="fas fa-check-circle mr-2 text-success"></i>
                                                 }
                                                 else
-                                                {                                                       
+                                                {
                                                     <i data-toggle="tooltip" data-placement="top" title="Quorum not reached" class="fas fa-times-circle mr-2 text-danger"></i>
                                                 }
-                                                 @item.VoteCount / @item.EligibleUserCount                                                
+                                                @item.VoteCount / @item.EligibleUserCount
                                             </td>
-                                            <td>                                         
-                                                @{                                        
+                                            <td>
+                                                @{
                                                     double informalPerc = Math.Round(Convert.ToDouble(item.StakedForInformal) / Convert.ToDouble(item.StakedForInformal + item.StakedAgainstInformal) * 100, 2);
                                                     <div><i class="fas fa-caret-up text-success font-lg"></i> <small>@informalPerc</small></div>
                                                     <div><i class="fas fa-caret-down text-danger font-lg"></i> <small>@Math.Round(100-informalPerc,2)</small></div>
@@ -500,7 +508,7 @@
         var selectedVotingId = 0;
         var selectedDirection = -1;
 
-        var now = new Date(@DateTime.Now.Year, @(DateTime.Now.Month-1), @DateTime.Now.Day, @DateTime.Now.Hour, @DateTime.Now.Minute, @DateTime.Now.Second);
+        var now = new Date(@DateTime.Now.Year, @(DateTime.Now.Month - 1), @DateTime.Now.Day, @DateTime.Now.Hour, @DateTime.Now.Minute, @DateTime.Now.Second);
 
         $(document).ready(function () {
             $('[data-toggle="tooltip"]').tooltip()
@@ -594,49 +602,49 @@
                 return;
             }
 
-             $.confirm({
-                    title: 'Confirmation',
-                    content: 'Are you sure you want to submit your vote ?',
-                    buttons: {
-                        cancel: {
-                            text: 'Cancel'
-                        },
-                        confirm: {
-                            text: 'Continue',
-                            btnClass: 'btn btn-primary',
-                            action: function () {
-                                $("#voteBtn").prop("disabled", true);
-                                $("#voteBtn").html('<i class="fas fa-circle-notch fa-spin"></i> Submitting Vote...');
+            $.confirm({
+                title: 'Confirmation',
+                content: 'Are you sure you want to submit your vote ?',
+                buttons: {
+                    cancel: {
+                        text: 'Cancel'
+                    },
+                    confirm: {
+                        text: 'Continue',
+                        btnClass: 'btn btn-primary',
+                        action: function () {
+                            $("#voteBtn").prop("disabled", true);
+                            $("#voteBtn").html('<i class="fas fa-circle-notch fa-spin"></i> Submitting Vote...');
 
-                                $.ajax({
-                                    type: "POST",
-                                    url: "../Home/SubmitVote",
-                                    data: { "VotingID": selectedVotingId, "Direction": selectedDirection, "ReputationStake": $("#reputationStake").val() },
-                                    success: function (result) {
-                                            if (result.success) {
-                                                window.location.reload();
-                                            }
-                                            else {
-                                                toastr.warning(result.message);
-                                            }
+                            $.ajax({
+                                type: "POST",
+                                url: "../Home/SubmitVote",
+                                data: { "VotingID": selectedVotingId, "Direction": selectedDirection, "ReputationStake": $("#reputationStake").val() },
+                                success: function (result) {
+                                    if (result.success) {
+                                        window.location.reload();
+                                    }
+                                    else {
+                                        toastr.warning(result.message);
+                                    }
 
-                                            $("#voteBtn").prop("disabled", false);
-                                            $("#voteBtn").html('Submit Vote');
-                                        },
-                                        failure: function (response) {
-                                            toastr.warning("@Lang.ConnectionError");
-                                            $("#voteBtn").prop("disabled", false);
-                                            $("#voteBtn").html('Submit Vote');                                                
-                                        },
-                                        error: function (response) {
-                                            toastr.error("@Lang.UnexpectedError");
-                                            $("#voteBtn").prop("disabled", false);
-                                            $("#voteBtn").html('Submit Vote');     
-                                        }
-                                });
-                            }
+                                    $("#voteBtn").prop("disabled", false);
+                                    $("#voteBtn").html('Submit Vote');
+                                },
+                                failure: function (response) {
+                                    toastr.warning("@Lang.ConnectionError");
+                                    $("#voteBtn").prop("disabled", false);
+                                    $("#voteBtn").html('Submit Vote');
+                                },
+                                error: function (response) {
+                                    toastr.error("@Lang.UnexpectedError");
+                                    $("#voteBtn").prop("disabled", false);
+                                    $("#voteBtn").html('Submit Vote');
+                                }
+                            });
                         }
                     }
+                }
             });
         }
     </script>

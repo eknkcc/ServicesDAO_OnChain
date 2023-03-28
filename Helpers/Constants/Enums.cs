@@ -200,5 +200,16 @@
             Submit_JobProof,
             Submit_JobProof_Grace
         }
+
+
+        public enum ReputationChangeReason
+        {
+            Minted = 1,
+            Burned = 2,
+            Staked = 3,
+            VotingGained = 4,
+            VotingLost = 5,
+            Unstaked = 6
+        }
     }
 }
