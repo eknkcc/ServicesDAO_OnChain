@@ -21,6 +21,7 @@ using Helpers.Models.WebsiteViewModels;
 using System.Threading;
 using Org.BouncyCastle.Crypto.Tls;
 using Helpers.Constants;
+using Helpers.Models.DtoModels.VoteDbDto;
 
 namespace DAO_WebPortal.Controllers
 {
@@ -65,7 +66,7 @@ namespace DAO_WebPortal.Controllers
                 }
 
                 HttpContext.Session.SetString("Balance", chainProfile.Balance.ToString());
-                HttpContext.Session.SetString("Reputation", chainProfile.Reputation.ToString());
+                HttpContext.Session.SetString("Reputation", (Convert.ToInt32(chainProfile.AvailableReputation) + Convert.ToInt32(chainProfile.StakedReputation)).ToString());
 
                 //Create model
                 LoginChainModel LoginModelPost = new LoginChainModel() { walletAddress = publicAddress, isVA = Convert.ToBoolean(chainProfile.IsVA), ip = ip, port = port, application = Helpers.Constants.Enums.AppNames.DAO_WebPortal };
@@ -331,6 +332,35 @@ namespace DAO_WebPortal.Controllers
         #endregion
 
         #region Voters
+        public JsonResult GetSubmitVoteDeploy(int votingId, bool isfavor, int stake)
+        {
+            try
+            {
+                SimpleResponse controlResult = UserInputControls.ControlSubmitVoteRequest(votingId, stake);
+
+                if (controlResult.Success == false) return base.Json(controlResult);
+
+                //Get voting model from ApiGateway
+                var votingJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Voting/GetId?id=" + votingId, HttpContext.Session.GetString("Token"));
+                //Parse response
+                VotingDto voting = Helpers.Serializers.DeserializeJson<VotingDto>(votingJson);
+
+                //Get model from ApiGateway
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/SubmitVote?votetype=" + voting.Type + "&isFormal=" + voting.IsFormal + "&votingid=" + voting.BlockchainVotingID + "&choice=" + isfavor + "&stake=" + stake + "&userwallet=" + HttpContext.Session.GetString("WalletAddress"));
+
+                //Parse response
+                SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
+
+                //Return deploy object in JSON
+                return base.Json(deployModel);
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+            }
+        }
 
         public JsonResult GetSimpleVoteDeploy(string documenthash, int stake)
         {

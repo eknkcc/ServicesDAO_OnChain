@@ -1843,6 +1843,11 @@ namespace DAO_WebPortal.Controllers
                 //Parse response
                 JobPostDto job = Helpers.Serializers.DeserializeJson<JobPostDto>(jobJson);
 
+                if(Program._settings.DaoBlockchain == Blockchain.Casper)
+                {
+
+                }
+
                 //Check if public user trying to submit bid for expired or completed auction
                 if (voting.Status != Enums.VoteStatusTypes.Active)
                 {

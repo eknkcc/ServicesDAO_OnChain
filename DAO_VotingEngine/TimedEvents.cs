@@ -272,6 +272,8 @@ namespace DAO_VotingEngine
 
                                 //Release staked reputations
                                 Request.Get(Program._settings.Service_Reputation_Url + "/UserReputationStake/ReleaseStakes?referenceProcessID=" + informalVoting.VotingID + "&reftype=" + Enums.StakeType.For);
+
+                                Program.monitizer.AddConsole("Informal voting finished without quorum #" + informalVoting.VotingID);
                             }
                         }
 
@@ -303,6 +305,8 @@ namespace DAO_VotingEngine
                                 formalVoting.StakedFor = 0;
                                 db.Votings.Add(formalVoting);
                                 db.SaveChanges();
+
+                                Program.monitizer.AddConsole("Formal voting started for job #" + formalVoting.JobID);
 
                                 //Get all votes of formal voting from chain and syncronize with central db (For doublecheck)
                                 //Disabled for now because endpoints returns votes withouth knowing it belong to informal or not
@@ -353,6 +357,8 @@ namespace DAO_VotingEngine
 
                                 //Release staked reputations
                                 Helpers.Request.Get(Program._settings.Service_Reputation_Url + "/UserReputationStake/ReleaseStakes?referenceProcessID=" + formalVoting.VotingID + "&reftype=" + Enums.StakeType.For);
+
+                                Program.monitizer.AddConsole("Formal voting completed for job #" + formalVoting.JobID);
                             }
                         }
                     }

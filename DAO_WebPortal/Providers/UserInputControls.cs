@@ -197,6 +197,22 @@ namespace DAO_WebPortal.Providers
 
             return new SimpleResponse { Success = true, Content = new { user = profileModel } };
         }
+
+        public static SimpleResponse ControlSubmitVoteRequest(int votingId, int stake)
+        {
+            if (votingId <= 0)
+            {
+                return new SimpleResponse { Success = false, Message = "Invalid voting id." };
+            }
+
+            if (stake <= 0)
+            {
+                return new SimpleResponse { Success = false, Message = "Stake must be higher than 0." };
+            }
+
+            return new SimpleResponse { Success = true };
+
+        }
         #endregion
 
         #region BidEscrow
