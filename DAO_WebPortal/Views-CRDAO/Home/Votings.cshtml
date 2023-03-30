@@ -492,7 +492,7 @@
             </div>
             <div id="winnerButtons" class="modal-footer">
                 <button class="btn btn-secondary" type="button" data-coreui-dismiss="modal">Close</button>
-                <button type="submit" class="btn btn-primary" onclick="SubmitVote();" id="voteBtn">Submit Vote</button>
+                <button type="submit" class="btn btn-primary" onclick="submitOnchainVote();" id="voteBtn">Submit Vote</button>
             </div>
         </div>
     </div>
@@ -596,56 +596,126 @@
             selectedDirection = direction;
         }
 
-        function SubmitVote(direction) {
-            if (selectedDirection == -1) {
-                toastr.warning("Please select a side for your vote.");
-                return;
-            }
+        async function CreateAndSendDeploy(requestUrl, sendDeployFunction) {
+            const isConnected = await window.casperlabsHelper.isConnected();
+            if (isConnected) {
+                ShowLoader("Creating deploy object...");
+                //Ajax post action
+                $.ajax({
+                    type: "GET",
+                    url: requestUrl,
+                    success: async function (result) {
+                        if (result.success) {
+                            ShowLoader("Waiting for sign...");
+                            //const publicKeyHex = await window.casperlabsHelper.getActivePublicKey();
+                            var deployJson = { "deploy": JSON.parse(result.message) };
 
-            $.confirm({
-                title: 'Confirmation',
-                content: 'Are you sure you want to submit your vote ?',
-                buttons: {
-                    cancel: {
-                        text: 'Cancel'
-                    },
-                    confirm: {
-                        text: 'Continue',
-                        btnClass: 'btn btn-primary',
-                        action: function () {
-                            $("#voteBtn").prop("disabled", true);
-                            $("#voteBtn").html('<i class="fas fa-circle-notch fa-spin"></i> Submitting Vote...');
+                            // Sign transcation using casper-signer.
+                            const signature = await window.casperlabsHelper.sign(deployJson);
 
-                            $.ajax({
-                                type: "POST",
-                                url: "../Home/SubmitVote",
-                                data: { "VotingID": selectedVotingId, "Direction": selectedDirection, "ReputationStake": $("#reputationStake").val() },
-                                success: function (result) {
-                                    if (result.success) {
-                                        window.location.reload();
-                                    }
-                                    else {
-                                        toastr.warning(result.message);
-                                    }
+                            ShowLoader("Sending signed deploy. This may take few minutes...");
 
-                                    $("#voteBtn").prop("disabled", false);
-                                    $("#voteBtn").html('Submit Vote');
-                                },
-                                failure: function (response) {
-                                    toastr.warning("@Lang.ConnectionError");
-                                    $("#voteBtn").prop("disabled", false);
-                                    $("#voteBtn").html('Submit Vote');
-                                },
-                                error: function (response) {
-                                    toastr.error("@Lang.UnexpectedError");
-                                    $("#voteBtn").prop("disabled", false);
-                                    $("#voteBtn").html('Submit Vote');
-                                }
-                            });
+                            sendDeployFunction(signature.deploy)
                         }
+                        else {
+                            HideLoader();
+                            toastr.warning(result.message);
+                        }
+                    },
+                    failure: function (response) {
+                        HideLoader();
+                        toastr.warning("@Lang.ConnectionError");
+                    },
+                    error: function (response) {
+                        HideLoader();
+                        toastr.error("@Lang.UnexpectedError");
                     }
+                });
+            }
+            else {
+                toastr.warning("Please connect the Casper Signer browser extension.");
+            }
+        }
+
+        function submitVote(signedDeployJson) {
+
+            //Ajax post action
+            $("#voteBtn").prop("disabled", true);
+            $("#voteBtn").html('<i class="fas fa-circle-notch fa-spin"></i> Submitting Vote...');
+
+            $.ajax({
+                type: "POST",
+                url: "../Home/SubmitVote",
+                data: { "VotingID": selectedVotingId, "Direction": selectedDirection, "ReputationStake": $("#reputationStake").val(), "signedDeployJson": JSON.stringify(signedDeployJson) },
+                success: function (result) {
+                    if (result.success) {
+                        window.location.reload();
+                    }
+                    else {
+                        toastr.warning(result.message);
+                    }
+
+                    $("#voteBtn").prop("disabled", false);
+                    $("#voteBtn").html('Submit Vote');
+                },
+                failure: function (response) {
+                    toastr.warning("@Lang.ConnectionError");
+                    $("#voteBtn").prop("disabled", false);
+                    $("#voteBtn").html('Submit Vote');
+                },
+                error: function (response) {
+                    toastr.error("@Lang.UnexpectedError");
+                    $("#voteBtn").prop("disabled", false);
+                    $("#voteBtn").html('Submit Vote');
                 }
             });
+
         }
     </script>
+
+    @if (Program._settings.DaoBlockchain == Helpers.Constants.Enums.Blockchain.Casper)
+    {
+        <script>
+
+            async function submitOnchainVote() {
+                if (selectedDirection == -1) {
+                    toastr.warning("Please select a side for your vote.");
+                    return;
+                }
+                CreateAndSendDeploy("../CasperChain/GetSubmitVoteDeploy?votingId=" + selectedVotingId + "&isfavor=" + selectedDirection + "&stake=" + $("#reputationStake").val(), submitVote);
+            }
+
+        </script>
+    }
+    else if (Program._settings.DaoBlockchain == null)
+    {
+        @* Start votes without any onchain process *@
+        <script>
+            function submitOnchainVote() {
+                if (selectedDirection == -1) {
+                    toastr.warning("Please select a side for your vote.");
+                    return;
+                }
+
+                $.confirm({
+                    title: 'Confirmation',
+                    content: '<p>Are you sure you want to submit vote ?</p>',
+                    columnClass: 'col-md-8 col-md-offset-2',
+                    buttons: {
+                        cancel: {
+                            text: 'Cancel'
+                        },
+                        confirm: {
+                            text: 'Continue',
+                            btnClass: 'btn btn-primary',
+                            action: function () {
+                                submitVote("")
+                            }
+
+                        }
+                    }
+                });
+            }
+        </script>
+    }
 }

@@ -198,7 +198,9 @@
             Submit_Bid,
             Cancel_Bid,
             Submit_JobProof,
-            Submit_JobProof_Grace
+            Submit_JobProof_Grace,
+
+            Submit_Vote,
         }
 
 

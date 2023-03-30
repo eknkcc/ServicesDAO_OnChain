@@ -22,6 +22,7 @@ using System.Threading;
 using Org.BouncyCastle.Crypto.Tls;
 using Helpers.Constants;
 using Helpers.Models.DtoModels.VoteDbDto;
+using Helpers.Models.DtoModels.ReputationDbDto;
 
 namespace DAO_WebPortal.Controllers
 {
@@ -67,6 +68,7 @@ namespace DAO_WebPortal.Controllers
 
                 HttpContext.Session.SetString("Balance", chainProfile.Balance.ToString());
                 HttpContext.Session.SetString("Reputation", (Convert.ToInt32(chainProfile.AvailableReputation) + Convert.ToInt32(chainProfile.StakedReputation)).ToString());
+                HttpContext.Session.SetString("LastUsableReputation", chainProfile.AvailableReputation.ToString());
 
                 //Create model
                 LoginChainModel LoginModelPost = new LoginChainModel() { walletAddress = publicAddress, isVA = Convert.ToBoolean(chainProfile.IsVA), ip = ip, port = port, application = Helpers.Constants.Enums.AppNames.DAO_WebPortal };
@@ -138,8 +140,9 @@ namespace DAO_WebPortal.Controllers
                 }
 
                 HttpContext.Session.SetString("Balance", chainProfile.Balance.ToString());
-                HttpContext.Session.SetString("Reputation", chainProfile.Reputation.ToString());
-                HttpContext.Session.SetString("WalletAddress", publicAddress);
+                HttpContext.Session.SetString("Reputation", (Convert.ToInt32(chainProfile.AvailableReputation) + Convert.ToInt32(chainProfile.StakedReputation)).ToString());
+                HttpContext.Session.SetString("LastUsableReputation", chainProfile.AvailableReputation.ToString());
+
 
                 var updatemodel = Helpers.Serializers.DeserializeJson<UserDto>(Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/Db/Users/Update", Helpers.Serializers.SerializeJson(userModel), HttpContext.Session.GetString("Token")));
 
@@ -332,10 +335,16 @@ namespace DAO_WebPortal.Controllers
         #endregion
 
         #region Voters
-        public JsonResult GetSubmitVoteDeploy(int votingId, bool isfavor, int stake)
+        public JsonResult GetSubmitVoteDeploy(int votingId, int direction, int stake)
         {
             try
             {
+                bool isinfavor = false;
+                if(direction == 0)
+                {
+                    isinfavor = true;
+                }
+
                 SimpleResponse controlResult = UserInputControls.ControlSubmitVoteRequest(votingId, stake);
 
                 if (controlResult.Success == false) return base.Json(controlResult);
@@ -346,7 +355,7 @@ namespace DAO_WebPortal.Controllers
                 VotingDto voting = Helpers.Serializers.DeserializeJson<VotingDto>(votingJson);
 
                 //Get model from ApiGateway
-                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/SubmitVote?votetype=" + voting.Type + "&isFormal=" + voting.IsFormal + "&votingid=" + voting.BlockchainVotingID + "&choice=" + isfavor + "&stake=" + stake + "&userwallet=" + HttpContext.Session.GetString("WalletAddress"));
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/SubmitVote?votetype=" + voting.Type + "&isFormal=" + Convert.ToInt32(voting.IsFormal) + "&votingid=" + voting.BlockchainVotingID + "&choice=" + Convert.ToInt32(isinfavor) + "&stake=" + stake + "&userwallet=" + HttpContext.Session.GetString("WalletAddress"));
 
                 //Parse response
                 SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);

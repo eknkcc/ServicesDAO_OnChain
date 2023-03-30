@@ -27,6 +27,7 @@ using System.Text;
 using Org.BouncyCastle.Bcpg.OpenPgp;
 using System.Threading;
 using MySqlX.XDevAPI.Common;
+using Newtonsoft.Json.Linq;
 
 namespace DAO_WebPortal.Controllers
 {
@@ -1171,10 +1172,13 @@ namespace DAO_WebPortal.Controllers
                 }
 
                 //Get user's available reputation and save it to session to show in vote modal
-                var reputationJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationHistory/GetLastReputation?userid=" + HttpContext.Session.GetInt32("UserID"), HttpContext.Session.GetString("Token"));
-                if (!string.IsNullOrEmpty(reputationJson))
+                if (Program._settings.DaoBlockchain == null)
                 {
-                    HttpContext.Session.SetString("LastUsableReputation", Helpers.Serializers.DeserializeJson<UserReputationHistoryDto>(reputationJson).LastUsableTotal.ToString());
+                    var reputationJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationHistory/GetLastReputation?userid=" + HttpContext.Session.GetInt32("UserID"), HttpContext.Session.GetString("Token"));
+                    if (!string.IsNullOrEmpty(reputationJson))
+                    {
+                        HttpContext.Session.SetString("LastUsableReputation", Helpers.Serializers.DeserializeJson<UserReputationHistoryDto>(reputationJson).LastUsableTotal.ToString());
+                    }
                 }
             }
             catch (Exception ex)
@@ -1623,11 +1627,14 @@ namespace DAO_WebPortal.Controllers
                     if (voting.JobDoerUserID == 0) voting.JobDoerUserID = voting.JobOwnerUserID;
                 }
 
-                //Get user's available reputation and save it to session to show in vote modal
-                var reputationJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationHistory/GetLastReputation?userid=" + HttpContext.Session.GetInt32("UserID"), HttpContext.Session.GetString("Token"));
-                if (!string.IsNullOrEmpty(reputationJson))
+                if (Program._settings.DaoBlockchain == null)
                 {
-                    HttpContext.Session.SetString("LastUsableReputation", Helpers.Serializers.DeserializeJson<UserReputationHistoryDto>(reputationJson).LastUsableTotal.ToString());
+                    //Get user's available reputation and save it to session to show in vote modal
+                    var reputationJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationHistory/GetLastReputation?userid=" + HttpContext.Session.GetInt32("UserID"), HttpContext.Session.GetString("Token"));
+                    if (!string.IsNullOrEmpty(reputationJson))
+                    {
+                        HttpContext.Session.SetString("LastUsableReputation", Helpers.Serializers.DeserializeJson<UserReputationHistoryDto>(reputationJson).LastUsableTotal.ToString());
+                    }
                 }
             }
             catch (Exception ex)
@@ -1827,7 +1834,7 @@ namespace DAO_WebPortal.Controllers
         /// <returns></returns>
         [HttpPost]
         [AuthorizeChainUser]
-        public JsonResult SubmitVote(int VotingID, StakeType Direction, double? ReputationStake)
+        public JsonResult SubmitVote(int VotingID, StakeType Direction, double? ReputationStake, string signedDeployJson)
         {
             SimpleResponse result = new SimpleResponse();
 
@@ -1842,11 +1849,6 @@ namespace DAO_WebPortal.Controllers
                 var jobJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/GetId?id=" + voting.JobID, HttpContext.Session.GetString("Token"));
                 //Parse response
                 JobPostDto job = Helpers.Serializers.DeserializeJson<JobPostDto>(jobJson);
-
-                if(Program._settings.DaoBlockchain == Blockchain.Casper)
-                {
-
-                }
 
                 //Check if public user trying to submit bid for expired or completed auction
                 if (voting.Status != Enums.VoteStatusTypes.Active)
@@ -1870,20 +1872,61 @@ namespace DAO_WebPortal.Controllers
                     return Json(new SimpleResponse { Success = false, Message = "You must stake reputation greater than 0 for this voting type." });
                 }
 
-                //Post model to ApiGateway
-                string jsonResponse = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Vote/SubmitVote?VotingID=" + VotingID + "&UserID=" + Convert.ToInt32(HttpContext.Session.GetInt32("UserID")) + "&Direction=" + Direction + "&ReputationStake=" + ReputationStake.ToString().Replace(",", "."), HttpContext.Session.GetString("Token"));
-                result = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResponse);
 
-                if (result.Success)
+                if (Program._settings.DaoBlockchain == Blockchain.Casper)
                 {
+                    ChainActionDto chainAction = CreateChainActionRecord(signedDeployJson, HttpContext.Session.GetString("WalletAddress"), ChainActionTypes.Submit_Vote);
+
+                    new Thread(() =>
+                    {
+                        Thread.CurrentThread.IsBackground = true;
+
+                        ChainActionDto deployResult = new ChainActionDto();
+
+                        deployResult = SendSignedDeploy(chainAction);
+
+                        //Central db operations
+                        if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
+                        {
+
+                            string jsonResponse = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Vote/SubmitVote?VotingID=" + VotingID + "&UserID=" + Convert.ToInt32(HttpContext.Session.GetInt32("UserID")) + "&Direction=" + Direction + "&ReputationStake=" + ReputationStake.ToString().Replace(",", "."), HttpContext.Session.GetString("Token"));
+                            SimpleResponse votePostResponse = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResponse);
+
+                            //Set server side toastr because page will be redirected
+                            TempData["toastr-message"] = result.Message;
+                            TempData["toastr-type"] = "success";
+
+                            Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "User voted job. Voting #" + VotingID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+                        }
+
+                        Program.chainQue.RemoveAt(Program.chainQue.IndexOf(chainAction));
+                        Program.chainQue.Add(deployResult);
+                    }).Start();
+
                     //Set server side toastr because page will be redirected
-                    TempData["toastr-message"] = result.Message;
+                    TempData["toastr-message"] = "Your request successfully submitted. ";
                     TempData["toastr-type"] = "success";
 
-                    Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "User voted job. Voting #" + VotingID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+                    return Json(new SimpleResponse() { Success = true });
+                }
+                else
+                {
+                    //Post model to ApiGateway
+                    string jsonResponse = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Vote/SubmitVote?VotingID=" + VotingID + "&UserID=" + Convert.ToInt32(HttpContext.Session.GetInt32("UserID")) + "&Direction=" + Direction + "&ReputationStake=" + ReputationStake.ToString().Replace(",", "."), HttpContext.Session.GetString("Token"));
+                    result = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResponse);
+
+                    if (result.Success)
+                    {
+                        //Set server side toastr because page will be redirected
+                        TempData["toastr-message"] = result.Message;
+                        TempData["toastr-type"] = "success";
+
+                        Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "User voted job. Voting #" + VotingID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+                    }
+
+                    return Json(result);
                 }
 
-                return Json(result);
             }
             catch (Exception ex)
             {
@@ -2328,7 +2371,7 @@ namespace DAO_WebPortal.Controllers
             {
                 if (jobPostModel != null && jobPostModel.JobID > 0)
                 {
-                    //Set job status to informal voting
+                    //Set job status to error
                     jobPostModel.Status = Enums.JobStatusTypes.ChainError;
                     string updateResponseJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/Update", Helpers.Serializers.SerializeJson(jobPostModel), token);
                 }
@@ -2357,11 +2400,11 @@ namespace DAO_WebPortal.Controllers
                     {
                         Thread.CurrentThread.IsBackground = true;
 
-                        SimpleResponse jobPostResponse = VoteDbOperations_CreatePost(title, description, userid, token);
+                        SimpleResponse votePostResponse = VoteDbOperations_CreatePost(title, description, userid, token);
 
                         ChainActionDto deployResult = new ChainActionDto();
 
-                        if (jobPostResponse.Success == false || jobPostResponse.Content == null)
+                        if (votePostResponse.Success == false || votePostResponse.Content == null)
                         {
                             chainAction.Status = ChainActionStatus.Error.ToString();
                             chainAction.Result = "Create new post error.";
@@ -2370,7 +2413,7 @@ namespace DAO_WebPortal.Controllers
                         }
                         else
                         {
-                            JobPostDto jobPost = (JobPostDto)jobPostResponse.Content;
+                            JobPostDto jobPost = (JobPostDto)votePostResponse.Content;
 
                             deployResult = SendSignedDeploy(chainAction);
 
