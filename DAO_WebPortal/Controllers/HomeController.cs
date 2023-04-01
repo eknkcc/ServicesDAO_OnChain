@@ -1605,7 +1605,7 @@ namespace DAO_WebPortal.Controllers
                 //Only get verified blockchain actions if platform works onchain
                 if (!String.IsNullOrEmpty(Program._settings.DaoBlockchain.ToString()))
                 {
-                    votingsModel = votingsModel.Where(x => !string.IsNullOrEmpty(x.DeployHash)).ToList();
+                    votingsModel = votingsModel.Where(x => !string.IsNullOrEmpty(x.DeployHash) && x.BlockChainVotingId != null).ToList();
                 }
 
                 //Get user's votes

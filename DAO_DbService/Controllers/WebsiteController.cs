@@ -1099,7 +1099,8 @@ namespace DAO_DbService.Controllers
                                StakedForInformal = stakedForInformal,
                                StakedAgainstInformal = stakedAgainstInformal,
                                DeployHash = voting.DeployHash,
-                               VoteType = voting.Type
+                               VoteType = voting.Type,
+                               BlockChainVotingId = voting.BlockchainVotingID
                            }).ToList();
                 }
             }

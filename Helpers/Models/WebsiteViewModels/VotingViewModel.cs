@@ -31,6 +31,7 @@ namespace Helpers.Models.WebsiteViewModels
         public double? StakedAgainstInformal { get; set; }
         public string DeployHash { get; set; }
         public VoteTypes VoteType { get; set; }
+        public int? BlockChainVotingId { get; set; }
 
     }
 }
