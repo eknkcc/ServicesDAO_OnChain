@@ -209,14 +209,14 @@ namespace DAO_CasperChainService.Controllers
                     ChainName = Program._settings.ChainName,
                     GasPrice = 1
                 };
-                var payment = new ModuleBytesDeployItem(150_000_000_000);
+                var payment = new ModuleBytesDeployItem(4_000_000_000_000);
 
                 List<NamedArg> runtimeArgs = new List<NamedArg>();
                 runtimeArgs.Add(new NamedArg("bid_escrow_address", CLValue.Key(bidEscrowAddress)));
-                runtimeArgs.Add(new NamedArg("cspr_amount", CLValue.U512(150_000_000_000)));
+                runtimeArgs.Add(new NamedArg("cspr_amount", CLValue.U512(4_000_000_000_000)));
                 runtimeArgs.Add(new NamedArg("expected_timeframe", CLValue.U64(expectedtimeframe)));
                 runtimeArgs.Add(new NamedArg("budget", CLValue.U512(budget)));
-                runtimeArgs.Add(new NamedArg("amount", CLValue.U512(150_000_000_000)));
+                runtimeArgs.Add(new NamedArg("amount", CLValue.U512(4_000_000_000_000)));
 
                 var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
 
@@ -539,11 +539,18 @@ namespace DAO_CasperChainService.Controllers
         }
 
         [HttpGet("VaOnboardingVoterCreateVoting", Name = "VaOnboardingVoterCreateVoting")]
-        public SimpleResponse VaOnboarding_CreateVoting(string userwallet, string reason)
+        public SimpleResponse VaOnboarding_CreateVoting(string userwallet, string reason, string onboardwallet)
         {
             try
             {
                 PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
+
+                PublicKey onboardUserWallet = PublicKey.FromHexString(onboardwallet);
+
+                //IGNORE
+                //var onboardingKeyHex = PublicKey.FromHexString(onboardwallet);
+                //var onboardingKey = GlobalStateKey.FromString(onboardingKeyHex.GetAccountHash());
+                
                 var onboardingKey = GlobalStateKey.FromString(Program._settings.VAOnboardingPackageHash);
 
                 var wasmFile = "./wwwroot/wasms/submit_onboarding_request.wasm";
@@ -610,7 +617,7 @@ namespace DAO_CasperChainService.Controllers
                 };
 
                 //Create deploy object
-                HashKey contractHash = new HashKey(Program._settings.ReputationVoterContract);
+                HashKey contractHash = new HashKey(Program._settings.RepoVoterContract);
                 var deploy = DeployTemplates.ContractCall(contractHash,
                        "create_voting",
                        namedArgs,

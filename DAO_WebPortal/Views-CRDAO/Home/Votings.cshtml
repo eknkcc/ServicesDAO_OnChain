@@ -202,9 +202,12 @@
                                             </td>
                                             <td>
                                                 @{
-                                                    double informalPerc = Math.Round(Convert.ToDouble(item.StakedForInformal) / Convert.ToDouble(item.StakedForInformal + item.StakedAgainstInformal) * 100, 2);
-                                                    <div><i class="fas fa-caret-up text-success font-lg"></i> <small>@informalPerc</small></div>
-                                                    <div><i class="fas fa-caret-down text-danger font-lg"></i> <small>@Math.Round(100-informalPerc,2)</small></div>
+                    //double informalPerc = Math.Round(Convert.ToDouble(item.StakedForInformal) / Convert.ToDouble(item.StakedForInformal + item.StakedAgainstInformal) * 100, 2);
+                                                    //<div><i class="fas fa-caret-up text-success font-lg"></i> <small>@informalPerc</small></div>
+                                                    //<div><i class="fas fa-caret-down text-danger font-lg"></i> <small>@Math.Round(100-informalPerc,2)</small></div>
+
+                                                    <div><i class="fas fa-caret-up text-success font-lg"></i> <small>@item.StakedForInformal</small></div>
+                                                    <div><i class="fas fa-caret-down text-danger font-lg"></i> <small>@item.StakedAgainstInformal</small></div>
                                                 }
                                             </td>
                                             @if (item.UserVote == Helpers.Constants.Enums.StakeType.For)
@@ -409,9 +412,12 @@
                                             </td>
                                             <td>
                                                 @{
-                                                    double informalPerc = Math.Round(Convert.ToDouble(item.StakedForInformal) / Convert.ToDouble(item.StakedForInformal + item.StakedAgainstInformal) * 100, 2);
-                                                    <div><i class="fas fa-caret-up text-success font-lg"></i> <small>@informalPerc</small></div>
-                                                    <div><i class="fas fa-caret-down text-danger font-lg"></i> <small>@Math.Round(100-informalPerc,2)</small></div>
+                    //double informalPerc = Math.Round(Convert.ToDouble(item.StakedForInformal) / Convert.ToDouble(item.StakedForInformal + item.StakedAgainstInformal) * 100, 2);
+                                                    //<div><i class="fas fa-caret-up text-success font-lg"></i> <small>@informalPerc</small></div>
+                                                    //<div><i class="fas fa-caret-down text-danger font-lg"></i> <small>@Math.Round(100-informalPerc,2)</small></div>
+
+                                                    <div><i class="fas fa-caret-up text-success font-lg"></i> <small>@item.StakedForInformal</small></div>
+                                                    <div><i class="fas fa-caret-down text-danger font-lg"></i> <small>@item.StakedAgainstInformal</small></div>
                                                 }
                                             </td>
                                             @*User's Vote*@

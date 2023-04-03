@@ -404,7 +404,7 @@ namespace DAO_WebPortal.Controllers
                 if (controlResult.Success == false) return base.Json(controlResult);
 
                 //Get model from ApiGateway
-                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/VaOnboardingVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&reason=" + reason);
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/VaOnboardingVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&reason=" + reason + "&onboardwallet=" + ((UserDto)((dynamic)controlResult.Content).user).WalletAddress);
                 //Parse response
                 SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
 
@@ -427,7 +427,8 @@ namespace DAO_WebPortal.Controllers
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 
-                long activationTime = DateTime.Now.ToFileTime();
+                DateTime currentDateTime = DateTime.Now;
+                long activationTime = ((DateTimeOffset)currentDateTime).ToUnixTimeSeconds();
 
                 //Get model from ApiGateway
                 var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/RepoVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&key=" + key + "&value=" + value + "&stake=" + stake + "&activationtime=" + activationTime);
