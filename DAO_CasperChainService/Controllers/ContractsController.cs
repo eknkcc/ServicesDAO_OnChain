@@ -612,7 +612,7 @@ namespace DAO_CasperChainService.Controllers
                     new NamedArg("variable_repo_to_edit", CLValue.Key(repoKey)),
                     new NamedArg("key", CLValue.String(key)),
                     new NamedArg("value", CLValue.List(valueBytes.ToArray())),
-                    new NamedArg("activation_time", CLValue.U64(activationtime)),
+                    new NamedArg("activation_time", CLValue.Option(activationtime)),
                     new NamedArg("stake", CLValue.U512(stake))
                 };
 
