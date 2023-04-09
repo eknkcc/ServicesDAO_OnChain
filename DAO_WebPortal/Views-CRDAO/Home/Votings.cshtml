@@ -602,48 +602,7 @@
             selectedDirection = direction;
         }
 
-        async function CreateAndSendDeploy(requestUrl, sendDeployFunction) {
-            const isConnected = await window.casperlabsHelper.isConnected();
-            if (isConnected) {
-                ShowLoader("Creating deploy object...");
-                //Ajax post action
-                $.ajax({
-                    type: "GET",
-                    url: requestUrl,
-                    success: async function (result) {
-                        if (result.success) {
-                            ShowLoader("Waiting for sign...");
-                            //const publicKeyHex = await window.casperlabsHelper.getActivePublicKey();
-                            var deployJson = { "deploy": JSON.parse(result.message) };
-
-                            // Sign transcation using casper-signer.
-                            const signature = await window.casperlabsHelper.sign(deployJson);
-
-                            ShowLoader("Sending signed deploy. This may take few minutes...");
-
-                            sendDeployFunction(signature.deploy)
-                        }
-                        else {
-                            HideLoader();
-                            toastr.warning(result.message);
-                        }
-                    },
-                    failure: function (response) {
-                        HideLoader();
-                        toastr.warning("@Lang.ConnectionError");
-                    },
-                    error: function (response) {
-                        HideLoader();
-                        toastr.error("@Lang.UnexpectedError");
-                    }
-                });
-            }
-            else {
-                toastr.warning("Please connect the Casper Signer browser extension.");
-            }
-        }
-
-        function submitVote(signedDeployJson) {
+        function SubmitVote(signedDeployJson) {
 
             //Ajax post action
             $("#voteBtn").prop("disabled", true);
@@ -684,11 +643,12 @@
         <script>
 
             async function submitOnchainVote() {
-                if (selectedDirection == -1) {
+                if (selectedDirection == -1) 
+                {
                     toastr.warning("Please select a side for your vote.");
                     return;
                 }
-                CreateAndSendDeploy("../CasperChain/GetSubmitVoteDeploy?votingId=" + selectedVotingId + "&isfavor=" + selectedDirection + "&stake=" + $("#reputationStake").val(), submitVote);
+                CheckWalletAndSendDeploy("../CasperChain/GetSubmitVoteDeploy?votingId=" + selectedVotingId + "&isfavor=" + selectedDirection + "&stake=" + $("#reputationStake").val(), SubmitVote);
             }
 
         </script>
@@ -715,7 +675,7 @@
                             text: 'Continue',
                             btnClass: 'btn btn-primary',
                             action: function () {
-                                submitVote("")
+                                SubmitVote("")
                             }
 
                         }

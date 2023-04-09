@@ -5,7 +5,8 @@
 <script src="~/Casper/tsresult.js"></script>
 <script src="~/Casper/CasperClientHelper.js"></script>
 <script src="~/Casper/CasperJsSdk.js"></script>
-<script src="~/Casper/daocontracts.js"></script>
+@*<script src="~/Casper/daocontracts.js"></script>*@
+
 @* <script src="~/Casper/CasperClientHelper.js"></script>
     <script src="~/Casper/CasperERC20.js"></script>
     <script src="~/Casper/CasperCEP47.js"></script> *@
@@ -130,79 +131,75 @@
 
     //------Casper chain login functions------
     var checkInterval;
-    async function ConnectWallet(login) {
+    function ConnectWallet(login) {
 
-    @if (Program._settings.DaoBlockchain == Helpers.Constants.Enums.Blockchain.Casper)
-    {
-        @Html.Raw("window.casperlabsHelper.requestConnection();")
-    }
+        if ("@Program._settings.DaoBlockchain.ToString()" == "Casper") {
+            if (!window.CasperWalletProvider) {
+                toastr.warning("Please install Casper Wallet from: https://www.casperwallet.io/download");
+            }
 
+            const CasperWalletProvider = window.CasperWalletProvider;
+            const CasperWalletEventTypes = window.CasperWalletEventTypes;
 
-            clearInterval(checkInterval);
-        checkInterval = setInterval(function () {
-    @if (Program._settings.DaoBlockchain == Helpers.Constants.Enums.Blockchain.Casper)
-    {
-        @Html.Raw("CheckCasperPublicKey(login);")
-    }
-            }, 1000);
+            const provider = CasperWalletProvider();
 
-    }
+            provider.requestConnection().then(data => {
 
-    async function CheckCasperPublicKey(login) {
-
-        try {
-            const isConnected = await window.casperlabsHelper.isConnected();
-            if (isConnected) {
-
-                var publicAddress = await window.casperlabsHelper.getActivePublicKey();
-                clearInterval(checkInterval);
-                ShowLoader();
-
-                var token = $('input[name="__RequestVerificationToken"]', token).val();
-
-                //Ajax post action
-                urlLogin = "../CasperChain/ConnectWallet"
-                if (login == true) {
-                    urlLogin = "../CasperChain/LoginChain";
+                if (data != true) {
+                    toastr.warning("Casper wallet connection failed.");
+                    return;
                 }
 
-                $.ajax({
-                    type: "POST",
-                    url: urlLogin,
-                    data: { "publicAddress": publicAddress, "__RequestVerificationToken": token },
-                    async: true,
-                    success: function (result) {
-                        if (result.success) {
-                            window.location.href = "../Home";
-                        }
-                        else {
-                            failCount++;
-                            toastr.warning(result.message);
-                            //Show captcha image after failed request attempts
-                            if (failCount > 3) {
-                                resetCaptchaImage("#img-captcha-login", "securityCodeLogin");
-                                $(".captchaDiv").removeClass("d-none");
+                provider.getActivePublicKey().then(data => {
+                    ShowLoader();
+
+                    var token = $('input[name="__RequestVerificationToken"]', token).val();
+
+                    //Ajax post action
+                    urlLogin = "../CasperChain/ConnectWallet"
+                    if (login == true) {
+                        urlLogin = "../CasperChain/LoginChain";
+                    }
+
+                    $.ajax({
+                        type: "POST",
+                        url: urlLogin,
+                        data: { "publicAddress": data, "__RequestVerificationToken": token },
+                        async: true,
+                        success: function (result) {
+                            if (result.success) {
+                                window.location.href = "../Home";
                             }
+                            else {
+                                failCount++;
+                                toastr.warning(result.message);
+                                //Show captcha image after failed request attempts
+                                if (failCount > 3) {
+                                    resetCaptchaImage("#img-captcha-login", "securityCodeLogin");
+                                    $(".captchaDiv").removeClass("d-none");
+                                }
+                                HideLoader();
+                            }
+                        },
+                        failure: function (response) {
+                            toastr.warning("Server connection error");
+                            HideLoader();
+                        },
+                        error: function (response) {
+                            toastr.error("Unexpected error");
                             HideLoader();
                         }
-                    },
-                    failure: function (response) {
-                        toastr.warning("Server connection error");
-                        HideLoader();
-                    },
-                    error: function (response) {
-                        toastr.error("Unexpected error");
-                        HideLoader();
-                    }
+                    });
+                }).catch(error => {
+                    toastr.warning("Error while geting public key: " + error);
                 });
-            }
-        }
-        catch
-        {
-            return "";
+            }).catch(error => {
+                toastr.warning("Casper wallet connection error: " + error);
+            });;
         }
 
     }
+
     //---------------------------------------
 
     //Register function
@@ -376,35 +373,48 @@
         $('.submitFormButton').removeAttr("disabled");
     }
 
-    async function ChangeUserWallet(response) {
+    //Update user wallet
+    function ChangeUserWallet(response) {
         if (response == 1) {
-            window.casperlabsHelper.requestConnection();
-
             var publicAddress = "";
 
-            @if (Program._settings.DaoBlockchain == Helpers.Constants.Enums.Blockchain.Casper)
-            {
-                @Html.Raw("publicAddress = await window.casperlabsHelper.getActivePublicKey();")
-            }
+            if ("@Program._settings.DaoBlockchain.ToString()" == "Casper") {
+                if (!window.CasperWalletProvider) {
+                    toastr.warning("Please install Casper Wallet from: https://www.casperwallet.io/download");
+                }
 
-            if (publicAddress.length > 0) {
-                $.ajax({
-                    type: "GET",
-                    url: "../WalletUpdate?walletAddress=" + publicAddress,
-                    success: function (result) {
-                        if (result.success) {
-                            ShowLoader();
-                            location.reload();
-                        } else {
-                            toastr.warning(result.message);
-                        }
+                const CasperWalletProvider = window.CasperWalletProvider;
+                const CasperWalletEventTypes = window.CasperWalletEventTypes;
+
+                const provider = CasperWalletProvider();
+
+                provider.requestConnection().then(data => {
+                    if (data != true) {
+                        toastr.warning("Casper wallet connection failed.");
+                        return;
                     }
+
+                    provider.getActivePublicKey().then(data => {
+                        $.ajax({
+                            type: "GET",
+                            url: "../WalletUpdate?walletAddress=" + data,
+                            success: function (result) {
+                                if (result.success) {
+                                    ShowLoader();
+                                    location.reload();
+                                } else {
+                                    toastr.warning(result.message);
+                                }
+                            }
+                        });
+
+                    }).catch(error => {
+                        toastr.warning("Error while geting public key: " + error);
+                    });
+                }).catch(error => {
+                    toastr.warning("Error while geting public key: " + error);
                 });
             }
-            else {
-                toastr.warning("Error while getting public address.");
-            }
-
         }
         else {
             $("#modal-walletchange").modal("toggle");
@@ -413,12 +423,117 @@
 
     function ShowChainActionDetail(id) {
         var chainName = "";
-    @if (Program._settings.DaoBlockchain != null)
-    {
-        @Html.Raw("chainName = '"+ Helpers.Constants.Enums.Blockchain.Casper.ToString() +"';")
-        ;
+        @if (Program._settings.DaoBlockchain != null)
+        {
+            @Html.Raw("chainName = '"+ Helpers.Constants.Enums.Blockchain.Casper.ToString() +"';");
+        }
+        window.open('../' + chainName + 'Chain/ChainActionDetail?id=' + id, '_blank').focus();
     }
 
-            window.open('../' + chainName + 'Chain/ChainActionDetail?id=' + id, '_blank').focus();
+    function CheckWalletAndSendDeploy(requestUrl, sendDeployFunction) {
+        if (!window.CasperWalletProvider) {
+            toastr.warning("Please install Casper Wallet from: https://www.casperwallet.io/download");
+        }
+
+        const CasperWalletProvider = window.CasperWalletProvider;
+        const CasperWalletEventTypes = window.CasperWalletEventTypes;
+
+        const provider = CasperWalletProvider();
+
+        provider.isConnected().then(data => {
+            if (data == false) {
+                provider.requestConnection().then(data => {
+                    if (data != true) {
+                        toastr.warning("Casper wallet connection failed.");
+                        return;
+                    }
+
+                    provider.getActivePublicKey().then(data => {
+                        var accountPublicKey = data;
+                        StartDeploy(requestUrl, sendDeployFunction, data);
+                    }).catch(error => {
+                        toastr.warning("Error while geting public key: " + error);
+                    });
+
+                }).catch(error => {
+                    toastr.warning("Error while connecting wallet: " + error);
+                });
+            }
+            else {
+                provider.getActivePublicKey().then(data => {
+                    var accountPublicKey = data;
+                    StartDeploy(requestUrl, sendDeployFunction, data);
+                }).catch(error => {
+                    toastr.warning("Error while geting public key: " + error);
+                });
+            }
+        }).catch(error => {
+            toastr.warning("Error while getting wallet connection status: " + error);
+        });
+    }
+
+    function StartDeploy(requestUrl, sendDeployFunction, accountPublicKey) {
+        const CasperWalletProvider = window.CasperWalletProvider;
+        const CasperWalletEventTypes = window.CasperWalletEventTypes;
+
+        const provider = CasperWalletProvider();
+
+        ShowLoader("Creating deploy object...");
+        //Ajax post action
+        $.ajax({
+            type: "GET",
+            url: requestUrl,
+            success: async function (result) {
+                if (result.success) {
+                    ShowLoader("Waiting for sign...");
+
+                    var deployRes = { "deploy": JSON.parse(result.message) };
+
+                    var deploy = DeployUtil.deployFromJson(deployRes).unwrap();
+
+                    const deployJson = DeployUtil.deployToJson(deploy);
+
+                    provider.sign(JSON.stringify(deployJson), accountPublicKey)
+                        .then(res => {
+                            if (res.cancelled) {
+                                toastr.warning('Sign cancelled');
+                            } else {
+                                console.log(res);
+
+                                const signedDeploy = DeployUtil.setSignature(
+                                    deploy,
+                                    res.signature,
+                                    CLPublicKey.fromHex(accountPublicKey)
+                                );
+
+                                const json = DeployUtil.deployToJson(signedDeploy);
+
+                                toastr.success('Sign successful, sending deploy...');
+                                console.log(signedDeploy);
+
+                                ShowLoader("Sending signed deploy. This may take few minutes...");
+
+                                sendDeployFunction(json.deploy)
+                            }
+                        })
+                        .catch(err => {
+                            toastr.warning('Sign Error: ' + err);
+                        });
+
+                }
+                else {
+                    HideLoader();
+                    toastr.warning(result.message);
+                }
+            },
+            failure: function (response) {
+                HideLoader();
+                toastr.warning("@Lang.ConnectionError");
+            },
+            error: function (response) {
+                HideLoader();
+                toastr.error("@Lang.UnexpectedError");
+            }
+        });
     }
 </script>

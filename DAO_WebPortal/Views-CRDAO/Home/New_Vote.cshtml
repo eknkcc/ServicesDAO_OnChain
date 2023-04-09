@@ -270,65 +270,6 @@
             }
         }
 
-        async function CreateAndSendDeploy(requestUrl, sendDeployFunction) {
-            const isConnected = await window.casperlabsHelper.isConnected();
-            if (isConnected) {
-                ShowLoader("Creating deploy object...");
-                //Ajax post action
-                $.ajax({
-                    type: "GET",
-                    url: requestUrl,
-                    success: async function (result) {
-                        if (result.success) {
-                            ShowLoader("Waiting for sign...");
-                            //const publicKeyHex = await window.casperlabsHelper.getActivePublicKey();
-                            var deployJson = { "deploy": JSON.parse(result.message) };
-
-                            // Sign transcation using casper-signer.
-                            const signature = await window.casperlabsHelper.sign(deployJson);
-
-                            ShowLoader("Sending signed deploy. This may take few minutes...");
-
-                            $.confirm({
-                                title: 'Confirmation',
-                                content: '<p>Are you sure you want to start vote process ?</p>',
-                                columnClass: 'col-md-8 col-md-offset-2',
-                                buttons: {
-                                    cancel: {
-                                        text: 'Cancel'
-                                    },
-                                    confirm: {
-                                        text: 'Continue',
-                                        btnClass: 'btn btn-primary',
-                                        action: function () {
-                                            sendDeployFunction(signature.deploy)
-                                        }
-
-                                    }
-                                }
-                            });
-                            //SendSignedDeploy(signature.deploy, "KYC Contract Call");
-                        }
-                        else {
-                            HideLoader();
-                            toastr.warning(result.message);
-                        }
-                    },
-                    failure: function (response) {
-                        HideLoader();
-                        toastr.warning("@Lang.ConnectionError");
-                    },
-                    error: function (response) {
-                        HideLoader();
-                        toastr.error("@Lang.UnexpectedError");
-                    }
-                });
-            }
-            else {
-                toastr.warning("Please connect the Casper Signer browser extension.");
-            }
-        }
-
         function startSimpleVote(signedDeployJson) {
 
             //Simple Vote parameters
@@ -354,13 +295,16 @@
                     }
                     else {
                         toastr.warning(result.message);
+                        HideLoader();
                     }
                 },
                 failure: function (response) {
                     toastr.warning("@Lang.ConnectionError");
+                    HideLoader();
                 },
                 error: function (response) {
                     toastr.error("@Lang.UnexpectedError");
+                    HideLoader();
                 }
             });
 
@@ -390,13 +334,16 @@
                     }
                     else {
                         toastr.warning(result.message);
+                        HideLoader();
                     }
                 },
                 failure: function (response) {
                     toastr.warning("@Lang.ConnectionError");
+                    HideLoader();
                 },
                 error: function (response) {
                     toastr.error("@Lang.UnexpectedError");
+                    HideLoader();
                 }
             });
         }
@@ -423,13 +370,16 @@
                     }
                     else {
                         toastr.warning(result.message);
+                        HideLoader();
                     }
                 },
                 failure: function (response) {
                     toastr.warning("@Lang.ConnectionError");
+                    HideLoader();
                 },
                 error: function (response) {
                     toastr.error("@Lang.UnexpectedError");
+                    HideLoader();
                 }
             });
         }
@@ -455,13 +405,16 @@
                     }
                     else {
                         toastr.warning(result.message);
+                        HideLoader();
                     }
                 },
                 failure: function (response) {
                     toastr.warning("@Lang.ConnectionError");
+                    HideLoader();
                 },
                 error: function (response) {
                     toastr.error("@Lang.UnexpectedError");
+                    HideLoader();
                 }
             });
 
@@ -496,13 +449,16 @@
                     }
                     else {
                         toastr.warning(result.message);
+                        HideLoader();
                     }
                 },
                 failure: function (response) {
                     toastr.warning("@Lang.ConnectionError");
+                    HideLoader();
                 },
                 error: function (response) {
                     toastr.error("@Lang.UnexpectedError");
+                    HideLoader();
                 }
             });
 
@@ -533,13 +489,16 @@
                     }
                     else {
                         toastr.warning(result.message);
+                        HideLoader();
                     }
                 },
                 failure: function (response) {
                     toastr.warning("@Lang.ConnectionError");
+                    HideLoader();
                 },
                 error: function (response) {
                     toastr.error("@Lang.UnexpectedError");
+                    HideLoader();
                 }
             });
 
@@ -552,28 +511,28 @@
         <script>
 
             async function startOnchainSimpleVote() {
-                CreateAndSendDeploy("../CasperChain/GetSimpleVoteDeploy?documenthash=" + $("#documenthash").val() + "&stake=" + $("#simplestake").val(), startSimpleVote);
+                CheckWalletAndSendDeploy("../CasperChain/GetSimpleVoteDeploy?documenthash=" + $("#documenthash").val() + "&stake=" + $("#simplestake").val(), startSimpleVote);
             }
 
             async function startOnchainVaOnboardingVote() {
-                CreateAndSendDeploy("../CasperChain/GetVaOnboardingVoteDeploy?username=" + $("#vausername").val() + "&newvaaddress=" + $("#vaaddress").val() + "&reason=" + $("#reason").val(), startVaOnboardingVote);
+                CheckWalletAndSendDeploy("../CasperChain/GetVaOnboardingVoteDeploy?username=" + $("#vausername").val() + "&newvaaddress=" + $("#vaaddress").val() + "&reason=" + $("#reason").val(), startVaOnboardingVote);
             }
 
             async function startOnchainRepoVote() {
-                CreateAndSendDeploy("../CasperChain/GetRepoVoteDeploy?key=" + $("#repokey").val() + "&value=" + $("#repovalue").val() + "&stake=" + $("#repostake").val(), startRepoVote);
+                CheckWalletAndSendDeploy("../CasperChain/GetRepoVoteDeploy?key=" + $("#repokey").val() + "&value=" + $("#repovalue").val() + "&stake=" + $("#repostake").val(), startRepoVote);
             }
 
             async function startOnchainKycVote() {
-                CreateAndSendDeploy("../CasperChain/GetKYCVoteDeploy?username=" + $("#kycusername").val() + "&stake=" + $("#kycstake").val(), startKycVote);
+                CheckWalletAndSendDeploy("../CasperChain/GetKYCVoteDeploy?username=" + $("#kycusername").val() + "&stake=" + $("#kycstake").val(), startKycVote);
             }
 
             async function startOnchainReputationVote() {
-                CreateAndSendDeploy("../CasperChain/GetReputationVoteDeploy?action=" + $("#repaction").val() + "&stake=" + $("#repstake").val() + "&subjectaddress=" + $("#repwallet").val() + "&amount=" + $("#repamount").val() + "&documenthash=" + $("#repdocumenthash").val() + "&repusername=" + $("#repusername").val(), startReputationVote);
+                CheckWalletAndSendDeploy("../CasperChain/GetReputationVoteDeploy?action=" + $("#repaction").val() + "&stake=" + $("#repstake").val() + "&subjectaddress=" + $("#repwallet").val() + "&amount=" + $("#repamount").val() + "&documenthash=" + $("#repdocumenthash").val() + "&repusername=" + $("#repusername").val(), startReputationVote);
             }
 
             async function startOnchainSlashingVote() {
                 var slash_ratio = parseFloat($("#slashratio").val()) * 1000;
-                CreateAndSendDeploy("../CasperChain/GetSlashingVoteDeploy?addresstoslash=" + $("#slashaddress").val() + "&slashratio=" + slash_ratio + "&stake=" + $("#slashstake").val() + "&slashusername=" + $("#slashusername").val(), startSlashingVote);
+                CheckWalletAndSendDeploy("../CasperChain/GetSlashingVoteDeploy?addresstoslash=" + $("#slashaddress").val() + "&slashratio=" + slash_ratio + "&stake=" + $("#slashstake").val() + "&slashusername=" + $("#slashusername").val(), startSlashingVote);
             }
         </script>
     }
