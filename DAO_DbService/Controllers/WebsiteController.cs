@@ -206,7 +206,8 @@ namespace DAO_DbService.Controllers
                         IsUserFlagged = userflagged,
                         FlagCount = flagcount,
                         TimeFrame = jobPost.TimeFrame,
-                        JobDoerUsername = jobDoerUsername
+                        JobDoerUsername = jobDoerUsername,
+                        DocumentUrl = jobPost.DocumentUrl
                     };
 
                     result.Auction = _mapper.Map<Auction, AuctionDto>(db.Auctions.SingleOrDefault(x => x.JobID == result.JobID));

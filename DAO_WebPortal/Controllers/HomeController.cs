@@ -199,7 +199,7 @@ namespace DAO_WebPortal.Controllers
         [PreventDuplicateRequest]
         [ValidateAntiForgeryToken]
         [AuthorizeDbUser]
-        public JsonResult New_Job_Post(string title, int amount, long time, string description, string tags, string codeurl, string signedDeployJson)
+        public JsonResult New_Job_Post(string title, int amount, long time, string description, string tags, string codeurl, string documenturl, string signedDeployJson)
         {
 
             try
@@ -216,7 +216,7 @@ namespace DAO_WebPortal.Controllers
                 string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
                 string port = Utility.IpHelper.GetClientPort(HttpContext);
 
-                SimpleResponse res = StartJobFlow(title, description, time, amount, tags, codeurl, ChainActionTypes.Post_Job, signedDeployJson, userid, token, ip, port);
+                SimpleResponse res = StartJobFlow(title, description, time, amount, tags, codeurl, documenturl, ChainActionTypes.Post_Job, signedDeployJson, userid, token, ip, port);
 
                 return Json(res);
             }
@@ -375,7 +375,7 @@ namespace DAO_WebPortal.Controllers
 
         #region Generic Onchain Job Methods
 
-        public SimpleResponse JobDbOperations_CreatePost(string title, string description, long time, int amount, string tags, string codeurl, int userid, string token)
+        public SimpleResponse JobDbOperations_CreatePost(string title, string description, long time, int amount, string tags, string codeurl, string documenturl, int userid, string token)
         {
             try
             {
@@ -391,7 +391,8 @@ namespace DAO_WebPortal.Controllers
                     LastUpdate = DateTime.Now,
                     Title = title,
                     TimeFrame = time.ToString(),
-                    Status = Enums.JobStatusTypes.ChainApprovalPending
+                    Status = Enums.JobStatusTypes.ChainApprovalPending,
+                    DocumentUrl = documenturl
                 };
                 //Post model to ApiGateway
                 string jobPostResponseJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/Post", Helpers.Serializers.SerializeJson(jobPostModel), token);
@@ -455,7 +456,7 @@ namespace DAO_WebPortal.Controllers
             }
         }
 
-        public SimpleResponse StartJobFlow(string title, string description, long time, int jobamount, string tags, string codeurl, ChainActionTypes actionType, string signedDeployJson, int userid, string token, string ip, string port)
+        public SimpleResponse StartJobFlow(string title, string description, long time, int jobamount, string tags, string codeurl, string documenturl, ChainActionTypes actionType, string signedDeployJson, int userid, string token, string ip, string port)
         {
             ChainActionDto chainAction = new ChainActionDto();
 
@@ -470,7 +471,7 @@ namespace DAO_WebPortal.Controllers
                     {
                         Thread.CurrentThread.IsBackground = true;
 
-                        SimpleResponse jobPostResponse = JobDbOperations_CreatePost(title, description, time, jobamount, tags, codeurl, userid, token);
+                        SimpleResponse jobPostResponse = JobDbOperations_CreatePost(title, description, time, jobamount, tags, codeurl, documenturl, userid, token);
 
                         ChainActionDto deployResult = new ChainActionDto();
 
@@ -511,7 +512,7 @@ namespace DAO_WebPortal.Controllers
                 else
                 {
                     //Central db operations
-                    SimpleResponse jobPostResponse = JobDbOperations_CreatePost(title, description, time, jobamount, tags, codeurl, userid, token);
+                    SimpleResponse jobPostResponse = JobDbOperations_CreatePost(title, description, time, jobamount, tags, codeurl, documenturl, userid, token);
                     SimpleResponse dbResponse = JobDbOperations_Complete((JobPostDto)jobPostResponse.Content, "", token, ip, port);
                     return dbResponse;
                 }

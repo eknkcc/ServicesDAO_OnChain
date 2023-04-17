@@ -25,6 +25,7 @@ namespace DAO_DbService.Models
         public string CodeUrl { get; set; }
         public string DeployHash { get; set; }
         public int? BlockchainJobPostID { get; set; }
+        public string DocumentUrl { get; set; }
 
     }
 }

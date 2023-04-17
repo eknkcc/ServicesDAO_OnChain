@@ -30,5 +30,6 @@ namespace Helpers.Models.WebsiteViewModels
         public AuctionDto Auction { get; set; } = new AuctionDto();
         public List<AuctionBidItemModel> AuctionBids { get; set; } = new List<AuctionBidItemModel>();
         public List<VotingDto> Voting {get;set;} = new List<VotingDto>();
+        public string DocumentUrl { get; set; }
     }
 }
