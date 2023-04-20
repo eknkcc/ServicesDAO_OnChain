@@ -15,6 +15,7 @@ namespace Helpers.Models.DtoModels.VoteDbDto
         public StakeType Direction { get; set; }
         public string DeployHash { get; set; }
         public string WalletAddress { get; set; }
+        public int? BlockchainVoteID { get; set; }
 
     }
 }

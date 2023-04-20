@@ -213,5 +213,13 @@
             VotingLost = 5,
             Unstaked = 6
         }
+        public enum JobOfferStatus
+        {
+            Created = 1,
+            Submitted = 2,
+            Cancelled = 3,
+            Done = 4,
+            Rejected = 5
+        }
     }
 }

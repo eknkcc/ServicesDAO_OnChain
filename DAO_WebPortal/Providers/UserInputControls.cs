@@ -230,7 +230,7 @@ namespace DAO_WebPortal.Providers
             try
             {
                 var enddate = DateTime.Now.AddDays(timeframe);
-                timeframe = ((DateTimeOffset)enddate).ToUnixTimeSeconds();
+                timeframe = ((DateTimeOffset)enddate).ToUnixTimeMilliseconds();
             }
             catch
             {
@@ -239,12 +239,9 @@ namespace DAO_WebPortal.Providers
 
             return new SimpleResponse { Success = true, Content = new { timeframe = timeframe } };
         }
-        public static SimpleResponse ControlSubmitBidRequest(uint jobofferid, ulong time, ulong userpayment, ulong repstake, bool onboard)
+        public static SimpleResponse ControlSubmitBidRequest(uint jobofferid, long time, ulong userpayment, ulong repstake, bool onboard)
         {
-            if (repstake <= 0)
-            {
-                return new SimpleResponse { Success = false, Message = "Reputation stake must be a positive number" };
-            }
+
             if (userpayment <= 0)
             {
                 return new SimpleResponse { Success = false, Message = "Payment must be a positive number" };
@@ -258,7 +255,17 @@ namespace DAO_WebPortal.Providers
                 return new SimpleResponse { Success = false, Message = "Job offer id not found" };
             }
 
-            return new SimpleResponse { Success = true };
+            try
+            {
+                var enddate = DateTime.Now.AddDays(time);
+                time = ((DateTimeOffset)enddate).ToUnixTimeMilliseconds();
+            }
+            catch
+            {
+                return new SimpleResponse { Success = false, Message = "Timeframe parse error" };
+            }
+
+            return new SimpleResponse { Success = true, Content = new { time = time } };
         }
         public static SimpleResponse ControlCancelBidRequest(uint bidid)
         {

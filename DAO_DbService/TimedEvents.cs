@@ -15,6 +15,13 @@ using static Helpers.Constants.Enums;
 using DAO_DbService.Mapping;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Helpers;
+using Helpers.Models.CasperServiceModels;
+using Microsoft.AspNetCore.Http;
+using MySqlX.XDevAPI.Common;
+using System.Security.Cryptography;
+using System.Threading;
+using static System.Reflection.Metadata.BlobBuilder;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace DAO_DbService
 {
@@ -35,6 +42,11 @@ namespace DAO_DbService
         ///  If formal voting ended as FOR -> Set job status to Completed
         /// </summary>
         public static System.Timers.Timer jobStatusTimer;
+
+        /// <summary>
+        ///  Syncronizes DAO settings from blockchain middleware
+        /// </summary>
+        public static System.Timers.Timer daoSettingsTimer;
 
         /// <summary>
         ///  Starts timer controls of the application
@@ -62,61 +74,218 @@ namespace DAO_DbService
             }
             else if (Program._settings.DaoBlockchain == Enums.Blockchain.Casper)
             {
-                CheckAuctionsCasperChain(null, null);
-                CheckJobsCasperChain(null, null);
+                SyncDaoSettingsCasperChain(null, null);
+                daoSettingsTimer = new System.Timers.Timer(60000);
+                daoSettingsTimer.Elapsed += SyncDaoSettingsCasperChain;
+                daoSettingsTimer.AutoReset = true;
+                daoSettingsTimer.Enabled = true;
 
-                //Auction status timer
-                auctionStatusTimer = new System.Timers.Timer(60000);
-                auctionStatusTimer.Elapsed += CheckAuctionsCasperChain;
-                auctionStatusTimer.AutoReset = true;
-                auctionStatusTimer.Enabled = true;
-
-                //Job status timer
-                //It sends request to VotinEngine so it has longer interval
+                SyncJobsCasperChain(null, null);
                 jobStatusTimer = new System.Timers.Timer(60000);
-                jobStatusTimer.Elapsed += CheckJobsCasperChain;
+                jobStatusTimer.Elapsed += SyncJobsCasperChain;
+                jobStatusTimer.AutoReset = true;
+                jobStatusTimer.Enabled = true;
+
+                SyncBidsCasperChain(null, null);
+                jobStatusTimer = new System.Timers.Timer(300000);
+                jobStatusTimer.Elapsed += SyncBidsCasperChain;
+                jobStatusTimer.AutoReset = true;
+                jobStatusTimer.Enabled = true;
+
+                CheckJobStatusOffChain(null, null);
+                jobStatusTimer = new System.Timers.Timer(60000);
+                jobStatusTimer.Elapsed += CheckJobStatusOffChain;
                 jobStatusTimer.AutoReset = true;
                 jobStatusTimer.Enabled = true;
             }
         }
 
-        //WAITING FOR MIDDLEWARE ENDPOINTS
-        private static void CheckJobsCasperChain(Object source, ElapsedEventArgs e)
+        private static void SyncDaoSettingsCasperChain(Object source, ElapsedEventArgs e)
         {
-            ////Get voting data from chain and central db
-            //List<JobPost> dbJobs = new List<JobPost>();
-            //List<Helpers.Models.CasperServiceModels.JobPost> chainJobs = new List<Helpers.Models.CasperServiceModels.JobPost>();
+            try
+            {
+                PaginatedResponse<Setting> settings = Serializers.DeserializeJson<PaginatedResponse<Setting>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetSettings?page=1&page_size=100"));
 
-            //using (dao_maindb_context db = new dao_maindb_context())
-            //{
-            //    dbJobs = db.JobPosts.Where(x => x.Status == Enums.JobStatusTypes.ChainApprovalPending).ToList();
-            //}
+                List<DaoSetting> dbSettings = new List<DaoSetting>();
 
-            //chainJobs = Serializers.DeserializeJson<List<Helpers.Models.CasperServiceModels.JobPost>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetVotings?page=1&page_size=1000&has_ended=false"));
+                using (dao_maindb_context db = new dao_maindb_context())
+                {
+                    dbSettings = db.DaoSettings.ToList();
+                }
 
-            ////Sync blockchainjob ids
-            //foreach (var item in dbJobs.Where(x => x.DeployHash != null && x.BlockchainJobPostID == null))
-            //{
-            //    if (chainJobs.Count(x => x.deploy_hash == item.DeployHash) > 0)
-            //    {
-            //        using (dao_maindb_context db = new dao_maindb_context())
-            //        {
-            //            var chainJob = chainJobs.First(x => x.deploy_hash == item.DeployHash);
-            //            var job = db.JobPosts.Find(item.JobID);
-            //            job.BlockchainVotingID = chainJob.voting_id;
-            //            job.QuorumCount = chainJob.voting_quorum;
-            //            job.CreateDate = Convert.ToDateTime(chainJob.timestamp);
-            //            job.StartDate = job.CreateDate;
-            //            job.EndDate = job.StartDate.AddMilliseconds(Convert.ToInt64(chainJob.voting_time));
-            //            db.SaveChanges();
-            //        }
-            //    }
-            //}
+                if (settings != null && settings.data != null)
+                {
+                    foreach (var setting in settings.data)
+                    {
+                        if (dbSettings.Count(x => x.Key == setting.name) == 0)
+                        {
+                            using (dao_maindb_context db = new dao_maindb_context())
+                            {
+                                db.DaoSettings.Add(new DaoSetting() { Key = setting.name, Value = setting.value, LastModified = DateTime.Now });
+                                db.SaveChanges();
+                            }
+                        }
+                        else
+                        {
+                            var dbSetting = dbSettings.First(x => x.Key == setting.name);
+                            if (dbSetting.Value != setting.value)
+                            {
+                                using (dao_maindb_context db = new dao_maindb_context())
+                                {
+                                    var sts = db.DaoSettings.Find(dbSetting.DaoSettingID);
+                                    sts.Value = setting.value;
+                                    db.SaveChanges();
+                                }
+                            }
+                        }
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddConsole("Exception in timer SyncDaoSettingsCasperChain. Ex: " + ex.Message);
+            }
         }
 
-        private static void CheckAuctionsCasperChain(Object source, ElapsedEventArgs e)
+        //WAITING FOR MIDDLEWARE ENDPOINTS
+        private static void SyncJobsCasperChain(Object source, ElapsedEventArgs e)
         {
+            try
+            {
+                //Get voting data from chain and central db
+                List<JobPost> dbWaitingJobs = new List<JobPost>();
+                List<JobPost> dbInternalBiddingJobs = new List<JobPost>();
 
+                PaginatedResponse<JobOfferDetailed> chainJobs = Serializers.DeserializeJson<PaginatedResponse<JobOfferDetailed>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetJobOffers?page=1&page_size=100&order_direction=DESC"));
+
+                using (dao_maindb_context db = new dao_maindb_context())
+                {
+                    dbWaitingJobs = db.JobPosts.Where(x => x.Status == Enums.JobStatusTypes.ChainApprovalPending && x.DeployHash != null && x.BlockchainJobPostID == null).ToList();
+                    dbInternalBiddingJobs = db.JobPosts.Where(x => x.Status == Enums.JobStatusTypes.InternalAuction && x.DeployHash != null && x.BlockchainJobPostID != null).ToList();
+                }
+
+                //Sync blockchainjob ids
+                foreach (var item in dbWaitingJobs)
+                {
+                    if (chainJobs.data.Count(x => x.deploy_hash == item.DeployHash) > 0)
+                    {
+                        var chainJob = chainJobs.data.First(x => x.deploy_hash == item.DeployHash);
+
+                        using (dao_maindb_context db = new dao_maindb_context())
+                        {
+                            var job = db.JobPosts.Find(item.JobID);
+                            job.BlockchainJobPostID = chainJob.job_offer_id;
+                            job.Status = JobStatusTypes.InternalAuction;
+                            db.SaveChanges();
+
+                            //Set auction end dates
+                            int InternalAuctionTime = Convert.ToInt32(db.DaoSettings.First(x => x.Key == "InternalAuctionTime").Value);
+                            int PublicAuctionTime = Convert.ToInt32(db.DaoSettings.First(x => x.Key == "PublicAuctionTime").Value);
+
+                            DateTime internalAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime);
+                            DateTime publicAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime + PublicAuctionTime);
+
+                            Auction AuctionModel = new Auction()
+                            {
+                                JobID = job.JobID,
+                                JobPosterUserID = job.UserID,
+                                CreateDate = DateTime.Now,
+                                Status = AuctionStatusTypes.InternalBidding,
+                                InternalAuctionEndDate = internalAuctionEndDate,
+                                PublicAuctionEndDate = publicAuctionEndDate,
+                                BlockchainAuctionID = chainJob.job_offer_id
+                            };
+
+                            db.Auctions.Add(AuctionModel);
+                            db.SaveChanges();
+                        }
+                    }
+                }
+
+                //Sync auction process
+                foreach (var item in dbInternalBiddingJobs)
+                {
+                    if (chainJobs.data.Count(x => x.deploy_hash == item.DeployHash) > 0)
+                    {
+                        var chainJob = chainJobs.data.First(x => x.deploy_hash == item.DeployHash);
+
+                        //Public auction started on blockchain
+                        if (chainJob.auction_type_id == 2)
+                        {
+                            using (dao_maindb_context db = new dao_maindb_context())
+                            {
+                                var job = db.JobPosts.Find(item.JobID);
+                                job.Status = JobStatusTypes.PublicAuction;
+                                db.SaveChanges();
+
+                                var auction = db.Auctions.First(x => x.JobID == item.JobID);
+                                auction.Status = AuctionStatusTypes.PublicBidding;
+                                db.SaveChanges();
+
+                                //Send notification email to job poster
+                                var jobPoster = db.Users.Find(auction.JobPosterUserID);
+
+                                //Set email title and content
+                                string emailTitle = "Your job is in public bidding phase.";
+                                string emailContent = "Greetings, " + jobPoster.NameSurname.Split(' ')[0] + ", <br><br> Internal auction phase is finished for your job. There are no winning bids selected. <br><br> Your job will be in public bidding phase until " + Convert.ToDateTime(auction.PublicAuctionEndDate).ToString("MM.dd.yyyy HH:mm");
+                                //Send email
+                                SendEmailModel emailModel = new SendEmailModel() { Subject = emailTitle, Content = emailContent, To = new List<string> { jobPoster.Email } };
+                                Program.rabbitMq.Publish(Helpers.Constants.FeedNames.NotificationFeed, "email", Helpers.Serializers.Serialize(emailModel));
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddConsole("Exception in timer SyncJobsCasperChain. Ex: " + ex.Message);
+            }
+        }
+
+        private static void SyncBidsCasperChain(Object source, ElapsedEventArgs e)
+        {
+            try
+            {
+                //Get voting data from chain and central db
+                List<JobPost> dbActiveJobs = new List<JobPost>();
+
+                using (dao_maindb_context db = new dao_maindb_context())
+                {
+                    dbActiveJobs = db.JobPosts.Where(x => (x.Status == Enums.JobStatusTypes.InternalAuction || x.Status == Enums.JobStatusTypes.PublicAuction) && x.DeployHash != null && x.BlockchainJobPostID != null).ToList();
+                }
+
+                //Sync auction process
+                foreach (var item in dbActiveJobs)
+                {
+                    using (dao_maindb_context db = new dao_maindb_context())
+                    {
+                        var auction = db.Auctions.First(x => x.JobID == item.JobID);
+                        var dbWaitingBids = db.AuctionBids.Where(x => x.AuctionID == auction.AuctionID && (x.BlockchainBidID == null || x.BlockchainBidID == 0)).ToList();
+
+                        if (dbWaitingBids.Count > 0)
+                        {
+                            PaginatedResponse<Bid> chainBids = Serializers.DeserializeJson<PaginatedResponse<Bid>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetBids?jobid=" + item.BlockchainJobPostID + "&page=1&page_size=100&order_direction=DESC"));
+
+                            foreach (var chainbid in chainBids.data)
+                            {
+                                if (dbWaitingBids.Count(x => x.DeployHash == chainbid.deploy_hash) > 0)
+                                {
+                                    var bid = db.AuctionBids.First(x => x.DeployHash == chainbid.deploy_hash);
+                                    bid.BlockchainBidID = chainbid.bid_id;
+                                    db.SaveChanges();
+                                }
+                            }
+                        }
+
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddConsole("Exception in timer SyncBidsCasperChain. Ex: " + ex.Message);
+            }
         }
 
 
@@ -467,188 +636,204 @@ namespace DAO_DbService
 
         private static void CompleteJobVAOffChain(VotingDto voting, JobPost job, AuctionBid auctionWinnerBid)
         {
-            using (dao_maindb_context db = new dao_maindb_context())
+            try
             {
-                DaoSettingController contr = new DaoSettingController();
-
-                //Get reputation stakes from reputation service
-                var reputationsJson = Helpers.Request.Get(Program._settings.Service_Reputation_Url + "/UserReputationStake/GetByProcessId?referenceProcessID=" + voting.VotingID + "&reftype=" + StakeType.For);
-                var reputations = Helpers.Serializers.DeserializeJson<List<UserReputationStakeDto>>(reputationsJson);
-
-                //Get reputations of voters who
-                var participatedUsers = reputations.Where(x => x.Type == Enums.StakeType.For || x.Type == Enums.StakeType.Against).ToList();
-                var allVAs = db.Users.Where(x => x.UserType == Enums.UserIdentityType.VotingAssociate.ToString()).Select(x => x.UserId);
-
-                //Add job doer to list
-                participatedUsers.Add(new UserReputationStakeDto() { UserID = job.JobDoerUserID });
-                var reputationsTotalJson = "";
-                var reputationsTotal = new List<UserReputationHistoryDto>();
-
-                List<int> userIds = new List<int>();
-                //Create Payment History model for dao members who participated into voting
-                bool distributeWithoutVote = Convert.ToBoolean(db.DaoSettings.OrderByDescending(x => x.DaoSettingID).First(x => x.Key == "DistributePaymentToNonVoters").Value);
-                if (distributeWithoutVote)
+                using (dao_maindb_context db = new dao_maindb_context())
                 {
-                    userIds = allVAs.ToList();
-                    reputationsTotalJson = Helpers.Request.Post(Program._settings.Service_Reputation_Url + "/UserReputationHistory/GetLastReputationByUserIds", Helpers.Serializers.SerializeJson(allVAs.ToList()));
-                    reputationsTotal = Helpers.Serializers.DeserializeJson<List<UserReputationHistoryDto>>(reputationsTotalJson);
-                }
-                else
-                {
-                    userIds = participatedUsers.GroupBy(x => x.UserID).Select(x => x.Key).ToList();
-                    reputationsTotalJson = Helpers.Request.Post(Program._settings.Service_Reputation_Url + "/UserReputationHistory/GetLastReputationByUserIds", Helpers.Serializers.SerializeJson(participatedUsers.Select(x => x.UserID)));
-                    reputationsTotal = Helpers.Serializers.DeserializeJson<List<UserReputationHistoryDto>>(reputationsTotalJson);
-                }
+                    DaoSettingController contr = new DaoSettingController();
 
-                double remainingJobAmount = auctionWinnerBid.Price;
+                    //Get reputation stakes from reputation service
+                    var reputationsJson = Helpers.Request.Get(Program._settings.Service_Reputation_Url + "/UserReputationStake/GetByProcessId?referenceProcessID=" + voting.VotingID + "&reftype=" + StakeType.For);
+                    var reputations = Helpers.Serializers.DeserializeJson<List<UserReputationStakeDto>>(reputationsJson);
 
-                // NOT AVAILABLE IN THE ONCHAIN VERSION
-                //Create governance payment
-                //
-                //if (lastSettings.GovernancePaymentRatio != null && lastSettings.GovernancePaymentRatio > 0)
-                //{
-                //    PaymentHistory paymentGovernance = new PaymentHistory
-                //    {
-                //        JobID = job.JobID,
-                //        Amount = remainingJobAmount * Convert.ToDouble(lastSettings.GovernancePaymentRatio),
-                //        CreateDate = DateTime.Now,
-                //        IBAN = "",
-                //        UserID = 0,
-                //        WalletAddress = lastSettings.GovernanceWallet,
-                //        Explanation = "Governance payment"
-                //    };
+                    //Get reputations of voters who
+                    var participatedUsers = reputations.Where(x => x.Type == Enums.StakeType.For || x.Type == Enums.StakeType.Against).ToList();
+                    var allVAs = db.Users.Where(x => x.UserType == Enums.UserIdentityType.VotingAssociate.ToString()).Select(x => x.UserId);
 
-                //    remainingJobAmount = remainingJobAmount - (remainingJobAmount * Convert.ToDouble(lastSettings.GovernancePaymentRatio));
+                    //Add job doer to list
+                    participatedUsers.Add(new UserReputationStakeDto() { UserID = job.JobDoerUserID });
+                    var reputationsTotalJson = "";
+                    var reputationsTotal = new List<UserReputationHistoryDto>();
 
-                //    db.PaymentHistories.Add(paymentGovernance);
-                //    db.SaveChanges();
-                //}
-
-                foreach (var userId in userIds)
-                {
-                    if (reputationsTotal.Count(x => x.UserID == userId) == 0) continue;
-
-                    double usersRepPerc = reputationsTotal.FirstOrDefault(x => x.UserID == userId).LastTotal / reputationsTotal.Sum(x => x.LastTotal);
-                    double memberPayment = remainingJobAmount * usersRepPerc;
-
-                    var daouser = db.Users.Find(userId);
-
-                    PaymentHistory paymentDaoMember = new PaymentHistory
+                    List<int> userIds = new List<int>();
+                    //Create Payment History model for dao members who participated into voting
+                    bool distributeWithoutVote = Convert.ToBoolean(db.DaoSettings.OrderByDescending(x => x.DaoSettingID).First(x => x.Key == "DistributePaymentToNonVoters").Value);
+                    if (distributeWithoutVote)
                     {
-                        JobID = job.JobID,
-                        Amount = memberPayment,
-                        CreateDate = DateTime.Now,
-                        IBAN = daouser.IBAN,
-                        UserID = daouser.UserId,
-                        WalletAddress = daouser.WalletAddress,
-                        Explanation = userId == auctionWinnerBid.UserID ? "User received payment for job completion." : "User received payment for DAO policing."
-                    };
+                        userIds = allVAs.ToList();
+                        reputationsTotalJson = Helpers.Request.Post(Program._settings.Service_Reputation_Url + "/UserReputationHistory/GetLastReputationByUserIds", Helpers.Serializers.SerializeJson(allVAs.ToList()));
+                        reputationsTotal = Helpers.Serializers.DeserializeJson<List<UserReputationHistoryDto>>(reputationsTotalJson);
+                    }
+                    else
+                    {
+                        userIds = participatedUsers.GroupBy(x => x.UserID).Select(x => x.Key).ToList();
+                        reputationsTotalJson = Helpers.Request.Post(Program._settings.Service_Reputation_Url + "/UserReputationHistory/GetLastReputationByUserIds", Helpers.Serializers.SerializeJson(participatedUsers.Select(x => x.UserID)));
+                        reputationsTotal = Helpers.Serializers.DeserializeJson<List<UserReputationHistoryDto>>(reputationsTotalJson);
+                    }
 
-                    db.PaymentHistories.Add(paymentDaoMember);
-                    db.SaveChanges();
+                    double remainingJobAmount = auctionWinnerBid.Price;
+
+                    // NOT AVAILABLE IN THE ONCHAIN VERSION
+                    //Create governance payment
+                    //
+                    //if (lastSettings.GovernancePaymentRatio != null && lastSettings.GovernancePaymentRatio > 0)
+                    //{
+                    //    PaymentHistory paymentGovernance = new PaymentHistory
+                    //    {
+                    //        JobID = job.JobID,
+                    //        Amount = remainingJobAmount * Convert.ToDouble(lastSettings.GovernancePaymentRatio),
+                    //        CreateDate = DateTime.Now,
+                    //        IBAN = "",
+                    //        UserID = 0,
+                    //        WalletAddress = lastSettings.GovernanceWallet,
+                    //        Explanation = "Governance payment"
+                    //    };
+
+                    //    remainingJobAmount = remainingJobAmount - (remainingJobAmount * Convert.ToDouble(lastSettings.GovernancePaymentRatio));
+
+                    //    db.PaymentHistories.Add(paymentGovernance);
+                    //    db.SaveChanges();
+                    //}
+
+                    foreach (var userId in userIds)
+                    {
+                        if (reputationsTotal.Count(x => x.UserID == userId) == 0) continue;
+
+                        double usersRepPerc = reputationsTotal.FirstOrDefault(x => x.UserID == userId).LastTotal / reputationsTotal.Sum(x => x.LastTotal);
+                        double memberPayment = remainingJobAmount * usersRepPerc;
+
+                        var daouser = db.Users.Find(userId);
+
+                        PaymentHistory paymentDaoMember = new PaymentHistory
+                        {
+                            JobID = job.JobID,
+                            Amount = memberPayment,
+                            CreateDate = DateTime.Now,
+                            IBAN = daouser.IBAN,
+                            UserID = daouser.UserId,
+                            WalletAddress = daouser.WalletAddress,
+                            Explanation = userId == auctionWinnerBid.UserID ? "User received payment for job completion." : "User received payment for DAO policing."
+                        };
+
+                        db.PaymentHistories.Add(paymentDaoMember);
+                        db.SaveChanges();
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddConsole("Exception in timer CompleteJobVAOffChain. Ex: " + ex.Message);
+            }
+
         }
 
         private static void CompleteJobExternalOffChain(VotingDto voting, JobPost job, AuctionBid auctionWinnerBid)
         {
-            using (dao_maindb_context db = new dao_maindb_context())
+            try
             {
-                //Get reputation stakes from reputation service
-                var reputationsJson = Helpers.Request.Get(Program._settings.Service_Reputation_Url + "/UserReputationStake/GetByProcessId?referenceProcessID=" + voting.VotingID + "&reftype=" + StakeType.For);
-                var reputations = Helpers.Serializers.DeserializeJson<List<UserReputationStakeDto>>(reputationsJson);
-
-                //Get reputations of voters
-                var participatedUsers = reputations.Where(x => x.Type == Enums.StakeType.For || x.Type == Enums.StakeType.Against).ToList();
-                //Add job doer to list
-                var reputationsTotalJson = Helpers.Request.Post(Program._settings.Service_Reputation_Url + "/UserReputationHistory/GetLastReputationByUserIds", Helpers.Serializers.SerializeJson(participatedUsers.Select(x => x.UserID)));
-                var reputationsTotal = Helpers.Serializers.DeserializeJson<List<UserReputationHistoryDto>>(reputationsTotalJson);
-
-                DaoSettingController contr = new DaoSettingController();
-
-                List<int> userIds = new List<int>();
-                //Create Payment History model for dao members who participated into voting
-                bool distributeWithoutVote = Convert.ToBoolean(db.DaoSettings.OrderByDescending(x => x.DaoSettingID).First(x => x.Key == "DistributePaymentToNonVoters").Value);
-                if (distributeWithoutVote)
+                using (dao_maindb_context db = new dao_maindb_context())
                 {
-                    userIds = db.Users.Where(x => x.UserType == Enums.UserIdentityType.VotingAssociate.ToString()).Select(x => x.UserId).ToList();
-                }
-                else
-                {
-                    userIds = participatedUsers.GroupBy(x => x.UserID).Select(x => x.Key).ToList();
-                }
+                    //Get reputation stakes from reputation service
+                    var reputationsJson = Helpers.Request.Get(Program._settings.Service_Reputation_Url + "/UserReputationStake/GetByProcessId?referenceProcessID=" + voting.VotingID + "&reftype=" + StakeType.For);
+                    var reputations = Helpers.Serializers.DeserializeJson<List<UserReputationStakeDto>>(reputationsJson);
 
-                double remainingJobAmount = auctionWinnerBid.Price;
+                    //Get reputations of voters
+                    var participatedUsers = reputations.Where(x => x.Type == Enums.StakeType.For || x.Type == Enums.StakeType.Against).ToList();
+                    //Add job doer to list
+                    var reputationsTotalJson = Helpers.Request.Post(Program._settings.Service_Reputation_Url + "/UserReputationHistory/GetLastReputationByUserIds", Helpers.Serializers.SerializeJson(participatedUsers.Select(x => x.UserID)));
+                    var reputationsTotal = Helpers.Serializers.DeserializeJson<List<UserReputationHistoryDto>>(reputationsTotalJson);
 
-                // NOT AVAILABLE IN THE ONCHAIN VERSION
-                //Create governance payment
-                //double remainingJobAmount = auctionWinnerBid.Price;
-                //if (lastSettings.GovernancePaymentRatio != null && lastSettings.GovernancePaymentRatio > 0)
-                //{
-                //    PaymentHistory paymentGovernance = new PaymentHistory
-                //    {
-                //        JobID = job.JobID,
-                //        Amount = remainingJobAmount * Convert.ToDouble(lastSettings.GovernancePaymentRatio),
-                //        CreateDate = DateTime.Now,
-                //        IBAN = "",
-                //        UserID = 0,
-                //        WalletAddress = lastSettings.GovernanceWallet,
-                //        Explanation = "Governance payment"
-                //    };
+                    DaoSettingController contr = new DaoSettingController();
 
-                //    remainingJobAmount = remainingJobAmount - (remainingJobAmount * Convert.ToDouble(lastSettings.GovernancePaymentRatio));
+                    List<int> userIds = new List<int>();
+                    //Create Payment History model for dao members who participated into voting
+                    bool distributeWithoutVote = Convert.ToBoolean(db.DaoSettings.OrderByDescending(x => x.DaoSettingID).First(x => x.Key == "DistributePaymentToNonVoters").Value);
+                    if (distributeWithoutVote)
+                    {
+                        userIds = db.Users.Where(x => x.UserType == Enums.UserIdentityType.VotingAssociate.ToString()).Select(x => x.UserId).ToList();
+                    }
+                    else
+                    {
+                        userIds = participatedUsers.GroupBy(x => x.UserID).Select(x => x.Key).ToList();
+                    }
 
-                //    db.PaymentHistories.Add(paymentGovernance);
-                //    db.SaveChanges();
-                //}
+                    double remainingJobAmount = auctionWinnerBid.Price;
 
-                //Get default policing rate
-                double defaultPolicingRate = Convert.ToDouble(db.DaoSettings.OrderByDescending(x => x.DaoSettingID).First(x => x.Key == "DefaultPolicingRate").Value) / Convert.ToDouble(1000);
+                    // NOT AVAILABLE IN THE ONCHAIN VERSION
+                    //Create governance payment
+                    //double remainingJobAmount = auctionWinnerBid.Price;
+                    //if (lastSettings.GovernancePaymentRatio != null && lastSettings.GovernancePaymentRatio > 0)
+                    //{
+                    //    PaymentHistory paymentGovernance = new PaymentHistory
+                    //    {
+                    //        JobID = job.JobID,
+                    //        Amount = remainingJobAmount * Convert.ToDouble(lastSettings.GovernancePaymentRatio),
+                    //        CreateDate = DateTime.Now,
+                    //        IBAN = "",
+                    //        UserID = 0,
+                    //        WalletAddress = lastSettings.GovernanceWallet,
+                    //        Explanation = "Governance payment"
+                    //    };
 
-                //Create Payment History model for dao members who participated into voting
-                foreach (var userId in userIds)
-                {
-                    if (reputationsTotal.Count(x => x.UserID == userId) == 0) continue;
+                    //    remainingJobAmount = remainingJobAmount - (remainingJobAmount * Convert.ToDouble(lastSettings.GovernancePaymentRatio));
 
-                    double usersRepPerc = reputationsTotal.FirstOrDefault(x => x.UserID == userId).LastTotal / reputationsTotal.Sum(x => x.LastTotal);
+                    //    db.PaymentHistories.Add(paymentGovernance);
+                    //    db.SaveChanges();
+                    //}
 
-                    double memberPayment = remainingJobAmount * usersRepPerc * Convert.ToDouble(defaultPolicingRate);
+                    //Get default policing rate
+                    double defaultPolicingRate = Convert.ToDouble(db.DaoSettings.OrderByDescending(x => x.DaoSettingID).First(x => x.Key == "DefaultPolicingRate").Value) / Convert.ToDouble(1000);
 
-                    var daouser = db.Users.Find(userId);
+                    //Create Payment History model for dao members who participated into voting
+                    foreach (var userId in userIds)
+                    {
+                        if (reputationsTotal.Count(x => x.UserID == userId) == 0) continue;
 
-                    PaymentHistory paymentDaoMember = new PaymentHistory
+                        double usersRepPerc = reputationsTotal.FirstOrDefault(x => x.UserID == userId).LastTotal / reputationsTotal.Sum(x => x.LastTotal);
+
+                        double memberPayment = remainingJobAmount * usersRepPerc * Convert.ToDouble(defaultPolicingRate);
+
+                        var daouser = db.Users.Find(userId);
+
+                        PaymentHistory paymentDaoMember = new PaymentHistory
+                        {
+                            JobID = job.JobID,
+                            Amount = memberPayment,
+                            CreateDate = DateTime.Now,
+                            IBAN = daouser.IBAN,
+                            UserID = daouser.UserId,
+                            WalletAddress = daouser.WalletAddress,
+                            Explanation = "User received payment for DAO policing."
+                        };
+
+                        db.PaymentHistories.Add(paymentDaoMember);
+                        db.SaveChanges();
+                    }
+
+
+                    var jobdoeruser = db.Users.Find(job.JobDoerUserID);
+
+                    //Create payment of the job doer
+                    PaymentHistory paymentExternalMember = new PaymentHistory
                     {
                         JobID = job.JobID,
-                        Amount = memberPayment,
+                        Amount = remainingJobAmount - (remainingJobAmount * defaultPolicingRate),
                         CreateDate = DateTime.Now,
-                        IBAN = daouser.IBAN,
-                        UserID = daouser.UserId,
-                        WalletAddress = daouser.WalletAddress,
-                        Explanation = "User received payment for DAO policing."
+                        IBAN = jobdoeruser.IBAN,
+                        UserID = jobdoeruser.UserId,
+                        WalletAddress = jobdoeruser.WalletAddress,
+                        Explanation = "User received payment for job completion."
                     };
 
-                    db.PaymentHistories.Add(paymentDaoMember);
+                    db.PaymentHistories.Add(paymentExternalMember);
                     db.SaveChanges();
                 }
-
-
-                var jobdoeruser = db.Users.Find(job.JobDoerUserID);
-
-                //Create payment of the job doer
-                PaymentHistory paymentExternalMember = new PaymentHistory
-                {
-                    JobID = job.JobID,
-                    Amount = remainingJobAmount - (remainingJobAmount * defaultPolicingRate),
-                    CreateDate = DateTime.Now,
-                    IBAN = jobdoeruser.IBAN,
-                    UserID = jobdoeruser.UserId,
-                    WalletAddress = jobdoeruser.WalletAddress,
-                    Explanation = "User received payment for job completion."
-                };
-
-                db.PaymentHistories.Add(paymentExternalMember);
-                db.SaveChanges();
             }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddConsole("Exception in timer CompleteJobExternalOffChain. Ex: " + ex.Message);
+            }
+
         }
 
         /// <summary>

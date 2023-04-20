@@ -21,5 +21,7 @@ namespace Helpers.Models.WebsiteViewModels
         public string ResumeLink { get; set; }
         public string Referrer { get; set; }
         public bool VaOnboarding { get; set; }
+        public int? BlockchainBidId { get; set; }
+
     }
 }

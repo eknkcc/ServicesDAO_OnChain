@@ -14,5 +14,7 @@ namespace Helpers.Models.WebsiteViewModels
         public StakeType Direction { get; set; }
         public double ReputationStake { get; set; }
         public string UserName { get; set; }
+        public string DeployHash { get; set; }
+
     }
 }

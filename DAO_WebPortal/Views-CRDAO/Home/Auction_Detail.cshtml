@@ -23,12 +23,12 @@
         <a href="../Job-Detail/@Model.Auction.JobID" class="btn btn-primary float-right mx-2"><i class="fas fa-info-circle me-1"></i> Job Details</a>
 
         @* If auction is expired and user is admin -> User can restart auction *@
-        @if (Model.Auction.Status == Enums.AuctionStatusTypes.Expired &&
+        @*@if (Model.Auction.Status == Enums.AuctionStatusTypes.Expired &&
         httpContextAccessor.HttpContext.Session.GetString("UserType") == Enums.UserIdentityType.Admin.ToString())
         {
             <button class="btn btn-primary float-right" onclick="RestartAuction();"><i class="fas fa-sync-alt me-1"></i>
                 Restart Auction</button>
-        }
+        }*@
     </div>
 </div>
 
@@ -112,7 +112,7 @@
                                         @*If user is job poster , show select winner bid button *@
                                         if (Model.Auction.JobPosterUserId == httpContextAccessor.HttpContext.Session.GetInt32("UserID"))
                                         {
-                                            <a class="btn btn-sm btn-primary me-2 cursorp" onclick="ChooseAsWinnerBidModal(@item.AuctionBidID)">
+                                            <a class="btn btn-sm btn-primary me-2 cursorp" onclick="ChooseAsWinnerBidModal(@item.AuctionBidID, @item.BlockchainBidId)">
                                                 <svg class="icon">
                                                     <use xlink:href="/Home/images/svg/free.svg#cil-star"></use>
                                                 </svg> Select Winner
@@ -153,7 +153,7 @@
             </div>
             <div id="winnerButtons" class="modal-footer">
                 <button class="btn btn-secondary" type="button" data-coreui-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary selectBidBtn" onclick="ChooseAsWinnerBid(this,this.id);">Select Bid</button>
+                <button type="button" class="btn btn-primary selectBidBtn" onclick="ChooseAsWinnerBid(this);">Select Bid</button>
             </div>
         </div>
     </div>
@@ -180,49 +180,65 @@
 @section Scripts{
 
     <script>
+        var selectedBidId = 0;
+        var selectedChainBidId = 0;
+
         //Opens confirmation modal
-        function ChooseAsWinnerBidModal(id) {
+        function ChooseAsWinnerBidModal(id, chainid) {
+            selectedBidId = id;
+            selectedChainBidId = chainid;
+
             $("#winnerBidName").text($("#name_"+id).text());
             $("#winnerButtons button:nth-of-type(2)").attr("id", id);
             $("#SelectWinnerBidModal").modal("toggle");
         }
 
         //Select winner bid function
-        function ChooseAsWinnerBid(e, bidId) {
+        function ChooseAsWinnerBid(e) {
             $(".selectBidBtn").prop("disabled", true);
             $(".selectBidBtn").html('<i class="fas fa-circle-notch fa-spin"></i> Selecting Bid..');
-                    //Ajax post action
-                $.ajax({
-                    type: "GET",
-                    url: "../Home/ChooseWinnerBid",
-                    data: {
-                        "bidId": bidId
-                    },
-                    success: function (result) {
-                            if (result.success) {
-                                window.location.reload();
-                            }
-                            else {
-                                toastr.warning(result.message);
-                            }
 
-                            $(".selectBidBtn").prop("disabled", false);
-                            $(".selectBidBtn").html('Select Bid');
-                        },
-                    failure: function (response) {
-                        toastr.warning("@Lang.ConnectionError");
+            if ("@Program._settings.DaoBlockchain.ToString()" == "Casper") {
+                CheckWalletAndSendDeploy("../CasperChain/GetPickBidDeploy?jobid=" + @Model.Auction.BlockchainAuctionID + "&bidid=" + selectedChainBidId, ChooseWinnerBidPost);
+            }
+            else {
+                ChooseWinnerBidPost("")
+            }
+        }
 
-                        $(".selectBidBtn").prop("disabled", false);
-                        $(".selectBidBtn").html('Select Bid');
-                    },
-                    error: function (response) {
-                        toastr.error("@Lang.UnexpectedError");
-
-                        $("#selectBidBtn").prop("disabled", false);
-                        $("#selectBidBtn").html('Select Bid');
+        function ChooseWinnerBidPost(signedDeployJson){
+            //Ajax post action
+            $.ajax({
+                type: "POST",
+                url: "../Home/ChooseWinnerBid",
+                data: {
+                    "bidId": selectedBidId,
+                    "signedDeployJson": JSON.stringify(signedDeployJson)
+                },
+                success: function (result) {
+                    if (result.success) {
+                        window.location.reload();
                     }
-                });
+                    else {
+                        toastr.warning(result.message);
+                    }
 
+                    $(".selectBidBtn").prop("disabled", false);
+                    $(".selectBidBtn").html('Select Bid');
+                },
+                failure: function (response) {
+                    toastr.warning("@Lang.ConnectionError");
+
+                    $(".selectBidBtn").prop("disabled", false);
+                    $(".selectBidBtn").html('Select Bid');
+                },
+                error: function (response) {
+                    toastr.error("@Lang.UnexpectedError");
+
+                    $("#selectBidBtn").prop("disabled", false);
+                    $("#selectBidBtn").html('Select Bid');
+                }
+            });
         }
 
         //Bids table sorting functions
@@ -245,45 +261,45 @@
             return $(row).children('td').eq(index).text()
         }
 
-        //Restart auction
-        function RestartAuction() {
-            $.confirm({
-                title: 'Confirmation',
-                content: 'Are you sure you want to restart the auction ?',
-                buttons: {
-                    cancel: {
-                        text: 'Cancel'
-                    },
-                    confirm: {
-                        text: 'Continue',
-                        btnClass: 'btn btn-primary',
-                        action: function () {
-                            //Ajax get action
-                            $.ajax({
-                                type: "GET",
-                                url: "../Home/RestartAuction?auctionid=" + @Model.Auction.AuctionID,
-                                success: function (result) {
-                                    if (result.success) {
-                                        window.location.reload();
-                                    }
-                                    else {
-                                        toastr.warning(result.message);
+        ////Restart auction
+        //function RestartAuction() {
+        //    $.confirm({
+        //        title: 'Confirmation',
+        //        content: 'Are you sure you want to restart the auction ?',
+        //        buttons: {
+        //            cancel: {
+        //                text: 'Cancel'
+        //            },
+        //            confirm: {
+        //                text: 'Continue',
+        //                btnClass: 'btn btn-primary',
+        //                action: function () {
+        //                    //Ajax get action
+        //                    $.ajax({
+        //                        type: "GET",
+        //                        url: "../Home/RestartAuction?auctionid=" + @Model.Auction.AuctionID,
+        //                        success: function (result) {
+        //                            if (result.success) {
+        //                                window.location.reload();
+        //                            }
+        //                            else {
+        //                                toastr.warning(result.message);
 
-                                    }
-                                },
-                                failure: function (response) {
-                                    toastr.warning("@Lang.ConnectionError");
-                                },
-                                error: function (response) {
-                                    toastr.error("@Lang.UnexpectedError");
-                                }
-                            });
+        //                            }
+        //                        },
+        //                        failure: function (response) {
+        //                            toastr.warning("@Lang.ConnectionError");
+        //                        },
+        //                        error: function (response) {
+        //                            toastr.error("@Lang.UnexpectedError");
+        //                        }
+        //                    });
 
-                        }
-                    }
-                }
-            });
-        }
+        //                }
+        //            }
+        //        }
+        //    });
+        //}
 
         //Toggles user note modal to show all UserNote content
         function ShowNoteModal(note) {

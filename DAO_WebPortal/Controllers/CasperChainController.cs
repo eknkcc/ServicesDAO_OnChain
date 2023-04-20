@@ -185,6 +185,9 @@ namespace DAO_WebPortal.Controllers
             //Parse response
             ChainActionDto chainActionModel = Helpers.Serializers.DeserializeJson<ChainActionDto>(chainjson);
 
+            if (chainActionModel.DeployJson == null) chainActionModel.DeployJson = "";
+            if (chainActionModel.Result == null) chainActionModel.Result = "";
+
             return View(chainActionModel);
         }
 
@@ -214,7 +217,7 @@ namespace DAO_WebPortal.Controllers
                 return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
             }
         }
-        public JsonResult GetSubmitBidDeploy(uint jobofferid, ulong time, ulong userpayment, ulong repstake, bool onboard)
+        public JsonResult GetSubmitBidDeploy(uint jobofferid, long time, ulong userpayment, ulong repstake, bool onboard)
         {
             try
             {
@@ -370,7 +373,6 @@ namespace DAO_WebPortal.Controllers
                 return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
             }
         }
-
         public JsonResult GetSimpleVoteDeploy(string documenthash, int stake)
         {
             try
@@ -394,7 +396,6 @@ namespace DAO_WebPortal.Controllers
                 return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
             }
         }
-
         public JsonResult GetVaOnboardingVoteDeploy(string username, string vaaddress, string reason)
         {
             try
@@ -418,7 +419,6 @@ namespace DAO_WebPortal.Controllers
                 return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
             }
         }
-
         public JsonResult GetRepoVoteDeploy(string key, string value, int stake)
         {
             try
@@ -445,7 +445,6 @@ namespace DAO_WebPortal.Controllers
                 return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
             }
         }
-
         public JsonResult GetKYCVoteDeploy(string username, int stake)
         {
             try
@@ -469,7 +468,6 @@ namespace DAO_WebPortal.Controllers
                 return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
             }
         }
-
         public JsonResult GetReputationVoteDeploy(int action, string subjectaddress, int amount, string documenthash, int stake, string repusername)
         {
             try
@@ -493,7 +491,6 @@ namespace DAO_WebPortal.Controllers
                 return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
             }
         }
-
         public JsonResult GetSlashingVoteDeploy(string addresstoslash, int slashratio, int stake, string slashusername)
         {
             try

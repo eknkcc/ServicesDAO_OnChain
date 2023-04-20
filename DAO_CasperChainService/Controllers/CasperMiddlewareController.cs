@@ -9,6 +9,7 @@ using System.Linq;
 using Casper.Network.SDK;
 using Casper.Network.SDK.Types;
 using Account = Helpers.Models.CasperServiceModels.Account;
+using Bid = Helpers.Models.CasperServiceModels.Bid;
 
 namespace DAO_CasperChainService.Controllers
 {
@@ -50,7 +51,7 @@ namespace DAO_CasperChainService.Controllers
                 PaginatedResponse<ReputationSnapshot> totalRep = GetTotalReputationSnapshots(publicAddress);
                 if (totalRep != null && totalRep.error == null && totalRep.data != null && totalRep.data.Count > 0)
                 {
-                    profile.AvailableReputation = totalRep.data[totalRep.data.Count -1].total_liquid_reputation.ToString();
+                    profile.AvailableReputation = totalRep.data[totalRep.data.Count - 1].total_liquid_reputation.ToString();
                     profile.StakedReputation = totalRep.data[totalRep.data.Count - 1].total_staked_reputation.ToString();
                     profile.Reputation = (profile.AvailableReputation + profile.StakedReputation).ToString();
                 }
@@ -491,6 +492,131 @@ namespace DAO_CasperChainService.Controllers
             }
 
             return account;
+        }
+
+        #endregion
+
+        #region BidEscrow
+        [HttpGet("GetJobByBidId", Name = "GetJobByBidId")]
+        public SuccessResponse<JobOffer> GetJobByBidId(int bidid)
+        {
+            SuccessResponse<JobOffer> response = new SuccessResponse<JobOffer>();
+
+            try
+            {
+                string jobOfferJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/bids/" + bidid + "/job");
+                //Parse response
+                response = Helpers.Serializers.DeserializeJson<SuccessResponse<JobOffer>>(jobOfferJson);
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                response = new SuccessResponse<JobOffer> { error = new ErrorResult { message = "Request Error" } };
+            }
+
+            return response;
+        }
+
+        [HttpGet("GetJobOffers", Name = "GetJobOffers")]
+        public PaginatedResponse<JobOfferDetailed> GetJobOffers(int? page, string page_size, string order_direction, string order_by)
+        {
+            PaginatedResponse<JobOfferDetailed> response = new PaginatedResponse<JobOfferDetailed>();
+
+            var additionalParameters = new Dictionary<string, string>();
+
+            if (page != null)
+            {
+                additionalParameters.Add("page", Convert.ToString(page));
+            }
+            if (!String.IsNullOrEmpty(page_size))
+            {
+                additionalParameters.Add("page_size", page_size);
+            }
+            if (!String.IsNullOrEmpty(order_direction))
+            {
+                additionalParameters.Add("order_direction", order_direction);
+            }
+            if (!String.IsNullOrEmpty(order_by))
+            {
+                additionalParameters.Add("order_by", order_by);
+            }
+
+            //Additional Query Parameters
+            var additionalParametersStr = "";
+
+            for (int i = 0; i < additionalParameters.Count; i++)
+            {
+                if (i == 0) additionalParametersStr += "?";
+                else additionalParametersStr += "&";
+
+                additionalParametersStr += additionalParameters.ElementAt(i).Key.ToString() + "=" + additionalParameters.ElementAt(i).Value.ToString();
+            }
+
+            try
+            {
+                //Get Total Reputation of User from Middleware
+                string reputationSnapshotsJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/job-offers" + additionalParametersStr);
+                //Parse response
+                response = Helpers.Serializers.DeserializeJson<PaginatedResponse<JobOfferDetailed>>(reputationSnapshotsJson);
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                response = new PaginatedResponse<JobOfferDetailed> { error = new ErrorResult { message = "Request Error" } };
+            }
+
+            return response;
+        }
+
+        [HttpGet("GetBids", Name = "GetBids")]
+        public PaginatedResponse<Bid> GetBids(int? page, string page_size, string order_direction, string order_by, int jobid)
+        {
+            PaginatedResponse<Bid> response = new PaginatedResponse<Bid>();
+
+            var additionalParameters = new Dictionary<string, string>();
+
+            if (page != null)
+            {
+                additionalParameters.Add("page", Convert.ToString(page));
+            }
+            if (!String.IsNullOrEmpty(page_size))
+            {
+                additionalParameters.Add("page_size", page_size);
+            }
+            if (!String.IsNullOrEmpty(order_direction))
+            {
+                additionalParameters.Add("order_direction", order_direction);
+            }
+            if (!String.IsNullOrEmpty(order_by))
+            {
+                additionalParameters.Add("order_by", order_by);
+            }
+
+            //Additional Query Parameters
+            var additionalParametersStr = "";
+
+            for (int i = 0; i < additionalParameters.Count; i++)
+            {
+                if (i == 0) additionalParametersStr += "?";
+                else additionalParametersStr += "&";
+
+                additionalParametersStr += additionalParameters.ElementAt(i).Key.ToString() + "=" + additionalParameters.ElementAt(i).Value.ToString();
+            }
+
+            try
+            {
+                //Get Total Reputation of User from Middleware
+                string reputationSnapshotsJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/job-offers/" + jobid + "/bids" + additionalParameters);
+                //Parse response
+                response = Helpers.Serializers.DeserializeJson<PaginatedResponse<Bid>>(reputationSnapshotsJson);
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                response = new PaginatedResponse<Bid> { error = new ErrorResult { message = "Request Error" } };
+            }
+
+            return response;
         }
 
         #endregion

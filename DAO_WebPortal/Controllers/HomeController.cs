@@ -1169,6 +1169,7 @@ namespace DAO_WebPortal.Controllers
                     {
                         var auction = auctionsModel.First(x => x.AuctionID == bid.AuctionID);
                         auction.UsersBidId = bid.AuctionBidID;
+                        auction.UsersChainBidId = bid.BlockchainBidID;
                     }
                 }
 
@@ -1335,44 +1336,94 @@ namespace DAO_WebPortal.Controllers
                 Model.UserId = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
                 Model.CreateDate = DateTime.Now;
 
-                //Post model to ApiGateway
-                Model = Helpers.Serializers.DeserializeJson<AuctionBidDto>(Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Db/AuctionBid/Post", Helpers.Serializers.SerializeJson(Model), HttpContext.Session.GetString("Token")));
-
-                if (Model != null && Model.AuctionBidID > 0)
+                if (Program._settings.DaoBlockchain == Blockchain.Casper)
                 {
-                    result.Success = true;
-                    result.Message = "Bid succesffully submitted.";
-                    result.Content = Model;
+                    ChainActionDto chainAction = CreateChainActionRecord(Model.signedDeployJson, HttpContext.Session.GetString("WalletAddress"), ChainActionTypes.Submit_Bid);
 
-                    //Stake bid if internal auction
-                    if (auction.Status == Enums.AuctionStatusTypes.InternalBidding)
+                    new Thread(() =>
                     {
-                        UserReputationStakeDto stake = new UserReputationStakeDto() { UserID = Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Amount = Model.ReputationStake, CreateDate = DateTime.Now, Type = StakeType.Bid, ReferenceID = Model.AuctionBidID, ReferenceProcessID = Model.AuctionID, Status = ReputationStakeStatus.Staked };
+                        Thread.CurrentThread.IsBackground = true;
 
-                        //Post model to ApiGateway
-                        string reputationJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationStake/SubmitStake", Helpers.Serializers.SerializeJson(stake), HttpContext.Session.GetString("Token"));
+                        ChainActionDto deployResult = new ChainActionDto();
 
-                        SimpleResponse reputationResponse = Helpers.Serializers.DeserializeJson<SimpleResponse>(reputationJson);
+                        deployResult = SendSignedDeploy(chainAction);
 
-                        //Delete bid from db if reputation stake is unsuccesful
-                        if (reputationResponse.Success == false)
+                        //Central db operations
+                        if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
                         {
-                            var deleteModel = Helpers.Request.Delete(Program._settings.Service_ApiGateway_Url + "/Db/AuctionBid/Delete?ID=" + Model.AuctionBidID, HttpContext.Session.GetString("Token"));
+                            Model.DeployHash = deployResult.DeployHash;
 
-                            return Json(reputationResponse);
+                            //Post model to ApiGateway
+                            Model = Helpers.Serializers.DeserializeJson<AuctionBidDto>(Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Db/AuctionBid/Post", Helpers.Serializers.SerializeJson(Model), HttpContext.Session.GetString("Token")));
+
+                            if (Model != null && Model.AuctionBidID > 0)
+                            {
+                                result.Success = true;
+                                result.Message = "Bid succesffully submitted.";
+                                result.Content = Model;                               
+                            }
+
+                            Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "The user has bid on the auction. Auction #" + Model.AuctionID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+
+                            //Set server side toastr because page will be redirected
+                            TempData["toastr-message"] = result.Message;
+                            TempData["toastr-type"] = "success";
+
+                        }
+
+                        Program.chainQue.RemoveAt(Program.chainQue.IndexOf(chainAction));
+                        Program.chainQue.Add(deployResult);
+                    }).Start();
+
+                    //Set server side toastr because page will be redirected
+                    TempData["toastr-message"] = "Your request successfully submitted. ";
+                    TempData["toastr-type"] = "success";
+
+                    return Json(new SimpleResponse() { Success = true });
+                }
+                else
+                {
+                    //Post model to ApiGateway
+                    Model = Helpers.Serializers.DeserializeJson<AuctionBidDto>(Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Db/AuctionBid/Post", Helpers.Serializers.SerializeJson(Model), HttpContext.Session.GetString("Token")));
+
+                    if (Model != null && Model.AuctionBidID > 0)
+                    {
+                        result.Success = true;
+                        result.Message = "Bid succesffully submitted.";
+                        result.Content = Model;
+
+                        //Stake bid if internal auction
+                        if (auction.Status == Enums.AuctionStatusTypes.InternalBidding)
+                        {
+                            UserReputationStakeDto stake = new UserReputationStakeDto() { UserID = Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Amount = Model.ReputationStake, CreateDate = DateTime.Now, Type = StakeType.Bid, ReferenceID = Model.AuctionBidID, ReferenceProcessID = Model.AuctionID, Status = ReputationStakeStatus.Staked };
+
+                            //Post model to ApiGateway
+                            string reputationJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationStake/SubmitStake", Helpers.Serializers.SerializeJson(stake), HttpContext.Session.GetString("Token"));
+
+                            SimpleResponse reputationResponse = Helpers.Serializers.DeserializeJson<SimpleResponse>(reputationJson);
+
+                            //Delete bid from db if reputation stake is unsuccesful
+                            if (reputationResponse.Success == false)
+                            {
+                                var deleteModel = Helpers.Request.Delete(Program._settings.Service_ApiGateway_Url + "/Db/AuctionBid/Delete?ID=" + Model.AuctionBidID, HttpContext.Session.GetString("Token"));
+
+                                return Json(reputationResponse);
+                            }
+                        }
+                        else
+                        {
+                            Model.ReputationStake = 0;
                         }
                     }
-                    else
-                    {
-                        Model.ReputationStake = 0;
-                    }
+
+                    Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "The user has bid on the auction. Auction #" + Model.AuctionID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+
+                    //Set server side toastr because page will be redirected
+                    TempData["toastr-message"] = result.Message;
+                    TempData["toastr-type"] = "success";
+
+                    return Json(result);
                 }
-
-                Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "The user has bid on the auction. Auction #" + Model.AuctionID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
-
-                //Set server side toastr because page will be redirected
-                TempData["toastr-message"] = result.Message;
-                TempData["toastr-type"] = "success";
 
                 return Json(result);
             }
@@ -1390,9 +1441,9 @@ namespace DAO_WebPortal.Controllers
         /// </summary>
         /// <param name="id">Auction Bid ID</param>
         /// <returns></returns>
-        [HttpGet]
+        [HttpPost]
         [AuthorizeDbUser]
-        public JsonResult Auction_Bid_Delete(int id)
+        public JsonResult Auction_Bid_Delete(int id, string signedDeployJson)
         {
             SimpleResponse result = new SimpleResponse();
 
@@ -1409,24 +1460,75 @@ namespace DAO_WebPortal.Controllers
                     return Json(new SimpleResponse { Success = false, Message = Lang.UnauthorizedAccess });
                 }
 
-                //Release staked reputation for the bid.
-                SimpleResponse releaseStakeResponse = Helpers.Serializers.DeserializeJson<SimpleResponse>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationStake/ReleaseStakesByType?referenceID=" + id + "&reftype=" + Enums.StakeType.Bid, HttpContext.Session.GetString("Token")));
-
-                //Post model to ApiGateway
-                var deleteBidResponse = Helpers.Serializers.DeserializeJson<bool>(Helpers.Request.Delete(Program._settings.Service_ApiGateway_Url + "/Db/AuctionBid/Delete?id=" + id, HttpContext.Session.GetString("Token")));
-
-                if (deleteBidResponse)
+                if (Program._settings.DaoBlockchain == Blockchain.Casper)
                 {
-                    result.Success = true;
-                    result.Message = "Bid succesffully deleted.";
+                    ChainActionDto chainAction = CreateChainActionRecord(signedDeployJson, HttpContext.Session.GetString("WalletAddress"), ChainActionTypes.Cancel_Bid);
+
+                    new Thread(() =>
+                    {
+                        Thread.CurrentThread.IsBackground = true;
+
+                        ChainActionDto deployResult = new ChainActionDto();
+
+                        deployResult = SendSignedDeploy(chainAction);
+
+                        //Central db operations
+                        if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
+                        {
+
+                            //Release staked reputation for the bid.
+                            SimpleResponse releaseStakeResponse = Helpers.Serializers.DeserializeJson<SimpleResponse>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationStake/ReleaseStakesByType?referenceID=" + id + "&reftype=" + Enums.StakeType.Bid, HttpContext.Session.GetString("Token")));
+
+                            //Post model to ApiGateway
+                            var deleteBidResponse = Helpers.Serializers.DeserializeJson<bool>(Helpers.Request.Delete(Program._settings.Service_ApiGateway_Url + "/Db/AuctionBid/Delete?id=" + id, HttpContext.Session.GetString("Token")));
+
+                            if (deleteBidResponse)
+                            {
+                                result.Success = true;
+                                result.Message = "Bid succesffully deleted.";
+
+                                //Set server side toastr because page will be redirected
+                                TempData["toastr-message"] = result.Message;
+                                TempData["toastr-type"] = "success";
+
+                                Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "The user deleted bid on the auction. Auction #" + auctionBid.AuctionID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+                            }
+
+                        }
+
+                        Program.chainQue.RemoveAt(Program.chainQue.IndexOf(chainAction));
+                        Program.chainQue.Add(deployResult);
+                    }).Start();
 
                     //Set server side toastr because page will be redirected
-                    TempData["toastr-message"] = result.Message;
+                    TempData["toastr-message"] = "Your request successfully submitted. ";
                     TempData["toastr-type"] = "success";
 
-                    Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "The user deleted bid on the auction. Auction #" + auctionBid.AuctionID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+                    return Json(new SimpleResponse() { Success = true });
                 }
+                else
+                {
+                    //Release staked reputation for the bid.
+                    SimpleResponse releaseStakeResponse = Helpers.Serializers.DeserializeJson<SimpleResponse>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationStake/ReleaseStakesByType?referenceID=" + id + "&reftype=" + Enums.StakeType.Bid, HttpContext.Session.GetString("Token")));
 
+                    //Post model to ApiGateway
+                    var deleteBidResponse = Helpers.Serializers.DeserializeJson<bool>(Helpers.Request.Delete(Program._settings.Service_ApiGateway_Url + "/Db/AuctionBid/Delete?id=" + id, HttpContext.Session.GetString("Token")));
+
+                    if (deleteBidResponse)
+                    {
+                        result.Success = true;
+                        result.Message = "Bid succesffully deleted.";
+
+                        //Set server side toastr because page will be redirected
+                        TempData["toastr-message"] = result.Message;
+                        TempData["toastr-type"] = "success";
+
+                        Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "The user deleted bid on the auction. Auction #" + auctionBid.AuctionID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+                    }
+
+                    return Json(result);
+                }
+      
                 return Json(result);
             }
             catch (Exception ex)
@@ -1446,9 +1548,9 @@ namespace DAO_WebPortal.Controllers
         /// <param name="auctionId"></param>
         /// <param name="jobid"></param>
         /// <returns></returns>
-        [HttpGet]
+        [HttpPost]
         [AuthorizeDbUser]
-        public JsonResult ChooseWinnerBid(int bidId)
+        public JsonResult ChooseWinnerBid(int bidId, string signedDeployJson)
         {
             SimpleResponse result = new SimpleResponse();
             try
@@ -1474,59 +1576,121 @@ namespace DAO_WebPortal.Controllers
                     return Json(new SimpleResponse { Success = false, Message = Lang.UnauthorizedAccess });
                 }
 
-                //Post bid
-                bool bidChooseResult = Helpers.Serializers.DeserializeJson<bool>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Auction/SetWinnerBid?bidId=" + bidId, HttpContext.Session.GetString("Token")));
-                if (bidChooseResult)
+                if (Program._settings.DaoBlockchain == Blockchain.Casper)
                 {
-                    //Change job status to Auction Completed
-                    JobPostDto jobStatusResult = Helpers.Serializers.DeserializeJson<JobPostDto>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/ChangeJobStatus?jobid=" + auction.JobID + "&status=" + Helpers.Constants.Enums.JobStatusTypes.AuctionCompleted, HttpContext.Session.GetString("Token")));
+                    ChainActionDto chainAction = CreateChainActionRecord(signedDeployJson, HttpContext.Session.GetString("WalletAddress"), ChainActionTypes.Pick_Bid);
 
-                    if (jobStatusResult.JobID > 0)
+                    new Thread(() =>
                     {
-                        //Release staked reputations for auction
-                        SimpleResponse stakeReleaseResponse = Helpers.Serializers.DeserializeJson<SimpleResponse>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationStake/ReleaseStakes?referenceProcessID=" + auction.AuctionID + "&reftype=" + Helpers.Constants.Enums.StakeType.Bid, HttpContext.Session.GetString("Token")));
+                        Thread.CurrentThread.IsBackground = true;
 
-                        //Mint new reputation with (ReputationConversionRate(DAO Variable) * Bid Price)
+                        ChainActionDto deployResult = new ChainActionDto();
 
-                        double ReputationConversionRate = Convert.ToDouble(Program._settings.DaoSettings.First(x => x.Key == "ReputationConversionRate").Value) / Convert.ToDouble(1000);
-                        double DefaultPolicingRate = Convert.ToDouble(Program._settings.DaoSettings.First(x => x.Key == "DefaultPolicingRate").Value) / Convert.ToDouble(1000);
+                        deployResult = SendSignedDeploy(chainAction);
 
-                        UserReputationStakeDto stake = new UserReputationStakeDto() { UserID = auctionBid.UserId, Amount = auctionBid.Price * ReputationConversionRate, CreateDate = DateTime.Now, Type = StakeType.Mint, ReferenceID = auction.JobID, ReferenceProcessID = auction.JobID, Status = ReputationStakeStatus.Staked };
-
-                        //If winner is external user and doesnt want to get onboarded as VA.
-                        if (auctionBid.VaOnboarding == false && userModel.UserType == Enums.UserIdentityType.Associate.ToString())
+                        //Central db operations
+                        if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
                         {
-                            stake.Amount = auctionBid.Price * DefaultPolicingRate * ReputationConversionRate;
+
+                            //Post bid
+                            bool bidChooseResult = Helpers.Serializers.DeserializeJson<bool>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Auction/SetWinnerBid?bidId=" + bidId, HttpContext.Session.GetString("Token")));
+                            if (bidChooseResult)
+                            {
+                                //Change job status to Auction Completed
+                                JobPostDto jobStatusResult = Helpers.Serializers.DeserializeJson<JobPostDto>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/ChangeJobStatus?jobid=" + auction.JobID + "&status=" + Helpers.Constants.Enums.JobStatusTypes.AuctionCompleted, HttpContext.Session.GetString("Token")));
+
+                                if (jobStatusResult.JobID > 0)
+                                {
+                                    result.Success = true;
+                                    result.Message = "Winner bid selected.";
+
+                                    //Set server side toastr because page will be redirected
+                                    TempData["toastr-message"] = result.Message;
+                                    TempData["toastr-type"] = "success";
+
+                                    Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "Job poster selected the winner bid. Job #" + auction.JobID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+
+                                    //Send notification email to winner
+                                    //Set email title and content
+                                    string emailTitle = "You won the auction for job #" + auction.JobID;
+                                    string emailContent = "Greetings, " + userModel.NameSurname.Split(' ')[0] + ", <br><br> You won the auction of '" + jobStatusResult.Title + "'.<br><br> Please post your job completion evidence as a comment to the related job and start informal voting process within expected timeframe";
+
+                                    SendEmailModel emailModel = new SendEmailModel() { Subject = emailTitle, Content = emailContent, To = new List<string> { userModel.Email } };
+                                    Program.rabbitMq.Publish(Helpers.Constants.FeedNames.NotificationFeed, "email", Helpers.Serializers.Serialize(emailModel));
+                                }
+
+                            }
                         }
 
-                        //Post model to ApiGateway
-                        string mintJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationStake/SubmitStake", Helpers.Serializers.SerializeJson(stake), HttpContext.Session.GetString("Token"));
-                        //Parse response
-                        SimpleResponse mintReponse = Helpers.Serializers.DeserializeJson<SimpleResponse>(mintJson);
+                        Program.chainQue.RemoveAt(Program.chainQue.IndexOf(chainAction));
+                        Program.chainQue.Add(deployResult);
+                    }).Start();
 
-                        if (mintReponse.Success)
+                    //Set server side toastr because page will be redirected
+                    TempData["toastr-message"] = "Your request successfully submitted. ";
+                    TempData["toastr-type"] = "success";
+
+                    return Json(new SimpleResponse() { Success = true });
+                }
+                else
+                {
+                    //Post bid
+                    bool bidChooseResult = Helpers.Serializers.DeserializeJson<bool>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Auction/SetWinnerBid?bidId=" + bidId, HttpContext.Session.GetString("Token")));
+                    if (bidChooseResult)
+                    {
+                        //Change job status to Auction Completed
+                        JobPostDto jobStatusResult = Helpers.Serializers.DeserializeJson<JobPostDto>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/ChangeJobStatus?jobid=" + auction.JobID + "&status=" + Helpers.Constants.Enums.JobStatusTypes.AuctionCompleted, HttpContext.Session.GetString("Token")));
+
+                        if (jobStatusResult.JobID > 0)
                         {
-                            result.Success = true;
-                            result.Message = "Winner bid selected.";
+                            //Release staked reputations for auction
+                            SimpleResponse stakeReleaseResponse = Helpers.Serializers.DeserializeJson<SimpleResponse>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationStake/ReleaseStakes?referenceProcessID=" + auction.AuctionID + "&reftype=" + Helpers.Constants.Enums.StakeType.Bid, HttpContext.Session.GetString("Token")));
 
-                            //Set server side toastr because page will be redirected
-                            TempData["toastr-message"] = result.Message;
-                            TempData["toastr-type"] = "success";
+                            //Mint new reputation with (ReputationConversionRate(DAO Variable) * Bid Price)
 
-                            Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "Job poster selected the winner bid. Job #" + auction.JobID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+                            double ReputationConversionRate = Convert.ToDouble(Program._settings.DaoSettings.First(x => x.Key == "ReputationConversionRate").Value) / Convert.ToDouble(1000);
+                            double DefaultPolicingRate = Convert.ToDouble(Program._settings.DaoSettings.First(x => x.Key == "DefaultPolicingRate").Value) / Convert.ToDouble(1000);
 
-                            //Send notification email to winner
-                            //Set email title and content
-                            string emailTitle = "You won the auction for job #" + auction.JobID;
-                            string emailContent = "Greetings, " + userModel.NameSurname.Split(' ')[0] + ", <br><br> You won the auction of '" + jobStatusResult.Title + "'.<br><br> Please post your job completion evidence as a comment to the related job and start informal voting process within expected timeframe";
+                            UserReputationStakeDto stake = new UserReputationStakeDto() { UserID = auctionBid.UserId, Amount = auctionBid.Price * ReputationConversionRate, CreateDate = DateTime.Now, Type = StakeType.Mint, ReferenceID = auction.JobID, ReferenceProcessID = auction.JobID, Status = ReputationStakeStatus.Staked };
 
-                            SendEmailModel emailModel = new SendEmailModel() { Subject = emailTitle, Content = emailContent, To = new List<string> { userModel.Email } };
-                            Program.rabbitMq.Publish(Helpers.Constants.FeedNames.NotificationFeed, "email", Helpers.Serializers.Serialize(emailModel));
+                            //If winner is external user and doesnt want to get onboarded as VA.
+                            if (auctionBid.VaOnboarding == false && userModel.UserType == Enums.UserIdentityType.Associate.ToString())
+                            {
+                                stake.Amount = auctionBid.Price * DefaultPolicingRate * ReputationConversionRate;
+                            }
 
+                            //Post model to ApiGateway
+                            string mintJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationStake/SubmitStake", Helpers.Serializers.SerializeJson(stake), HttpContext.Session.GetString("Token"));
+                            //Parse response
+                            SimpleResponse mintReponse = Helpers.Serializers.DeserializeJson<SimpleResponse>(mintJson);
+
+                            if (mintReponse.Success)
+                            {
+                                result.Success = true;
+                                result.Message = "Winner bid selected.";
+
+                                //Set server side toastr because page will be redirected
+                                TempData["toastr-message"] = result.Message;
+                                TempData["toastr-type"] = "success";
+
+                                Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "Job poster selected the winner bid. Job #" + auction.JobID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+
+                                //Send notification email to winner
+                                //Set email title and content
+                                string emailTitle = "You won the auction for job #" + auction.JobID;
+                                string emailContent = "Greetings, " + userModel.NameSurname.Split(' ')[0] + ", <br><br> You won the auction of '" + jobStatusResult.Title + "'.<br><br> Please post your job completion evidence as a comment to the related job and start informal voting process within expected timeframe";
+
+                                SendEmailModel emailModel = new SendEmailModel() { Subject = emailTitle, Content = emailContent, To = new List<string> { userModel.Email } };
+                                Program.rabbitMq.Publish(Helpers.Constants.FeedNames.NotificationFeed, "email", Helpers.Serializers.Serialize(emailModel));
+
+                            }
                         }
+
                     }
 
+                    return Json(result);
                 }
+
 
                 return Json(result);
 
@@ -1708,6 +1872,7 @@ namespace DAO_WebPortal.Controllers
                     vt.VoteID = votes[i].VoteID;
                     vt.VotingID = votes[i].VotingID;
                     vt.UserName = usernames[i];
+                    vt.DeployHash = votes[i].DeployHash;
                     if (reputations.Count(x => x.UserID == vt.UserID) > 0)
                     {
                         vt.ReputationStake = reputations.First(x => x.UserID == vt.UserID).Amount;
@@ -3395,108 +3560,108 @@ namespace DAO_WebPortal.Controllers
         /// </summary>
         /// <param name="JobId"></param>
         /// <returns></returns>
-        [AuthorizeAdmin]
-        [HttpGet]
-        public JsonResult RestartVoting(int votingid)
-        {
-            SimpleResponse result = new SimpleResponse();
+        //[AuthorizeAdmin]
+        //[HttpGet]
+        //public JsonResult RestartVoting(int votingid)
+        //{
+        //    SimpleResponse result = new SimpleResponse();
 
-            try
-            {
-                //Get response from ApiGateway
-                string jsonResponse = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Voting/RestartVoting?votingid=" + votingid, HttpContext.Session.GetString("Token"));
-                result = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResponse);
-                result.Content = null;
+        //    try
+        //    {
+        //        //Get response from ApiGateway
+        //        string jsonResponse = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Voting/RestartVoting?votingid=" + votingid, HttpContext.Session.GetString("Token"));
+        //        result = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResponse);
+        //        result.Content = null;
 
-                //Change job status
-                VotingDto voteModel = Helpers.Serializers.DeserializeJson<VotingDto>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Voting/GetId?id=" + votingid, HttpContext.Session.GetString("Token")));
-                JobPostDto jobModel = Helpers.Serializers.DeserializeJson<JobPostDto>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/GetId?id=" + voteModel.JobID, HttpContext.Session.GetString("Token")));
-                jobModel.Status = JobStatusTypes.InformalVoting;
-                jobModel = Helpers.Serializers.DeserializeJson<JobPostDto>(Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/Update", Helpers.Serializers.SerializeJson(jobModel), HttpContext.Session.GetString("Token")));
+        //        //Change job status
+        //        VotingDto voteModel = Helpers.Serializers.DeserializeJson<VotingDto>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Voting/GetId?id=" + votingid, HttpContext.Session.GetString("Token")));
+        //        JobPostDto jobModel = Helpers.Serializers.DeserializeJson<JobPostDto>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/GetId?id=" + voteModel.JobID, HttpContext.Session.GetString("Token")));
+        //        jobModel.Status = JobStatusTypes.InformalVoting;
+        //        jobModel = Helpers.Serializers.DeserializeJson<JobPostDto>(Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/Update", Helpers.Serializers.SerializeJson(jobModel), HttpContext.Session.GetString("Token")));
 
-                //Set server side toastr because page will be redirected                                
-                TempData["toastr-message"] = result.Message;
-                TempData["toastr-type"] = "success";
+        //        //Set server side toastr because page will be redirected                                
+        //        TempData["toastr-message"] = result.Message;
+        //        TempData["toastr-type"] = "success";
 
-                Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "Voting restarted by admin user. Voting #" + votingid, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+        //        Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "Voting restarted by admin user. Voting #" + votingid, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
 
-                return Json(result);
+        //        return Json(result);
 
-            }
-            catch (Exception ex)
-            {
-                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
-            }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+        //    }
 
-            return Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
-        }
+        //    return Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+        //}
 
         /// <summary>
         ///  Approves job with "AdminApprovalPending" status
         /// </summary>
         /// <param name="JobId"></param>
         /// <returns></returns>
-        [AuthorizeAdmin]
-        [HttpGet]
-        public JsonResult RestartAuction(int auctionid)
-        {
-            SimpleResponse result = new SimpleResponse();
+        //[AuthorizeAdmin]
+        //[HttpGet]
+        //public JsonResult RestartAuction(int auctionid)
+        //{
+        //    SimpleResponse result = new SimpleResponse();
 
-            try
-            {
-                //Get auction model from ApiGateway
-                var auctionJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Auction/GetId?id=" + auctionid, HttpContext.Session.GetString("Token"));
-                //Parse response
-                var auction = Helpers.Serializers.DeserializeJson<AuctionDto>(auctionJson);
+        //    try
+        //    {
+        //        //Get auction model from ApiGateway
+        //        var auctionJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Auction/GetId?id=" + auctionid, HttpContext.Session.GetString("Token"));
+        //        //Parse response
+        //        var auction = Helpers.Serializers.DeserializeJson<AuctionDto>(auctionJson);
 
-                if (auction.Status != AuctionStatusTypes.Expired)
-                {
-                    result.Message = "Only expired auctions can be restarted";
-                    result.Success = false;
-                }
+        //        if (auction.Status != AuctionStatusTypes.Expired)
+        //        {
+        //            result.Message = "Only expired auctions can be restarted";
+        //            result.Success = false;
+        //        }
 
-                auction.Status = AuctionStatusTypes.InternalBidding;
+        //        auction.Status = AuctionStatusTypes.InternalBidding;
 
-                //Set auction end dates
-                int InternalAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "InternalAuctionTime").Value);
-                int PublicAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "PublicAuctionTime").Value);
+        //        //Set auction end dates
+        //        int InternalAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "InternalAuctionTime").Value);
+        //        int PublicAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "PublicAuctionTime").Value);
 
-                DateTime internalAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime);
-                DateTime publicAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime + PublicAuctionTime);
+        //        DateTime internalAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime);
+        //        DateTime publicAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime + PublicAuctionTime);
 
-                auction.InternalAuctionEndDate = internalAuctionEndDate;
-                auction.PublicAuctionEndDate = publicAuctionEndDate;
+        //        auction.InternalAuctionEndDate = internalAuctionEndDate;
+        //        auction.PublicAuctionEndDate = publicAuctionEndDate;
 
-                var auctionUpdateJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/Db/Auction/Update", Helpers.Serializers.SerializeJson(auction), HttpContext.Session.GetString("Token"));
-                auction = Helpers.Serializers.DeserializeJson<AuctionDto>(auctionUpdateJson);
+        //        var auctionUpdateJson = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/Db/Auction/Update", Helpers.Serializers.SerializeJson(auction), HttpContext.Session.GetString("Token"));
+        //        auction = Helpers.Serializers.DeserializeJson<AuctionDto>(auctionUpdateJson);
 
-                if (auction.AuctionID > 0)
-                {
-                    result.Message = "Auction restarted succesfully.";
-                    result.Success = true;
+        //        if (auction.AuctionID > 0)
+        //        {
+        //            result.Message = "Auction restarted succesfully.";
+        //            result.Success = true;
 
-                    //Change job status
-                    JobPostDto jobModel = Helpers.Serializers.DeserializeJson<JobPostDto>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/GetId?id=" + auction.JobID, HttpContext.Session.GetString("Token")));
-                    jobModel.Status = JobStatusTypes.InternalAuction;
-                    jobModel = Helpers.Serializers.DeserializeJson<JobPostDto>(Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/Update", Helpers.Serializers.SerializeJson(jobModel), HttpContext.Session.GetString("Token")));
-                }
+        //            //Change job status
+        //            JobPostDto jobModel = Helpers.Serializers.DeserializeJson<JobPostDto>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/GetId?id=" + auction.JobID, HttpContext.Session.GetString("Token")));
+        //            jobModel.Status = JobStatusTypes.InternalAuction;
+        //            jobModel = Helpers.Serializers.DeserializeJson<JobPostDto>(Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/Update", Helpers.Serializers.SerializeJson(jobModel), HttpContext.Session.GetString("Token")));
+        //        }
 
-                //Set server side toastr because page will be redirected
-                TempData["toastr-message"] = result.Message;
-                TempData["toastr-type"] = "success";
+        //        //Set server side toastr because page will be redirected
+        //        TempData["toastr-message"] = result.Message;
+        //        TempData["toastr-type"] = "success";
 
-                Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "Auction restarted by admin user. Auction #" + auctionid, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+        //        Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "Auction restarted by admin user. Auction #" + auctionid, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
 
-                return Json(result);
+        //        return Json(result);
 
-            }
-            catch (Exception ex)
-            {
-                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
-            }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+        //    }
 
-            return Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
-        }
+        //    return Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+        //}
 
         [HttpPost]
         [AuthorizeAdmin]

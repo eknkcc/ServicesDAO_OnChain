@@ -207,7 +207,9 @@ namespace DAO_DbService.Controllers
                         FlagCount = flagcount,
                         TimeFrame = jobPost.TimeFrame,
                         JobDoerUsername = jobDoerUsername,
-                        DocumentUrl = jobPost.DocumentUrl
+                        DocumentUrl = jobPost.DocumentUrl,
+                        DeployHash = jobPost.DeployHash,
+                        BlockchainJobID = jobPost.BlockchainJobPostID
                     };
 
                     result.Auction = _mapper.Map<Auction, AuctionDto>(db.Auctions.SingleOrDefault(x => x.JobID == result.JobID));
@@ -458,7 +460,8 @@ namespace DAO_DbService.Controllers
                                   BidCount = bidcount,
                                   JobPrice = job.Amount,
                                   JobPosterUsername = userPoster.UserName,
-                                  ExpectedTimeframe = job.TimeFrame
+                                  ExpectedTimeframe = job.TimeFrame,
+                                  BlockChainJobID = job.BlockchainJobPostID
                               }).Take(100).ToList();
                 }
             }
@@ -542,7 +545,8 @@ namespace DAO_DbService.Controllers
                                   Referrer = actbid.Referrer,
                                   GithubLink = actbid.GithubLink,
                                   ResumeLink = actbid.ResumeLink,
-                                  VaOnboarding = actbid.VaOnboarding
+                                  VaOnboarding = actbid.VaOnboarding,
+                                  BlockchainBidId = actbid.BlockchainBidID
                               }).ToList();
 
                     var reputationsTotalJson = Helpers.Request.Post(Program._settings.Service_Reputation_Url + "/UserReputationHistory/GetLastReputationByUserIds", Helpers.Serializers.SerializeJson(result.Select(x => x.UserId)));

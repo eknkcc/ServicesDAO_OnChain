@@ -423,11 +423,12 @@
 
     function ShowChainActionDetail(id) {
         var chainName = "";
-        @if (Program._settings.DaoBlockchain != null)
-        {
-            @Html.Raw("chainName = '"+ Helpers.Constants.Enums.Blockchain.Casper.ToString() +"';");
-        }
-        window.open('../' + chainName + 'Chain/ChainActionDetail?id=' + id, '_blank').focus();
+    @if (Program._settings.DaoBlockchain != null)
+    {
+        @Html.Raw("chainName = '"+ Helpers.Constants.Enums.Blockchain.Casper.ToString() +"';")
+        ;
+    }
+            window.open('../' + chainName + 'Chain/ChainActionDetail?id=' + id, '_blank').focus();
     }
 
     function CheckWalletAndSendDeploy(requestUrl, sendDeployFunction) {
@@ -444,18 +445,42 @@
             if (data == false) {
                 provider.requestConnection().then(data => {
                     if (data != true) {
+                        HideLoader();
                         toastr.warning("Casper wallet connection failed.");
                         return;
                     }
 
                     provider.getActivePublicKey().then(data => {
                         var accountPublicKey = data;
+
+                        var token = $('input[name="__RequestVerificationToken"]', token).val();
+
+                        $.ajax({
+                            type: "POST",
+                            url: "../CasperChain/ConnectWallet",
+                            data: { "publicAddress": data, "__RequestVerificationToken": token },
+                            async: true,
+                            success: function (result) {
+
+                            },
+                            failure: function (response) {
+                                toastr.warning("Server connection error");
+                                HideLoader();
+                            },
+                            error: function (response) {
+                                toastr.error("Unexpected error");
+                                HideLoader();
+                            }
+                        });
+
                         StartDeploy(requestUrl, sendDeployFunction, data);
                     }).catch(error => {
+                        HideLoader();
                         toastr.warning("Error while geting public key: " + error);
                     });
 
                 }).catch(error => {
+                    HideLoader();
                     toastr.warning("Error while connecting wallet: " + error);
                 });
             }
@@ -464,10 +489,12 @@
                     var accountPublicKey = data;
                     StartDeploy(requestUrl, sendDeployFunction, data);
                 }).catch(error => {
+                    HideLoader();
                     toastr.warning("Error while geting public key: " + error);
                 });
             }
         }).catch(error => {
+            HideLoader();
             toastr.warning("Error while getting wallet connection status: " + error);
         });
     }
@@ -517,6 +544,7 @@
                             }
                         })
                         .catch(err => {
+                            HideLoader();
                             toastr.warning('Sign Error: ' + err);
                         });
 

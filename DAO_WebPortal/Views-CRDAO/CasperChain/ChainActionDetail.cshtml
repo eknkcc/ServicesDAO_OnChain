@@ -47,7 +47,8 @@
 
     <script>
         $(document).ready(function () {
-            var str = '@Html.Raw(Model.DeployJson)';
+
+            var str = '@Html.Raw(Model.DeployJson.Replace("\r\n", "").Replace("\n", ""))';
             try
             {     
                 var parsed = JSON.parse(str.replace("&quot;",'"'));
@@ -58,7 +59,7 @@
                 $("#deployJson").html(str);
             }
 
-            var str2 = '@Html.Raw(Model.Result)';
+            var str2 = '@Html.Raw(Model.Result.Replace("\r\n", "").Replace("\n", ""))';
             try
             {   
                 var parsed2 = JSON.parse(str2.replace("&quot;",'"'));

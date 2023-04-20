@@ -150,6 +150,13 @@
                                     </td>
                                 </tr>
                             }
+                            @if (!string.IsNullOrEmpty(Model.JobPostWebsiteModel.DeployHash))
+                            {
+                                <tr>
+                                    <td><i class="fas fa-link me-2"></i><i>Deploy Hash</i></td>
+                                    <td>@Model.JobPostWebsiteModel.DeployHash</td>
+                                </tr>
+                            }
                         </table>
 
                         @if (Model.JobPostWebsiteModel.Voting.Any(x => x.IsFormal == false && x.Status == Helpers.Constants.Enums.VoteStatusTypes.Completed))
@@ -178,11 +185,11 @@
                                 <div class="p-1">
                                     <div class="progress">
                                         <div class="progress-bar bg-success" role="progressbar" style="width:@forPerc"
-                                             aria-valuenow="@forRatio" aria-valuemin="0" aria-valuemax="100">
+                                         aria-valuenow="@forRatio" aria-valuemin="0" aria-valuemax="100">
                                             @forPerc
                                         </div>
                                         <div class="progress-bar bg-danger" role="progressbar" style="width:@againstPerc"
-                                             aria-valuenow="@againstRatio" aria-valuemin="0" aria-valuemax="100">
+                                         aria-valuenow="@againstRatio" aria-valuemin="0" aria-valuemax="100">
                                             @againstPerc
                                         </div>
                                     </div>
@@ -221,11 +228,11 @@
                                 <div class="p-1">
                                     <div class="progress">
                                         <div class="progress-bar bg-success" role="progressbar" style="width:@forPerc"
-                                             aria-valuenow="@forRatio" aria-valuemin="0" aria-valuemax="100">
+                                         aria-valuenow="@forRatio" aria-valuemin="0" aria-valuemax="100">
                                             @forPerc
                                         </div>
                                         <div class="progress-bar bg-danger" role="progressbar" style="width:@againstPerc"
-                                             aria-valuenow="@againstRatio" aria-valuemin="0" aria-valuemax="100">
+                                         aria-valuenow="@againstRatio" aria-valuemin="0" aria-valuemax="100">
                                             @againstPerc
                                         </div>
                                     </div>

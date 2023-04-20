@@ -31,5 +31,8 @@ namespace Helpers.Models.WebsiteViewModels
         public List<AuctionBidItemModel> AuctionBids { get; set; } = new List<AuctionBidItemModel>();
         public List<VotingDto> Voting {get;set;} = new List<VotingDto>();
         public string DocumentUrl { get; set; }
+        public string DeployHash { get; set; }
+        public int? BlockchainJobID { get; set; }
+
     }
 }

@@ -19,12 +19,12 @@
         <a href="../Job-Detail/@Model.Voting.JobID" class="btn btn-primary float-right mx-2"><i class="fas fa-info-circle me-1"></i> Job Details</a>
 
         @* If voting is expired and user is admin -> User can restart voting *@
-        @if (Model.Voting.Status == Enums.VoteStatusTypes.Expired &&
+        @*@if (Model.Voting.Status == Enums.VoteStatusTypes.Expired &&
         httpContextAccessor.HttpContext.Session.GetString("UserType") == Enums.UserIdentityType.Admin.ToString())
         {
             <button class="btn btn-primary float-right" onclick="RestartVoting();"><i class="fas fa-sync-alt me-1"></i>
                 Restart Voting</button>
-        }
+        }*@
     </div>
 </div>
 
@@ -88,6 +88,10 @@
                                     <th scope="col">Stake For</th>
                                     <th scope="col">Stake Against</th>
                                     <th scope="col">Vote Date</th>
+                                    @if(Program._settings.DaoBlockchain != null)
+                                    {
+                                        <th scope="col">Deploy Hash</th>
+                                    }
                                 </tr>
                             </thead>
                             <tbody>
@@ -130,6 +134,11 @@
                                         }
 
                                         <td>@item.Date</td>
+
+                                        @if (Program._settings.DaoBlockchain != null)
+                                        {
+                                            <td>@item.DeployHash</td>
+                                        }
                                     </tr>
                                 }
 

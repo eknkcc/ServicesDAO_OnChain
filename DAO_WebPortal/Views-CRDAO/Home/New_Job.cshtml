@@ -149,13 +149,16 @@
                     }
                     else {
                         toastr.warning(result.message);
+                        HideLoader();
                     }
                 },
                 failure: function (response) {
                     toastr.warning("@Lang.ConnectionError");
+                    HideLoader();
                 },
                 error: function (response) {
                     toastr.error("@Lang.UnexpectedError");
+                    HideLoader();
                 }
             });
 

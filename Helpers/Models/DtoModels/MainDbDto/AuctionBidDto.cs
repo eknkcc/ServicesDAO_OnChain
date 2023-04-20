@@ -21,6 +21,6 @@ namespace Helpers.Models.DtoModels.MainDbDto
         public string Referrer { get; set; }
         public string DeployHash { get; set; }
         public int? BlockchainBidID { get; set; }
-
+        public string signedDeployJson { get; set; }
     }
 }

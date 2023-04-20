@@ -22,6 +22,8 @@ namespace Helpers.Models.WebsiteViewModels
         public int? UsersBidId { get; set; }
         public string JobPosterUsername { get; set; }
         public string ExpectedTimeframe { get; set; }
+        public int? BlockChainJobID { get; set; }
+        public int? UsersChainBidId { get; set; }
 
     }
 }

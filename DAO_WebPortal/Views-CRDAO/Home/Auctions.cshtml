@@ -39,10 +39,10 @@
         </ul>
     </div>
     <div class="col-md-6 d-flex justify-content-end">
-        <div class="input-group"  style="height: 30px;max-width:350px">
+        <div class="input-group" style="height: 30px;max-width:350px">
             <span class="input-group-text"><i class="fas fa-search"></i></span>
             <input class="form-control" id="jobQueryFilter" type="text" placeholder="Search job title">
-        </div>  
+        </div>
     </div>
 </div>
 
@@ -61,8 +61,8 @@
                 </div>
 
                 @*<small class="checkbox-inline float-right">
-                        <input type="checkbox" class="mr-2" value="">Show only eligible
-                    </small>*@
+                <input type="checkbox" class="mr-2" value="">Show only eligible
+                </small>*@
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive h-250">
@@ -122,7 +122,7 @@
                                                         @if (rowclass == "eligible")
                                                     {
 
-                                                            <a class="btn btn-sm btn-primary text-white btn-shine me-2" onclick="OpenPaymentConfirmation(@auction.AuctionID, @auction.JobID)">
+                                                            <a class="btn btn-sm btn-primary text-white btn-shine me-2" onclick="OpenPaymentConfirmation(@auction.AuctionID, @auction.JobID, @auction.BlockChainJobID)">
                                                                 <svg class="icon">
                                                                     <use xlink:href="/Home/images/svg/free.svg#cil-send"></use>
                                                                 </svg> Submit Bid
@@ -130,7 +130,7 @@
                                                     }
                                                     else if (auction.UsersBidId != null)
                                                     {
-                                                            <a class="btn btn-sm btn-danger text-white me-2" onclick="DeleteBid(this, @auction.UsersBidId)">
+                                                            <a class="btn btn-sm btn-danger text-white me-2" onclick="DeleteBid(this, @auction.UsersBidId, @auction.UsersChainBidId)">
                                                                 <svg class="icon">
                                                                     <use xlink:href="/Home/images/svg/free.svg#cil-trash"></use>
                                                                 </svg> Delete Bid
@@ -218,7 +218,7 @@
                                                         @if (rowclass == "eligible")
                                                     {
 
-                                                            <a class="btn btn-sm btn-primary text-white btn-shine me-2" onclick="OpenPaymentConfirmation(@auction.AuctionID, @auction.JobID)">
+                                                            <a class="btn btn-sm btn-primary text-white btn-shine me-2" onclick="OpenPaymentConfirmation(@auction.AuctionID, @auction.JobID, @auction.BlockChainJobID)">
                                                                 <svg class="icon">
                                                                     <use xlink:href="/Home/images/svg/free.svg#cil-send"></use>
                                                                 </svg> Submit Bid
@@ -381,7 +381,7 @@
                 </div>
                 <div class="mb-3">
                     <div class="input-group mb-3">
-                         <span class="input-group-text"> <i class="fas fa fa-business-time"></i></span>
+                        <span class="input-group-text"> <i class="fas fa fa-business-time"></i></span>
                         <input class="form-control number" type="text" aria-label="Time" placeholder="Expected Timeframe" id="time"><span class="input-group-text">days</span>
                     </div>
                 </div>
@@ -389,19 +389,19 @@
                 @if (userType == Enums.UserIdentityType.Associate.ToString())
                 {
                     <div class="mb-3">
-                         <div class="input-group mb-3">
-                             <span class="input-group-text"> <i class="fab fa-github" style="font-size:21px"></i></span>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text"> <i class="fab fa-github" style="font-size:21px"></i></span>
                             <input class="form-control" type="text" aria-label="githublink" placeholder="Github Profile Link" id="githublink">
                         </div>
                     </div>
                     <div class="mb-3">
-                         <div class="input-group mb-3">
+                        <div class="input-group mb-3">
                             <span class="input-group-text"> <i class="fas fa fa-id-card" style="font-size:18px"></i></span>
                             <input class="form-control" type="text" aria-label="resumelink" placeholder="Professional Resume Link" id="resumelink">
                         </div>
                     </div>
                     <div class="mb-3">
-                         <div class="input-group mb-3">
+                        <div class="input-group mb-3">
                             <span class="input-group-text"> <i class="fas fa fa-user-check"></i></span>
                             <input class="form-control" type="text" aria-label="referrer" placeholder="Referrer Username (Optional)" id="referrer">
                         </div>
@@ -450,22 +450,22 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <input class="btn-check mr-3" id="btn-check-outlined" type="radio" autocomplete="off" name="btnradio" onclick="SelectVAOption(0)">
+                        <input class="btn-check mr-3" id="btn-check-outlined" type="radio" autocomplete="off" name="btnradio" onclick="SelectVAOption(1)">
                         <label class="btn btn-outline-success w-100 mb-3" for="btn-check-outlined">YES</label>
                     </div>
                     <div class="col-md-6">
-                        <input class="btn-check" id="btn-check-outlined2" type="radio" autocomplete="off" name="btnradio" onclick="SelectVAOption(1)">
+                        <input class="btn-check" id="btn-check-outlined2" type="radio" autocomplete="off" name="btnradio" onclick="SelectVAOption(0)">
                         <label class="btn btn-outline-danger w-100 mb-3" for="btn-check-outlined2">NO</label>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6">
                         <p class="text-justify font-sm pb-3">The Bidder acknowledges and agrees that any Fee deposited in an escrow smart contract with the CRDAO and to be released upon completion of the Task in accordance with <a href="../Public/ossagtc-v2.pdf" target="_blank">Section 4.4</a> will not be allocated in full to the Bidder having completed the Task, but will be distributed and allocated by CRDAO in accordance with the distribution mechanism of Minimum Viable Protocol Requirements for “Blockchain Infrastructure for Measuring Domain Specific Reputation in Autonomous Decentralized and Anonymous Systems” as described in this paper (<a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3125822;">https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3125822;</a> accessed December 20, 2021) (hereinafter “MVPR”). <br><br> <b>Please note that once you become a member, you are automatically becoming part of every future distribution pro rata to your reputation score</b></p>
-                        
-                        <center class="pb-3">
-                            <p class="text-center">Current Reputation Distribution Of Voting Associates</p>
-                            <canvas class="chart" id="reputation-chart2" height="200"></canvas>
-                        </center>
+
+                        @* <center class="pb-3">
+                        <p class="text-center">Current Reputation Distribution Of Voting Associates</p>
+                        <canvas class="chart" id="reputation-chart2" height="200"></canvas>
+                        </center>*@
 
                         <small><b>Your initial reputation calculated as:</b></small><br>
 
@@ -505,9 +505,10 @@
 
         var auctionCountdownDictionary = {};
 
-        var now = new Date(@DateTime.Now.Year, @(DateTime.Now.Month-1), @DateTime.Now.Day, @DateTime.Now.Hour, @DateTime.Now.Minute, @DateTime.Now.Second);
+        var now = new Date(@DateTime.Now.Year, @(DateTime.Now.Month - 1), @DateTime.Now.Day, @DateTime.Now.Hour, @DateTime.Now.Minute, @DateTime.Now.Second);
 
         var selectedAuctionId = 0;
+        var selectedChainJobId = 0;
         var selectedDirection = -1;
         var vareputations = {};
 
@@ -555,7 +556,7 @@
                 url: "../Home/GetVaReputationChart",
                 success: function (result) {
                     vareputations = result;
-                    
+
                     var pieChartOptions = {
                         responsive: false,
                         elements: {
@@ -565,73 +566,73 @@
                         },
                         plugins: {
                             legend: {
-                                position:"right"
+                                position: "right"
                             }
                         },
                     }
 
-                    @* const cardChart1 = new Chart(document.getElementById('reputation-chart'), {
-                        type: 'pie',
-                        data: {
-                                labels: result.labels,
-                                datasets: [{
-                                    label: 'Reputation Distribution',
-                                    data: result.values,
-                                    backgroundColor: [                    
-                                    'rgb(235, 154, 54, 0.65)',
-                                    'rgb(235, 54, 154, 0.65)',
-                                    'rgb(54, 210, 235, 0.65)',
-                                    'rgb(54, 235, 143, 0.65)',
-                                    'rgb(224, 235, 54, 0.65)',
-                                    'rgb(235, 154, 54, 0.65)',
-                                    'rgb(76, 66, 229, 0.65)',
-                                    'rgb(199, 54, 235, 0.65)',
-                                    'rgb(245, 132, 132, 0.65)'
-                                    ],
-                                    hoverOffset: 4
-                                }]
-                        },
-                        options: pieChartOptions
+        @* const cardChart1 = new Chart(document.getElementById('reputation-chart'), {
+                    type: 'pie',
+                    data: {
+                    labels: result.labels,
+                    datasets: [{
+                    label: 'Reputation Distribution',
+                    data: result.values,
+                    backgroundColor: [
+                    'rgb(235, 154, 54, 0.65)',
+                    'rgb(235, 54, 154, 0.65)',
+                    'rgb(54, 210, 235, 0.65)',
+                    'rgb(54, 235, 143, 0.65)',
+                    'rgb(224, 235, 54, 0.65)',
+                    'rgb(235, 154, 54, 0.65)',
+                    'rgb(76, 66, 229, 0.65)',
+                    'rgb(199, 54, 235, 0.65)',
+                    'rgb(245, 132, 132, 0.65)'
+                    ],
+                    hoverOffset: 4
+                    }]
+                    },
+                    options: pieChartOptions
                     }); *@
 
-                    const cardChart2 = new Chart(document.getElementById('reputation-chart2'), {
-                        type: 'pie',
-                        data: {
+                            const cardChart2 = new Chart(document.getElementById('reputation-chart2'), {
+                            type: 'pie',
+                            data: {
                                 labels: result.labels,
                                 datasets: [{
                                     label: 'Reputation Distribution',
                                     data: result.values,
-                                    backgroundColor: [                    
-                                    'rgb(235, 154, 54, 0.65)',
-                                    'rgb(235, 54, 154, 0.65)',
-                                    'rgb(54, 210, 235, 0.65)',
-                                    'rgb(54, 235, 143, 0.65)',
-                                    'rgb(224, 235, 54, 0.65)',
-                                    'rgb(235, 154, 54, 0.65)',
-                                    'rgb(76, 66, 229, 0.65)',
-                                    'rgb(199, 54, 235, 0.65)',
-                                    'rgb(245, 132, 132, 0.65)'
+                                    backgroundColor: [
+                                        'rgb(235, 154, 54, 0.65)',
+                                        'rgb(235, 54, 154, 0.65)',
+                                        'rgb(54, 210, 235, 0.65)',
+                                        'rgb(54, 235, 143, 0.65)',
+                                        'rgb(224, 235, 54, 0.65)',
+                                        'rgb(235, 154, 54, 0.65)',
+                                        'rgb(76, 66, 229, 0.65)',
+                                        'rgb(199, 54, 235, 0.65)',
+                                        'rgb(245, 132, 132, 0.65)'
                                     ],
                                     hoverOffset: 4
                                 }]
-                        },
-                        options: pieChartOptions
-                    });
+                            },
+                            options: pieChartOptions
+                        });
 
                     pieChartOptions.plugins.legend.position = "bottom";
                     const cardChart3 = new Chart(document.getElementById('reputation-chart3'), {
                         type: 'pie',
                         data: {
-                                labels: ["Your Payment (%)", "DAO Policing Fee (%)"],
-                                datasets: [{
-                                    label: 'Payment Distribution',
+                            labels: ["Your Payment (%)", "DAO Policing Fee (%)"],
+                            datasets: [{
+                                label: 'Payment Distribution',
                                 data: [@((1 - DefaultPolicingRate) * 100), @(DefaultPolicingRate * 100)],
-                                    backgroundColor: [                    
+                                backgroundColor: [
                                     'rgb(76, 66, 229, 0.65)',
                                     'rgb(235, 54, 154, 0.65)'
-                                    ],
-                                    hoverOffset: 4
-                                }]
+                                ],
+                                hoverOffset: 4
+                            }]
                         },
                         options: pieChartOptions
                     });
@@ -644,23 +645,22 @@
             }
 
             //Search filter enter keypress event
-            $("#jobQueryFilter").on('keypress',function(e) {
-                if(e.which == 13) {
+            $("#jobQueryFilter").on('keypress', function (e) {
+                if (e.which == 13) {
                     window.location.href = "../Auctions?query=" + $("#jobQueryFilter").val();
                 }
             });
 
-            $('.bidinputsm').keyup(function(event){
+            $('.bidinputsm').keyup(function (event) {
                 $("#calculatedpayment").removeClass("d-none");
                 $('.bidinputsm').val($(this).val());
                 CalculatePayment();
             });
 
             //If user redirected from "Submit Bid" button in the job card
-            if(getQueryParameter("auctionid") != null)
-            {
-                setTimeout(function() {
-                    OpenPaymentConfirmation(parseInt(getQueryParameter("auctionid")), parseInt(getQueryParameter("jobid")));
+            if (getQueryParameter("auctionid") != null) {
+                setTimeout(function () {
+                    OpenPaymentConfirmation(parseInt(getQueryParameter("auctionid")), parseInt(getQueryParameter("jobid")), parseInt(getQueryParameter("chainjobid")));
                 }, 500);
             }
         });
@@ -693,13 +693,6 @@
             if (distance < 0) {
                 document.getElementById("counter_" + id).innerHTML = "EXPIRED";
             }
-        }
-
-        //Opens submit bid modal
-        function OpenAddBidModal(auctionId, jobId) {
-            selectedAuctionId = auctionId;
-            $("#AddBid-Modal").modal("toggle");
-            $("#AddBidModalTitle").text("New Bid for Job #" + jobId);
         }
 
         //Auction bids adding function
@@ -742,60 +735,17 @@
                                 return false;
                             }
 
-                            $(e).prop("disabled", true);
-                            $(e).html('<i class="fas fa-circle-notch fa-spin"></i> Submitting Bid..');
-
-
-                            //Create auction bid model
-                            var price = $('#price').val()
-                            var time = $('#time').val();
-                            var note = $('#note').val();
-                            var reputation = $('#reputation').val();
-                            var github = $('#githublink').val();
-                            var resume = $('#resumelink').val();
-                            var referrer = $('#referrer').val();
-                            var vaOnboarding = true;
-
-                            if(selectedDirection == 1){
-                                vaOnboarding = false;
-                            }
-
-                            //Ajax post action
-                            $.ajax({
-                                type: "POST",
-                                url: "../Home/Auction_Bid_Add",
-                                data: {
-                                    "price": price,
-                                    "time": time,
-                                    "auctionid": selectedAuctionId,
-                                    "associateUserNote": note,
-                                    "reputationStake": reputation,
-                                    "vaOnboarding": vaOnboarding,
-                                    "githubLink": github,
-                                    "resumeLink": resume,
-                                    "referrer": referrer
-                                },
-                                success: function (result) {
-                                    if (result.success) {
-                                        window.location = window.location.href.split("?")[0];
-                                    }
-                                    else {
-                                        toastr.warning(result.message);
-                                        $(e).prop("disabled", false);
-                                        $(e).html('Submit Bid');
-                                    }
-                                },
-                                failure: function (response) {
-                                    toastr.warning("@Lang.ConnectionError");
-                                    $(e).prop("disabled", false);
-                                    $(e).html('Submit Bid');
-                                },
-                                error: function (response) {
-                                    toastr.error("@Lang.UnexpectedError");
-                                    $(e).prop("disabled", false);
-                                    $(e).html('Submit Bid');
+                            if ("@Program._settings.DaoBlockchain.ToString()" == "Casper") {
+                                var vaOnboarding = true;
+                                if (selectedDirection == 0) {
+                                    vaOnboarding = false;
                                 }
-                            });
+
+                                CheckWalletAndSendDeploy("../CasperChain/GetSubmitBidDeploy?jobofferid=" + selectedChainJobId + "&time=" + $("#time").val() + "&userpayment=" + $("#price").val() + "&repstake=" + $("#reputation").val() + "&onboard=" + vaOnboarding, PostNewBid);
+                            }
+                            else {
+                                PostNewBid("")
+                            }
 
                         }
 
@@ -805,37 +755,90 @@
 
         }
 
-        //Payment policy confirmation
-        function OpenPaymentConfirmation(auctionId, jobId){
-            selectedAuctionId = auctionId;
-            $("#AddBidModalTitle").text("New Bid for Job #" + jobId);
+        function PostNewBid(signedDeployJson) {
+            //Create auction bid model
+            var price = $('#price').val()
+            var time = $('#time').val();
+            var note = $('#note').val();
+            var reputation = $('#reputation').val();
+            var github = $('#githublink').val();
+            var resume = $('#resumelink').val();
+            var referrer = $('#referrer').val();
+            var vaOnboarding = true;
 
-            @if(userType == "Associate")
-            {
-                @Html.Raw("$('#VAOnboarding-Modal').modal('toggle');")
+            if (selectedDirection == 0) {
+                vaOnboarding = false;
             }
-            else
-            {
-                @Html.Raw("$('#AddBid-Modal').modal('toggle');")
-            }
+
+            //Ajax post action
+            $.ajax({
+                type: "POST",
+                url: "../Home/Auction_Bid_Add",
+                data: {
+                    "price": price,
+                    "time": time,
+                    "auctionid": selectedAuctionId,
+                    "associateUserNote": note,
+                    "reputationStake": reputation,
+                    "vaOnboarding": vaOnboarding,
+                    "githubLink": github,
+                    "resumeLink": resume,
+                    "referrer": referrer,
+                    "signedDeployJson": JSON.stringify(signedDeployJson)
+                },
+                success: function (result) {
+                    if (result.success) {
+                        window.location = window.location.href.split("?")[0];
+                    }
+                    else {
+                        toastr.warning(result.message);
+                        $(e).prop("disabled", false);
+                        $(e).html('Submit Bid');
+                    }
+                },
+                failure: function (response) {
+                    toastr.warning("@Lang.ConnectionError");
+                    $(e).prop("disabled", false);
+                    $(e).html('Submit Bid');
+                },
+                error: function (response) {
+                    toastr.error("@Lang.UnexpectedError");
+                    $(e).prop("disabled", false);
+                    $(e).html('Submit Bid');
+                }
+            });
         }
 
+        //Payment policy confirmation
+        function OpenPaymentConfirmation(auctionId, jobId, chainjobid) {
+            selectedAuctionId = auctionId;
+            selectedChainJobId = chainjobid;
+            $("#AddBidModalTitle").text("New Bid for Job #" + jobId);
+
+        @if (userType == "Associate")
+        {
+            @Html.Raw("$('#VAOnboarding-Modal').modal('toggle');")
+        }
+        else
+        {
+            @Html.Raw("$('#AddBid-Modal').modal('toggle');")
+        }
+                }
+
         //Payment policy agree
-        function AgreeTerms(){
-            if(selectedDirection == 0 || selectedDirection == 1)
-            {
+        function AgreeTerms() {
+            if (selectedDirection == 0 || selectedDirection == 1) {
                 $("#VAOnboarding-Modal").modal("toggle");
-                
+
                 $("#AddBid-Modal").modal("toggle");
             }
-            else
-            {
+            else {
                 toastr.warning("Please select an option.");
             }
         }
 
         //Bid delete function
-        function DeleteBid(e, bidId) {
+        function DeleteBid(e, bidId, chainBidId) {
             $.confirm({
                 title: 'Confirmation',
                 content: 'Are you sure you want to delete your bid ?',
@@ -849,82 +852,90 @@
                         action: function () {
                             $(e).prop("disabled", true);
                             $(e).html('<i class="fas fa-circle-notch fa-spin"></i> Deleting Bid..');
-                                //Ajax get action
-                                $.ajax({
-                                    type: "GET",
-                                    url: "../Home/Auction_Bid_Delete",
-                                    data: {
-                                        "id": bidId,
-                                    },
-                                    success: function (result) {
-                                        if (result.success) {
-                                            window.location = window.location.href.split("?")[0];
-                                        }
-                                        else {
-                                            toastr.warning(result.message);
-                                            $(e).prop("disabled", false);
-                                            $(e).html('Delete Bid');
-                                        }
-                                    },
-                                    failure: function (response) {
-                                        toastr.warning("@Lang.ConnectionError");
-                                        $(e).prop("disabled", false);
-                                        $(e).html('Delete Bid');
-                                    },
-                                    error: function (response) {
-                                        toastr.error("@Lang.UnexpectedError");
-                                        $(e).prop("disabled", false);
-                                        $(e).html('Delete Bid');
-                                    }
-                                });
+
+                            if ("@Program._settings.DaoBlockchain.ToString()" == "Casper") {
+                                CheckWalletAndSendDeploy("../CasperChain/GetCancelBidDeploy?bidid=" + chainBidId, DeleteBidComplete);
+                            }
+                            else {
+                                DeleteBidComplete("")
+                            }
+
+
 
                         }
                     }
                 }
             });
         }
-        
+
+        function DeleteBidComplete(signedDeployJson) {
+            //Ajax get action
+            $.ajax({
+                type: "POST",
+                url: "../Home/Auction_Bid_Delete",
+                data: {
+                    "id": bidId,
+                    "signedDeployJson": JSON.stringify(signedDeployJson)
+                },
+                success: function (result) {
+                    if (result.success) {
+                        window.location = window.location.href.split("?")[0];
+                    }
+                    else {
+                        toastr.warning(result.message);
+                        $(e).prop("disabled", false);
+                        $(e).html('Delete Bid');
+                    }
+                },
+                failure: function (response) {
+                    toastr.warning("@Lang.ConnectionError");
+                    $(e).prop("disabled", false);
+                    $(e).html('Delete Bid');
+                },
+                error: function (response) {
+                    toastr.error("@Lang.UnexpectedError");
+                    $(e).prop("disabled", false);
+                    $(e).html('Delete Bid');
+                }
+            });
+        }
+
         //User VA Onboarding select function
         function SelectVAOption(direction) {
             selectedDirection = direction;
 
-            if($('.bidinputsm').val() != "")
-            {
+            if ($('.bidinputsm').val() != "") {
                 CalculatePayment();
             }
         }
 
         //Calculator method based on user's va onboarding selection
-        function CalculatePayment()
-        {
+        function CalculatePayment() {
             var price = $('.bidinputsm').val();
 
-            if(selectedDirection == 0)
-            {
+            if (selectedDirection == 1) {
                 var totalreps = 0;
                 for (var i = 0; i < vareputations.labels.length; i++) {
-                    if(vareputations.labels[i].indexOf("+") != -1){
-                        totalreps += parseInt(vareputations.labels[i].replace("+","")) * parseInt(vareputations.values[i]);
+                    if (vareputations.labels[i].indexOf("+") != -1) {
+                        totalreps += parseInt(vareputations.labels[i].replace("+", "")) * parseInt(vareputations.values[i]);
                     }
-                    else if(vareputations.labels[i].indexOf("-") != -1){
+                    else if (vareputations.labels[i].indexOf("-") != -1) {
                         totalreps += parseInt(vareputations.labels[i].split("-")[0]) * parseInt(vareputations.values[i]);
                     }
-                    else{
+                    else {
                         totalreps += parseInt(vareputations.labels[i]) * parseInt(vareputations.values[i]);
                     }
-                }   
+                }
 
                 var initialrep = price * @ReputationConversionRate * (1 - @DefaultPolicingRate);
                 var ratio = parseFloat(initialrep / (totalreps + initialrep));
-                
+
                 $("#paymenttotal").html(parseFloat(price * ratio).toFixed(2) + " €");
             }
-            else if(selectedDirection == 1)
-            {
+            else if (selectedDirection == 0) {
                 $("#paymenttotal").html((parseFloat(price) - (parseFloat(price) * @DefaultPolicingRate)) + " €");
             }
-            else
-            {
+            else {
                 $("#paymenttotal").html("Please select an onboarding option");
             }
         }
