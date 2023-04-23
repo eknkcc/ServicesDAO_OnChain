@@ -75,7 +75,7 @@ namespace DAO_DbService
             else if (Program._settings.DaoBlockchain == Enums.Blockchain.Casper)
             {
                 SyncDaoSettingsCasperChain(null, null);
-                daoSettingsTimer = new System.Timers.Timer(60000);
+                daoSettingsTimer = new System.Timers.Timer(300000);
                 daoSettingsTimer.Elapsed += SyncDaoSettingsCasperChain;
                 daoSettingsTimer.AutoReset = true;
                 daoSettingsTimer.Enabled = true;
@@ -89,12 +89,6 @@ namespace DAO_DbService
                 SyncBidsCasperChain(null, null);
                 jobStatusTimer = new System.Timers.Timer(300000);
                 jobStatusTimer.Elapsed += SyncBidsCasperChain;
-                jobStatusTimer.AutoReset = true;
-                jobStatusTimer.Enabled = true;
-
-                CheckJobStatusOffChain(null, null);
-                jobStatusTimer = new System.Timers.Timer(60000);
-                jobStatusTimer.Elapsed += CheckJobStatusOffChain;
                 jobStatusTimer.AutoReset = true;
                 jobStatusTimer.Enabled = true;
             }
@@ -157,85 +151,88 @@ namespace DAO_DbService
                 List<JobPost> dbWaitingJobs = new List<JobPost>();
                 List<JobPost> dbInternalBiddingJobs = new List<JobPost>();
 
-                PaginatedResponse<JobOfferDetailed> chainJobs = Serializers.DeserializeJson<PaginatedResponse<JobOfferDetailed>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetJobOffers?page=1&page_size=100&order_direction=DESC"));
-
                 using (dao_maindb_context db = new dao_maindb_context())
                 {
-                    dbWaitingJobs = db.JobPosts.Where(x => x.Status == Enums.JobStatusTypes.ChainApprovalPending && x.DeployHash != null && x.BlockchainJobPostID == null).ToList();
+                    dbWaitingJobs = db.JobPosts.Where(x => x.Status == Enums.JobStatusTypes.InternalAuction && x.DeployHash != null && x.BlockchainJobPostID == null).ToList();
                     dbInternalBiddingJobs = db.JobPosts.Where(x => x.Status == Enums.JobStatusTypes.InternalAuction && x.DeployHash != null && x.BlockchainJobPostID != null).ToList();
                 }
 
-                //Sync blockchainjob ids
-                foreach (var item in dbWaitingJobs)
+                if(dbWaitingJobs.Count > 0 || dbInternalBiddingJobs.Count > 0)
                 {
-                    if (chainJobs.data.Count(x => x.deploy_hash == item.DeployHash) > 0)
+                    PaginatedResponse<JobOfferDetailed> chainJobs = Serializers.DeserializeJson<PaginatedResponse<JobOfferDetailed>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetJobOffers?page=1&page_size=100&order_direction=DESC"));
+
+                    //Sync blockchainjob ids
+                    foreach (var item in dbWaitingJobs)
                     {
-                        var chainJob = chainJobs.data.First(x => x.deploy_hash == item.DeployHash);
-
-                        using (dao_maindb_context db = new dao_maindb_context())
+                        if (chainJobs.data.Count(x => x.deploy_hash == item.DeployHash) > 0)
                         {
-                            var job = db.JobPosts.Find(item.JobID);
-                            job.BlockchainJobPostID = chainJob.job_offer_id;
-                            job.Status = JobStatusTypes.InternalAuction;
-                            db.SaveChanges();
+                            var chainJob = chainJobs.data.First(x => x.deploy_hash == item.DeployHash);
 
-                            //Set auction end dates
-                            int InternalAuctionTime = Convert.ToInt32(db.DaoSettings.First(x => x.Key == "InternalAuctionTime").Value);
-                            int PublicAuctionTime = Convert.ToInt32(db.DaoSettings.First(x => x.Key == "PublicAuctionTime").Value);
-
-                            DateTime internalAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime);
-                            DateTime publicAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime + PublicAuctionTime);
-
-                            Auction AuctionModel = new Auction()
-                            {
-                                JobID = job.JobID,
-                                JobPosterUserID = job.UserID,
-                                CreateDate = DateTime.Now,
-                                Status = AuctionStatusTypes.InternalBidding,
-                                InternalAuctionEndDate = internalAuctionEndDate,
-                                PublicAuctionEndDate = publicAuctionEndDate,
-                                BlockchainAuctionID = chainJob.job_offer_id
-                            };
-
-                            db.Auctions.Add(AuctionModel);
-                            db.SaveChanges();
-                        }
-                    }
-                }
-
-                //Sync auction process
-                foreach (var item in dbInternalBiddingJobs)
-                {
-                    if (chainJobs.data.Count(x => x.deploy_hash == item.DeployHash) > 0)
-                    {
-                        var chainJob = chainJobs.data.First(x => x.deploy_hash == item.DeployHash);
-
-                        //Public auction started on blockchain
-                        if (chainJob.auction_type_id == 2)
-                        {
                             using (dao_maindb_context db = new dao_maindb_context())
                             {
                                 var job = db.JobPosts.Find(item.JobID);
-                                job.Status = JobStatusTypes.PublicAuction;
+                                job.BlockchainJobPostID = chainJob.job_offer_id;
                                 db.SaveChanges();
 
-                                var auction = db.Auctions.First(x => x.JobID == item.JobID);
-                                auction.Status = AuctionStatusTypes.PublicBidding;
+                                //Set auction end dates
+                                int InternalAuctionTime = Convert.ToInt32(db.DaoSettings.First(x => x.Key == "InternalAuctionTime").Value);
+                                int PublicAuctionTime = Convert.ToInt32(db.DaoSettings.First(x => x.Key == "PublicAuctionTime").Value);
+
+                                DateTime internalAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime);
+                                DateTime publicAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime + PublicAuctionTime);
+
+                                Auction AuctionModel = new Auction()
+                                {
+                                    JobID = job.JobID,
+                                    JobPosterUserID = job.UserID,
+                                    CreateDate = DateTime.Now,
+                                    Status = AuctionStatusTypes.InternalBidding,
+                                    InternalAuctionEndDate = internalAuctionEndDate,
+                                    PublicAuctionEndDate = publicAuctionEndDate,
+                                    BlockchainAuctionID = chainJob.job_offer_id
+                                };
+
+                                db.Auctions.Add(AuctionModel);
                                 db.SaveChanges();
+                            }
+                        }
+                    }
 
-                                //Send notification email to job poster
-                                var jobPoster = db.Users.Find(auction.JobPosterUserID);
+                    //Sync auction process
+                    foreach (var item in dbInternalBiddingJobs)
+                    {
+                        if (chainJobs.data.Count(x => x.deploy_hash == item.DeployHash) > 0)
+                        {
+                            var chainJob = chainJobs.data.First(x => x.deploy_hash == item.DeployHash);
 
-                                //Set email title and content
-                                string emailTitle = "Your job is in public bidding phase.";
-                                string emailContent = "Greetings, " + jobPoster.NameSurname.Split(' ')[0] + ", <br><br> Internal auction phase is finished for your job. There are no winning bids selected. <br><br> Your job will be in public bidding phase until " + Convert.ToDateTime(auction.PublicAuctionEndDate).ToString("MM.dd.yyyy HH:mm");
-                                //Send email
-                                SendEmailModel emailModel = new SendEmailModel() { Subject = emailTitle, Content = emailContent, To = new List<string> { jobPoster.Email } };
-                                Program.rabbitMq.Publish(Helpers.Constants.FeedNames.NotificationFeed, "email", Helpers.Serializers.Serialize(emailModel));
+                            //Public auction started on blockchain
+                            if (chainJob.auction_type_id == 2)
+                            {
+                                using (dao_maindb_context db = new dao_maindb_context())
+                                {
+                                    var job = db.JobPosts.Find(item.JobID);
+                                    job.Status = JobStatusTypes.PublicAuction;
+                                    db.SaveChanges();
+
+                                    var auction = db.Auctions.First(x => x.JobID == item.JobID);
+                                    auction.Status = AuctionStatusTypes.PublicBidding;
+                                    db.SaveChanges();
+
+                                    //Send notification email to job poster
+                                    var jobPoster = db.Users.Find(auction.JobPosterUserID);
+
+                                    //Set email title and content
+                                    string emailTitle = "Your job is in public bidding phase.";
+                                    string emailContent = "Greetings, " + jobPoster.NameSurname.Split(' ')[0] + ", <br><br> Internal auction phase is finished for your job. There are no winning bids selected. <br><br> Your job will be in public bidding phase until " + Convert.ToDateTime(auction.PublicAuctionEndDate).ToString("MM.dd.yyyy HH:mm");
+                                    //Send email
+                                    SendEmailModel emailModel = new SendEmailModel() { Subject = emailTitle, Content = emailContent, To = new List<string> { jobPoster.Email } };
+                                    Program.rabbitMq.Publish(Helpers.Constants.FeedNames.NotificationFeed, "email", Helpers.Serializers.Serialize(emailModel));
+                                }
                             }
                         }
                     }
                 }
+
             }
             catch (Exception ex)
             {

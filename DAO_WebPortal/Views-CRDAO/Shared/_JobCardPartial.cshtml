@@ -35,12 +35,12 @@
 
         @if (Model.Status == Helpers.Constants.Enums.JobStatusTypes.InformalVoting)
         {
-            <a href="../Votings" class="badge bg-success float-right mt-1">Informal Voting</a>
+            <a href="../Votings" class="badge bg-success float-right mt-1">Voting</a>
         }
 
         @if (Model.Status == Helpers.Constants.Enums.JobStatusTypes.FormalVoting)
         {
-            <span href="../Votings" class="badge bg-success float-right mt-1">Formal Voting</span>
+            <span href="../Votings" class="badge bg-success float-right mt-1">Voting</span>
         }
 
         @if (Model.Status == Helpers.Constants.Enums.JobStatusTypes.Completed)

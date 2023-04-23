@@ -1340,6 +1340,9 @@ namespace DAO_WebPortal.Controllers
                 {
                     ChainActionDto chainAction = CreateChainActionRecord(Model.signedDeployJson, HttpContext.Session.GetString("WalletAddress"), ChainActionTypes.Submit_Bid);
 
+                    int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
+                    string token = HttpContext.Session.GetString("Token");
+
                     new Thread(() =>
                     {
                         Thread.CurrentThread.IsBackground = true;
@@ -1354,16 +1357,16 @@ namespace DAO_WebPortal.Controllers
                             Model.DeployHash = deployResult.DeployHash;
 
                             //Post model to ApiGateway
-                            Model = Helpers.Serializers.DeserializeJson<AuctionBidDto>(Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Db/AuctionBid/Post", Helpers.Serializers.SerializeJson(Model), HttpContext.Session.GetString("Token")));
+                            Model = Helpers.Serializers.DeserializeJson<AuctionBidDto>(Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Db/AuctionBid/Post", Helpers.Serializers.SerializeJson(Model), token));
 
                             if (Model != null && Model.AuctionBidID > 0)
                             {
                                 result.Success = true;
                                 result.Message = "Bid succesffully submitted.";
-                                result.Content = Model;                               
+                                result.Content = Model;
                             }
 
-                            Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "The user has bid on the auction. Auction #" + Model.AuctionID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+                            Program.monitizer.AddUserLog(userid, Helpers.Constants.Enums.UserLogType.Request, "The user has bid on the auction. Auction #" + Model.AuctionID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
 
                             //Set server side toastr because page will be redirected
                             TempData["toastr-message"] = result.Message;
@@ -1464,6 +1467,9 @@ namespace DAO_WebPortal.Controllers
                 {
                     ChainActionDto chainAction = CreateChainActionRecord(signedDeployJson, HttpContext.Session.GetString("WalletAddress"), ChainActionTypes.Cancel_Bid);
 
+                    int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
+                    string token = HttpContext.Session.GetString("Token");
+
                     new Thread(() =>
                     {
                         Thread.CurrentThread.IsBackground = true;
@@ -1477,10 +1483,10 @@ namespace DAO_WebPortal.Controllers
                         {
 
                             //Release staked reputation for the bid.
-                            SimpleResponse releaseStakeResponse = Helpers.Serializers.DeserializeJson<SimpleResponse>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationStake/ReleaseStakesByType?referenceID=" + id + "&reftype=" + Enums.StakeType.Bid, HttpContext.Session.GetString("Token")));
+                            SimpleResponse releaseStakeResponse = Helpers.Serializers.DeserializeJson<SimpleResponse>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Reputation/UserReputationStake/ReleaseStakesByType?referenceID=" + id + "&reftype=" + Enums.StakeType.Bid, token));
 
                             //Post model to ApiGateway
-                            var deleteBidResponse = Helpers.Serializers.DeserializeJson<bool>(Helpers.Request.Delete(Program._settings.Service_ApiGateway_Url + "/Db/AuctionBid/Delete?id=" + id, HttpContext.Session.GetString("Token")));
+                            var deleteBidResponse = Helpers.Serializers.DeserializeJson<bool>(Helpers.Request.Delete(Program._settings.Service_ApiGateway_Url + "/Db/AuctionBid/Delete?id=" + id, token));
 
                             if (deleteBidResponse)
                             {
@@ -1491,7 +1497,7 @@ namespace DAO_WebPortal.Controllers
                                 TempData["toastr-message"] = result.Message;
                                 TempData["toastr-type"] = "success";
 
-                                Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "The user deleted bid on the auction. Auction #" + auctionBid.AuctionID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+                                Program.monitizer.AddUserLog(userid, Helpers.Constants.Enums.UserLogType.Request, "The user deleted bid on the auction. Auction #" + auctionBid.AuctionID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
                             }
 
                         }
@@ -1528,7 +1534,7 @@ namespace DAO_WebPortal.Controllers
 
                     return Json(result);
                 }
-      
+
                 return Json(result);
             }
             catch (Exception ex)
@@ -1580,6 +1586,9 @@ namespace DAO_WebPortal.Controllers
                 {
                     ChainActionDto chainAction = CreateChainActionRecord(signedDeployJson, HttpContext.Session.GetString("WalletAddress"), ChainActionTypes.Pick_Bid);
 
+                    int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
+                    string token = HttpContext.Session.GetString("Token");
+
                     new Thread(() =>
                     {
                         Thread.CurrentThread.IsBackground = true;
@@ -1593,11 +1602,11 @@ namespace DAO_WebPortal.Controllers
                         {
 
                             //Post bid
-                            bool bidChooseResult = Helpers.Serializers.DeserializeJson<bool>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Auction/SetWinnerBid?bidId=" + bidId, HttpContext.Session.GetString("Token")));
+                            bool bidChooseResult = Helpers.Serializers.DeserializeJson<bool>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Auction/SetWinnerBid?bidId=" + bidId, token));
                             if (bidChooseResult)
                             {
                                 //Change job status to Auction Completed
-                                JobPostDto jobStatusResult = Helpers.Serializers.DeserializeJson<JobPostDto>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/ChangeJobStatus?jobid=" + auction.JobID + "&status=" + Helpers.Constants.Enums.JobStatusTypes.AuctionCompleted, HttpContext.Session.GetString("Token")));
+                                JobPostDto jobStatusResult = Helpers.Serializers.DeserializeJson<JobPostDto>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/ChangeJobStatus?jobid=" + auction.JobID + "&status=" + Helpers.Constants.Enums.JobStatusTypes.AuctionCompleted, token));
 
                                 if (jobStatusResult.JobID > 0)
                                 {
@@ -1608,7 +1617,7 @@ namespace DAO_WebPortal.Controllers
                                     TempData["toastr-message"] = result.Message;
                                     TempData["toastr-type"] = "success";
 
-                                    Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "Job poster selected the winner bid. Job #" + auction.JobID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+                                    Program.monitizer.AddUserLog(userid, Helpers.Constants.Enums.UserLogType.Request, "Job poster selected the winner bid. Job #" + auction.JobID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
 
                                     //Send notification email to winner
                                     //Set email title and content
@@ -2043,6 +2052,9 @@ namespace DAO_WebPortal.Controllers
                 {
                     ChainActionDto chainAction = CreateChainActionRecord(signedDeployJson, HttpContext.Session.GetString("WalletAddress"), ChainActionTypes.Submit_Vote);
 
+                    int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
+                    string token = HttpContext.Session.GetString("Token");
+
                     new Thread(() =>
                     {
                         Thread.CurrentThread.IsBackground = true;
@@ -2055,14 +2067,14 @@ namespace DAO_WebPortal.Controllers
                         if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
                         {
 
-                            string jsonResponse = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Vote/SubmitVote?VotingID=" + VotingID + "&UserID=" + Convert.ToInt32(HttpContext.Session.GetInt32("UserID")) + "&Direction=" + Direction + "&ReputationStake=" + ReputationStake.ToString().Replace(",", "."), HttpContext.Session.GetString("Token"));
+                            string jsonResponse = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Vote/SubmitVote?VotingID=" + VotingID + "&UserID=" + userid + "&Direction=" + Direction + "&ReputationStake=" + ReputationStake.ToString().Replace(",", "."), token);
                             SimpleResponse votePostResponse = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResponse);
 
                             //Set server side toastr because page will be redirected
                             TempData["toastr-message"] = result.Message;
                             TempData["toastr-type"] = "success";
 
-                            Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "User voted job. Voting #" + VotingID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+                            Program.monitizer.AddUserLog(userid, Helpers.Constants.Enums.UserLogType.Request, "User voted job. Voting #" + VotingID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
                         }
 
                         Program.chainQue.RemoveAt(Program.chainQue.IndexOf(chainAction));

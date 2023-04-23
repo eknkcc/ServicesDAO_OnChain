@@ -63,7 +63,7 @@
                     </thead>
                     <tbody>
                         @{int Count = 0;}
-                        @foreach (var item in Model.BidItems)
+                        @foreach (var item in Model.BidItems.Where(x=>x.BlockchainBidId != null))
                         {
                             Count++;
 

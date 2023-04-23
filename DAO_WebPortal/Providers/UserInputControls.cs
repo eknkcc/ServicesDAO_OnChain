@@ -227,17 +227,18 @@ namespace DAO_WebPortal.Providers
                 return new SimpleResponse { Success = false, Message = "Budget must be a positive number" };
             }
 
+            long timeframestamp = 0;
             try
             {
                 var enddate = DateTime.Now.AddDays(timeframe);
-                timeframe = ((DateTimeOffset)enddate).ToUnixTimeMilliseconds();
+                timeframestamp = ((DateTimeOffset)enddate).ToUnixTimeMilliseconds();
             }
             catch
             {
                 return new SimpleResponse { Success = false, Message = "Timeframe parse error" };
             }
 
-            return new SimpleResponse { Success = true, Content = new { timeframe = timeframe } };
+            return new SimpleResponse { Success = true, Content = new { timeframe = timeframestamp } };
         }
         public static SimpleResponse ControlSubmitBidRequest(uint jobofferid, long time, ulong userpayment, ulong repstake, bool onboard)
         {
@@ -250,26 +251,27 @@ namespace DAO_WebPortal.Providers
             {
                 return new SimpleResponse { Success = false, Message = "Timeframe must be a positive number" };
             }
-            if (jobofferid <= 0)
+            if (jobofferid < 0)
             {
                 return new SimpleResponse { Success = false, Message = "Job offer id not found" };
             }
 
+            long timeframestamp = 0;
             try
             {
                 var enddate = DateTime.Now.AddDays(time);
-                time = ((DateTimeOffset)enddate).ToUnixTimeMilliseconds();
+                timeframestamp = ((DateTimeOffset)enddate).ToUnixTimeMilliseconds();
             }
             catch
             {
                 return new SimpleResponse { Success = false, Message = "Timeframe parse error" };
             }
 
-            return new SimpleResponse { Success = true, Content = new { time = time } };
+            return new SimpleResponse { Success = true, Content = new { time = timeframestamp } };
         }
         public static SimpleResponse ControlCancelBidRequest(uint bidid)
         {
-            if (bidid <= 0)
+            if (bidid < 0)
             {
                 return new SimpleResponse { Success = false, Message = "Bid ID must be a positive number" };
             }
@@ -278,11 +280,11 @@ namespace DAO_WebPortal.Providers
         }
         public static SimpleResponse ControlPickBidRequest(uint bidid, uint jobid)
         {
-            if (bidid <= 0)
+            if (bidid < 0)
             {
                 return new SimpleResponse { Success = false, Message = "Bid ID must be a positive number" };
             }
-            if (jobid <= 0)
+            if (jobid < 0)
             {
                 return new SimpleResponse { Success = false, Message = "Job ID must be a positive number" };
             }
@@ -295,7 +297,7 @@ namespace DAO_WebPortal.Providers
             {
                 return new SimpleResponse { Success = false, Message = "Document proof cannot be empty." };
             }
-            if (jobid <= 0)
+            if (jobid < 0)
             {
                 return new SimpleResponse { Success = false, Message = "Job ID must be a positive number" };
             }
@@ -308,7 +310,7 @@ namespace DAO_WebPortal.Providers
             {
                 return new SimpleResponse { Success = false, Message = "Document proof cannot be empty." };
             }
-            if (jobid <= 0)
+            if (jobid < 0)
             {
                 return new SimpleResponse { Success = false, Message = "Job ID must be a positive number" };
             }

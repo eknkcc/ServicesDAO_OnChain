@@ -555,9 +555,9 @@ namespace DAO_CasperChainService.Controllers
             try
             {
                 //Get Total Reputation of User from Middleware
-                string reputationSnapshotsJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/job-offers" + additionalParametersStr);
+                string jobsJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/job-offers" + additionalParametersStr);
                 //Parse response
-                response = Helpers.Serializers.DeserializeJson<PaginatedResponse<JobOfferDetailed>>(reputationSnapshotsJson);
+                response = Helpers.Serializers.DeserializeJson<PaginatedResponse<JobOfferDetailed>>(jobsJson);
             }
             catch (Exception ex)
             {
@@ -606,9 +606,9 @@ namespace DAO_CasperChainService.Controllers
             try
             {
                 //Get Total Reputation of User from Middleware
-                string reputationSnapshotsJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/job-offers/" + jobid + "/bids" + additionalParameters);
+                string bidsJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/job-offers/" + jobid + "/bids" + additionalParametersStr);
                 //Parse response
-                response = Helpers.Serializers.DeserializeJson<PaginatedResponse<Bid>>(reputationSnapshotsJson);
+                response = Helpers.Serializers.DeserializeJson<PaginatedResponse<Bid>>(bidsJson);
             }
             catch (Exception ex)
             {

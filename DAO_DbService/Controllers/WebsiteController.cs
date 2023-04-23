@@ -594,7 +594,8 @@ namespace DAO_DbService.Controllers
                                   Price = actbid.Price,
                                   ReputationStake = actbid.ReputationStake,
                                   Time = actbid.Time,
-                                  AssociateUserNote = actbid.AssociateUserNote
+                                  AssociateUserNote = actbid.AssociateUserNote,
+                                  BlockchainBidID = actbid.BlockchainBidID
                               }).ToList();
                 }
             }

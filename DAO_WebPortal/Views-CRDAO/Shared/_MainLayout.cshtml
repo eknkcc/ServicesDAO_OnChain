@@ -104,18 +104,21 @@
                 </a>
             </li>
 
-            @if (httpContextAccessor.HttpContext.Session.GetString("UserType") ==
-            Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString() ||
-            httpContextAccessor.HttpContext.Session.GetString("UserType") ==
-            Helpers.Constants.Enums.UserIdentityType.Admin.ToString())
+            @if (Program._settings.DaoBlockchain == null)
             {
-                <li class="nav-item">
-                    <a class="nav-link link-load" href="../VA-Directory">
-                        <svg class="nav-icon">
-                            <use xlink:href="/Home/images/svg/free.svg#cil-address-book"></use>
-                        </svg> VA Directory
-                    </a>
-                </li>
+                @if (httpContextAccessor.HttpContext.Session.GetString("UserType") ==
+               Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString() ||
+               httpContextAccessor.HttpContext.Session.GetString("UserType") ==
+               Helpers.Constants.Enums.UserIdentityType.Admin.ToString())
+                {
+                    <li class="nav-item">
+                        <a class="nav-link link-load" href="../VA-Directory">
+                            <svg class="nav-icon">
+                                <use xlink:href="/Home/images/svg/free.svg#cil-address-book"></use>
+                            </svg> VA Directory
+                        </a>
+                    </li>
+                }
             }
 
             <li class="nav-item">
@@ -732,8 +735,7 @@
 
         async function DetectUserWalletChange() {
             //Display wallet change message if user connected with a different wallet
-            if ('@httpContextAccessor.HttpContext.Session.GetInt32("ChainSign")' == 1) 
-            {
+            if ('@httpContextAccessor.HttpContext.Session.GetInt32("ChainSign")' == 1) {
                 var publicAddress = await window.casperlabsHelper.getActivePublicKey();
 
                 if ('@httpContextAccessor.HttpContext.Session.GetString("WalletAddress")' != publicAddress && @httpContextAccessor.HttpContext.Session.GetInt32("UserID") != 0) {

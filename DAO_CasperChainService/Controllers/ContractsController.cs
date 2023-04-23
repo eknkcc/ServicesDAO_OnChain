@@ -66,20 +66,20 @@ namespace DAO_CasperChainService.Controllers
                     else
                     {
                         chainAction.Status = Enums.ChainActionStatus.BlockchainError.ToString();
-                        chainAction.Result += "Blockchain Error: " + parsedResult;
+                        chainAction.Result = "Blockchain Error: " + parsedResult + Environment.NewLine + chainAction.Result;
                     }
                 }
                 else
                 {
                     chainAction.Status = Enums.ChainActionStatus.Failed.ToString();
-                    chainAction.Result += Environment.NewLine + deployResponse.Error.Message;
+                    chainAction.Result = deployResponse.Error.Message + Environment.NewLine + chainAction.Result;
                 }
             }
             catch (Exception ex)
             {
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
                 chainAction.Status = Enums.ChainActionStatus.Error.ToString();
-                chainAction.Result += Environment.NewLine + ex.Message;
+                chainAction.Result = ex.Message + Environment.NewLine + chainAction.Result;
             }
 
             return chainAction;
@@ -207,7 +207,7 @@ namespace DAO_CasperChainService.Controllers
                     Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
                     Ttl = 1800000,
                     ChainName = Program._settings.ChainName,
-                    GasPrice = 1
+                    GasPrice = 3
                 };
                 var payment = new ModuleBytesDeployItem(4_000_000_000_000);
 

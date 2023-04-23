@@ -12,7 +12,7 @@ namespace Helpers.Models.CasperServiceModels
         public int bid_id { get; set; }
         public string caller { get; set; }
         public string deploy_hash { get; set; }
-        public int finish_time { get; set; }
+        public long finish_time { get; set; }
         public string job_poster { get; set; }
         public JobOfferStatus job_status_id { get; set; }
         public string result { get; set; }
