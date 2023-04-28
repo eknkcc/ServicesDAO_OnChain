@@ -203,7 +203,7 @@ namespace DAO_WebPortal.Controllers
                 long time = (long)((dynamic)controlResult.Content).timeframe;
 
                 //Get model from ApiGateway
-                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/BidEscrowPostJobOffer?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&expectedtimeframe=" + time + "&budget=" + budget);
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/BidEscrowPostJobOffer?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&expectedtimeframe=" + time + "&budget=" + budget * 1000000);
                 //Parse response
                 SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
 
@@ -227,8 +227,17 @@ namespace DAO_WebPortal.Controllers
 
                 long timeframe = (long)((dynamic)controlResult.Content).time;
 
-                //Get model from ApiGateway
-                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/BidEscrowSubmitBid?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&jobofferid=" + jobofferid + "&time=" + timeframe + "&userpayment=" + userpayment + "&repstake=" + repstake + "&onboard=" + onboard);
+                string deployJson = "";
+                if(HttpContext.Session.GetString("UserType") == Enums.UserIdentityType.VotingAssociate.ToString())
+                {                
+                    deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/BidEscrowSubmitBidVA?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&jobofferid=" + jobofferid + "&time=" + timeframe + "&repstake=" + repstake);
+                }
+                else
+                {
+                    deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/BidEscrowSubmitBid?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&jobofferid=" + jobofferid + "&time=" + timeframe + "&userpayment=" + userpayment * 1000000 + "&onboard=" + onboard);
+                }
+
+
                 //Parse response
                 SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
 
@@ -265,7 +274,7 @@ namespace DAO_WebPortal.Controllers
                 return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
             }
         }
-        public JsonResult GetPickBidDeploy(uint jobid, uint bidid)
+        public JsonResult GetPickBidDeploy(uint jobid, uint bidid, long bidamount)
         {
             try
             {
@@ -274,7 +283,7 @@ namespace DAO_WebPortal.Controllers
                 if (controlResult.Success == false) return base.Json(controlResult);
 
                 //Get model from ApiGateway
-                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/BidEscrowPickBid?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&bidid=" + bidid + "&jobid=" + jobid);
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/BidEscrowPickBid?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&bidid=" + bidid + "&jobid=" + jobid + "&bidamount=" + bidamount * 1000000);
                 //Parse response
                 SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
 

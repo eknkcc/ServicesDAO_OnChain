@@ -524,6 +524,7 @@
                         .then(res => {
                             if (res.cancelled) {
                                 toastr.warning('Sign cancelled');
+                                HideLoader();
                             } else {
                                 console.log(res);
 

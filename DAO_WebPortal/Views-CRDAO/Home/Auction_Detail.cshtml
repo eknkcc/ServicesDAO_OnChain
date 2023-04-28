@@ -112,7 +112,7 @@
                                         @*If user is job poster , show select winner bid button *@
                                         if (Model.Auction.JobPosterUserId == httpContextAccessor.HttpContext.Session.GetInt32("UserID"))
                                         {
-                                            <a class="btn btn-sm btn-primary me-2 cursorp" onclick="ChooseAsWinnerBidModal(@item.AuctionBidID, @item.BlockchainBidId)">
+                                            <a class="btn btn-sm btn-primary me-2 cursorp" onclick="ChooseAsWinnerBidModal(@item.AuctionBidID, @item.BlockchainBidId, @item.Price)">
                                                 <svg class="icon">
                                                     <use xlink:href="/Home/images/svg/free.svg#cil-star"></use>
                                                 </svg> Select Winner
@@ -182,12 +182,13 @@
     <script>
         var selectedBidId = 0;
         var selectedChainBidId = 0;
+        var selectedBidAmount = 0;
 
         //Opens confirmation modal
-        function ChooseAsWinnerBidModal(id, chainid) {
+        function ChooseAsWinnerBidModal(id, chainid, bidamount) {
             selectedBidId = id;
             selectedChainBidId = chainid;
-
+            selectedBidAmount = bidamount;
             $("#winnerBidName").text($("#name_"+id).text());
             $("#winnerButtons button:nth-of-type(2)").attr("id", id);
             $("#SelectWinnerBidModal").modal("toggle");
@@ -199,7 +200,7 @@
             $(".selectBidBtn").html('<i class="fas fa-circle-notch fa-spin"></i> Selecting Bid..');
 
             if ("@Program._settings.DaoBlockchain.ToString()" == "Casper") {
-                CheckWalletAndSendDeploy("../CasperChain/GetPickBidDeploy?jobid=" + @Model.Auction.BlockchainAuctionID + "&bidid=" + selectedChainBidId, ChooseWinnerBidPost);
+                CheckWalletAndSendDeploy("../CasperChain/GetPickBidDeploy?jobid=" + @Model.Auction.BlockchainAuctionID + "&bidid=" + selectedChainBidId + "&bidamount=" + selectedBidAmount, ChooseWinnerBidPost);
             }
             else {
                 ChooseWinnerBidPost("")

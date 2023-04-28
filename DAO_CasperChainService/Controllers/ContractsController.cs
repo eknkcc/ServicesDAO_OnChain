@@ -66,25 +66,26 @@ namespace DAO_CasperChainService.Controllers
                     else
                     {
                         chainAction.Status = Enums.ChainActionStatus.BlockchainError.ToString();
-                        chainAction.Result = "Blockchain Error: " + parsedResult + Environment.NewLine + chainAction.Result;
+                        chainAction.Result += "Blockchain Error: " + parsedResult;
                     }
                 }
                 else
                 {
                     chainAction.Status = Enums.ChainActionStatus.Failed.ToString();
-                    chainAction.Result = deployResponse.Error.Message + Environment.NewLine + chainAction.Result;
+                    chainAction.Result += Environment.NewLine + deployResponse.Error.Message;
                 }
             }
             catch (Exception ex)
             {
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
                 chainAction.Status = Enums.ChainActionStatus.Error.ToString();
-                chainAction.Result = ex.Message + Environment.NewLine + chainAction.Result;
+                chainAction.Result += Environment.NewLine + ex.Message;
             }
 
             return chainAction;
         }
 
+        [HttpPost("ParseDeployResult", Name = "ParseDeployResult")]
         public string ParseDeployResult(string rawResult)
         {
             string resultText = "";
@@ -234,7 +235,7 @@ namespace DAO_CasperChainService.Controllers
         }
 
         [HttpGet("BidEscrowSubmitBid", Name = "BidEscrowSubmitBid")]
-        public SimpleResponse BidEscrow_SubmitBid(uint jobofferid, ulong time, ulong userpayment, ulong repstake, bool onboard, string userwallet)
+        public SimpleResponse BidEscrow_SubmitBid(uint jobofferid, ulong time, ulong userpayment, bool onboard, string userwallet)
         {
             try
             {
@@ -259,7 +260,7 @@ namespace DAO_CasperChainService.Controllers
                 runtimeArgs.Add(new NamedArg("job_offer_id", CLValue.U32(jobofferid)));
                 runtimeArgs.Add(new NamedArg("time", CLValue.U64(time)));
                 runtimeArgs.Add(new NamedArg("payment", CLValue.U512(userpayment)));
-                runtimeArgs.Add(new NamedArg("reputation_stake", CLValue.U512(repstake)));
+                runtimeArgs.Add(new NamedArg("reputation_stake", CLValue.U512(0)));
                 runtimeArgs.Add(new NamedArg("onboard", CLValue.Bool(onboard)));
                 runtimeArgs.Add(new NamedArg("cspr_amount", CLValue.U512(150_000_000_000)));
                 runtimeArgs.Add(new NamedArg("amount", CLValue.U512(150_000_000_000)));
@@ -267,6 +268,42 @@ namespace DAO_CasperChainService.Controllers
                 var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
 
                 var deploy = new Deploy(header, payment, session);
+
+                //Return deploy object in JSON
+                return new SimpleResponse { Success = true, Message = deploy.SerializeToJson() };
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false };
+            }
+        }
+
+        [HttpGet("BidEscrowSubmitBidVA", Name = "BidEscrowSubmitBidVA")]
+        public SimpleResponse BidEscrow_SubmitBid_Va(uint jobofferid, ulong time, ulong userpayment, ulong repstake, string userwallet)
+        {
+            try
+            {
+                PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
+
+                var namedArgs = new List<NamedArg>()
+                {
+                    new NamedArg("job_offer_id", CLValue.U32(jobofferid)),
+                    new NamedArg("time", CLValue.U64(time)),
+                    new NamedArg("payment", CLValue.U512(userpayment)),
+                    new NamedArg("reputation_stake", CLValue.U512(repstake)),
+                    new NamedArg("onboard", CLValue.Bool(false)),
+                };
+
+                //Create deploy object
+                HashKey contractHash = new HashKey(Program._settings.BidEscrowContract);
+                var deploy = DeployTemplates.ContractCall(contractHash,
+                       "submit_bid",
+                       namedArgs,
+                       myAccountPK,
+                       150_000_000_000,
+                       Program._settings.ChainName);
 
                 //Return deploy object in JSON
                 return new SimpleResponse { Success = true, Message = deploy.SerializeToJson() };
@@ -312,7 +349,7 @@ namespace DAO_CasperChainService.Controllers
         }
 
         [HttpGet("BidEscrowPickBid", Name = "BidEscrowPickBid")]
-        public SimpleResponse BidEscrow_PickBid(uint jobid, uint bidid, string userwallet)
+        public SimpleResponse BidEscrow_PickBid(uint jobid, uint bidid, string userwallet, long bidamount)
         {
             try
             {
@@ -328,16 +365,16 @@ namespace DAO_CasperChainService.Controllers
                     Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
                     Ttl = 1800000,
                     ChainName = Program._settings.ChainName,
-                    GasPrice = 1
+                    GasPrice = 3
                 };
-                var payment = new ModuleBytesDeployItem(150_000_000_000);
+                var payment = new ModuleBytesDeployItem(200_000_000_000);
 
                 List<NamedArg> runtimeArgs = new List<NamedArg>();
                 runtimeArgs.Add(new NamedArg("bid_escrow_address", CLValue.Key(bidEscrowAddress)));
-                runtimeArgs.Add(new NamedArg("cspr_amount", CLValue.U512(150_000_000_000)));
+                runtimeArgs.Add(new NamedArg("cspr_amount", CLValue.U512(bidamount)));
                 runtimeArgs.Add(new NamedArg("job_offer_id", CLValue.U32(jobid)));
                 runtimeArgs.Add(new NamedArg("bid_id", CLValue.U32(bidid)));
-                runtimeArgs.Add(new NamedArg("amount", CLValue.U512(150_000_000_000)));
+                runtimeArgs.Add(new NamedArg("amount", CLValue.U512(bidamount)));
 
                 var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
 
