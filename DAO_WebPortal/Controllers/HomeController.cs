@@ -28,6 +28,7 @@ using Org.BouncyCastle.Bcpg.OpenPgp;
 using System.Threading;
 using MySqlX.XDevAPI.Common;
 using Newtonsoft.Json.Linq;
+using Helpers.Models.CasperServiceModels;
 
 namespace DAO_WebPortal.Controllers
 {
@@ -177,6 +178,13 @@ namespace DAO_WebPortal.Controllers
         {
             ViewBag.Title = "Post A New Job";
 
+            var candles = GetCandleSticks("cspr_usdt");
+            if (candles.Count > 0)
+            {
+                var closeList = candles.Select(x => x.Close).ToList();
+                HttpContext.Session.SetString("cspr_price", closeList[closeList.Count - 1].ToString());
+            }
+            
             // Check if user signed with traditional db account. If not opens signin popup.
             if (CheckDbSignIn() == "Unauthorized")
             {
@@ -199,7 +207,7 @@ namespace DAO_WebPortal.Controllers
         [PreventDuplicateRequest]
         [ValidateAntiForgeryToken]
         [AuthorizeDbUser]
-        public JsonResult New_Job_Post(string title, int amount, long time, string description, string tags, string codeurl, string documenturl, string signedDeployJson)
+        public JsonResult New_Job_Post(string title, int amount, int cspramount, long time, string description, string tags, string codeurl, string documenturl, string signedDeployJson)
         {
 
             try
@@ -216,7 +224,7 @@ namespace DAO_WebPortal.Controllers
                 string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
                 string port = Utility.IpHelper.GetClientPort(HttpContext);
 
-                SimpleResponse res = StartJobFlow(title, description, time, amount, tags, codeurl, documenturl, ChainActionTypes.Post_Job, signedDeployJson, userid, token, ip, port);
+                SimpleResponse res = StartJobFlow(title, description, time, amount, cspramount, tags, codeurl, documenturl, ChainActionTypes.Post_Job, signedDeployJson, userid, token, ip, port);
 
                 return Json(res);
             }
@@ -375,7 +383,7 @@ namespace DAO_WebPortal.Controllers
 
         #region Generic Onchain Job Methods
 
-        public SimpleResponse JobDbOperations_CreatePost(string title, string description, long time, int amount, string tags, string codeurl, string documenturl, int userid, string token)
+        public SimpleResponse JobDbOperations_CreatePost(string title, string description, long time, int amount, int cspramount, string tags, string codeurl, string documenturl, int userid, string token)
         {
             try
             {
@@ -392,8 +400,10 @@ namespace DAO_WebPortal.Controllers
                     Title = title,
                     TimeFrame = time.ToString(),
                     Status = Enums.JobStatusTypes.ChainApprovalPending,
-                    DocumentUrl = documenturl
+                    DocumentUrl = documenturl,
+                    CsprAmount = cspramount
                 };
+
                 //Post model to ApiGateway
                 string jobPostResponseJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/Post", Helpers.Serializers.SerializeJson(jobPostModel), token);
                 //Parse reponse
@@ -456,7 +466,7 @@ namespace DAO_WebPortal.Controllers
             }
         }
 
-        public SimpleResponse StartJobFlow(string title, string description, long time, int jobamount, string tags, string codeurl, string documenturl, ChainActionTypes actionType, string signedDeployJson, int userid, string token, string ip, string port)
+        public SimpleResponse StartJobFlow(string title, string description, long time, int jobamount, int cspramount, string tags, string codeurl, string documenturl, ChainActionTypes actionType, string signedDeployJson, int userid, string token, string ip, string port)
         {
             ChainActionDto chainAction = new ChainActionDto();
 
@@ -471,7 +481,7 @@ namespace DAO_WebPortal.Controllers
                     {
                         Thread.CurrentThread.IsBackground = true;
 
-                        SimpleResponse jobPostResponse = JobDbOperations_CreatePost(title, description, time, jobamount, tags, codeurl, documenturl, userid, token);
+                        SimpleResponse jobPostResponse = JobDbOperations_CreatePost(title, description, time, jobamount, cspramount, tags, codeurl, documenturl, userid, token);
 
                         ChainActionDto deployResult = new ChainActionDto();
 
@@ -512,7 +522,7 @@ namespace DAO_WebPortal.Controllers
                 else
                 {
                     //Central db operations
-                    SimpleResponse jobPostResponse = JobDbOperations_CreatePost(title, description, time, jobamount, tags, codeurl, documenturl, userid, token);
+                    SimpleResponse jobPostResponse = JobDbOperations_CreatePost(title, description, time, jobamount, 0, tags, codeurl, documenturl, userid, token);
                     SimpleResponse dbResponse = JobDbOperations_Complete((JobPostDto)jobPostResponse.Content, "", token, ip, port);
                     return dbResponse;
                 }
@@ -1342,6 +1352,8 @@ namespace DAO_WebPortal.Controllers
 
                     int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
                     string token = HttpContext.Session.GetString("Token");
+                    string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
+                    string port = Utility.IpHelper.GetClientPort(HttpContext);
 
                     new Thread(() =>
                     {
@@ -1366,7 +1378,7 @@ namespace DAO_WebPortal.Controllers
                                 result.Content = Model;
                             }
 
-                            Program.monitizer.AddUserLog(userid, Helpers.Constants.Enums.UserLogType.Request, "The user has bid on the auction. Auction #" + Model.AuctionID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+                            Program.monitizer.AddUserLog(userid, Helpers.Constants.Enums.UserLogType.Request, "The user has bid on the auction. Auction #" + Model.AuctionID, ip, port);
 
                             //Set server side toastr because page will be redirected
                             TempData["toastr-message"] = result.Message;
@@ -1469,6 +1481,8 @@ namespace DAO_WebPortal.Controllers
 
                     int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
                     string token = HttpContext.Session.GetString("Token");
+                    string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
+                    string port = Utility.IpHelper.GetClientPort(HttpContext);
 
                     new Thread(() =>
                     {
@@ -1497,7 +1511,7 @@ namespace DAO_WebPortal.Controllers
                                 TempData["toastr-message"] = result.Message;
                                 TempData["toastr-type"] = "success";
 
-                                Program.monitizer.AddUserLog(userid, Helpers.Constants.Enums.UserLogType.Request, "The user deleted bid on the auction. Auction #" + auctionBid.AuctionID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+                                Program.monitizer.AddUserLog(userid, Helpers.Constants.Enums.UserLogType.Request, "The user deleted bid on the auction. Auction #" + auctionBid.AuctionID, ip, port);
                             }
 
                         }
@@ -1588,6 +1602,8 @@ namespace DAO_WebPortal.Controllers
 
                     int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
                     string token = HttpContext.Session.GetString("Token");
+                    string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
+                    string port = Utility.IpHelper.GetClientPort(HttpContext);
 
                     new Thread(() =>
                     {
@@ -1617,7 +1633,7 @@ namespace DAO_WebPortal.Controllers
                                     TempData["toastr-message"] = result.Message;
                                     TempData["toastr-type"] = "success";
 
-                                    Program.monitizer.AddUserLog(userid, Helpers.Constants.Enums.UserLogType.Request, "Job poster selected the winner bid. Job #" + auction.JobID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+                                    Program.monitizer.AddUserLog(userid, Helpers.Constants.Enums.UserLogType.Request, "Job poster selected the winner bid. Job #" + auction.JobID, ip, port);
 
                                     //Send notification email to winner
                                     //Set email title and content
@@ -1907,10 +1923,11 @@ namespace DAO_WebPortal.Controllers
         /// </summary>
         /// <param name="Job">Job Id</param>     
         /// <returns></returns>
-        [Route("StartInformalVoting/{jobid}")]
+        [Route("StartJobVoting")]
         [AuthorizeChainUser]
         [AuthorizeDbUser]
-        public IActionResult StartInformalVoting(int jobid)
+        [HttpPost]
+        public IActionResult StartJobVoting(int jobid, int commentid, string signedDeployJson)
         {
             SimpleResponse res = new SimpleResponse();
 
@@ -1935,69 +1952,122 @@ namespace DAO_WebPortal.Controllers
                     return Json(new SimpleResponse { Success = false, Message = "User is not authorized to start informal voting for this job." });
                 }
 
-                //Get user model from ApiGateway
-                var userJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Users/GetId?id=" + winnerBid.UserId, HttpContext.Session.GetString("Token"));
-                //Parse response
-                UserDto userModel = Helpers.Serializers.DeserializeJson<UserDto>(userJson);
+                int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
+                string token = HttpContext.Session.GetString("Token");
+                string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
+                string port = Utility.IpHelper.GetClientPort(HttpContext);
 
-                double DefaultPolicingRate = Convert.ToDouble(Program._settings.DaoSettings.First(x => x.Key == "DefaultPolicingRate").Value) / Convert.ToDouble(1000);
-                double InformalQuorumRatio = Convert.ToDouble(Program._settings.DaoSettings.First(x => x.Key == "InformalQuorumRatio").Value) / Convert.ToDouble(1000);
-                int InformalVotingTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "InformalVotingTime").Value);
-
-                //Start informal voting
-                VotingDto informalVoting = new VotingDto();
-                informalVoting.JobID = jobid;
-                informalVoting.StartDate = DateTime.Now;
-                if (winnerBid.VaOnboarding == false && userModel.UserType == Enums.UserIdentityType.Associate.ToString())
+                if (Program._settings.DaoBlockchain == Blockchain.Casper)
                 {
-                    //Job doer wont earn any reputations
-                    informalVoting.PolicingRate = 1;
+                    ChainActionDto chainAction = CreateChainActionRecord(signedDeployJson, HttpContext.Session.GetString("WalletAddress"), ChainActionTypes.Submit_JobProof);
+
+                    new Thread(() =>
+                    {
+                        Thread.CurrentThread.IsBackground = true;
+
+                        ChainActionDto deployResult = new ChainActionDto();
+
+                        deployResult = SendSignedDeploy(chainAction);
+
+                        //Central db operations
+                        if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
+                        {
+                            CompleteSubmitJobProof(winnerBid, jobid, deployResult.DeployHash, userid, token, ip, port);
+                        }
+                        else
+                        {
+                            //Delete comment if blockchain approval failed        
+                            var deleteModelJson = Helpers.Request.Delete(Program._settings.Service_ApiGateway_Url + "/Db/JobPostComment/Delete?ID=" + commentid, token);
+                        }
+
+                        Program.chainQue.RemoveAt(Program.chainQue.IndexOf(chainAction));
+                        Program.chainQue.Add(deployResult);
+                    }).Start();
+
+                    //Set server side toastr because page will be redirected
+                    TempData["toastr-message"] = "Your request successfully submitted. ";
+                    TempData["toastr-type"] = "success";
+
+                    return Json(new SimpleResponse() { Success = true });
                 }
                 else
                 {
-                    //Job doer will earn reputation and will be onboarded as VA
-                    informalVoting.PolicingRate = DefaultPolicingRate;
+                    res = CompleteSubmitJobProof(winnerBid, jobid, "", userid, token, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+
+                    return Json(res);
                 }
-                informalVoting.QuorumRatio = InformalQuorumRatio;
-                informalVoting.Type = Enums.VoteTypes.JobCompletion;
-                informalVoting.EndDate = DateTime.Now.AddSeconds(InformalVotingTime);
-
-                //Get related job post
-                var jobJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/GetId?id=" + jobid, HttpContext.Session.GetString("Token"));
-                JobPostDto job = Helpers.Serializers.DeserializeJson<JobPostDto>(jobJson);
-
-                //Get total dao member count
-                int daoMemberCount = Convert.ToInt32(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Users/GetCount?type=" + UserIdentityType.VotingAssociate, HttpContext.Session.GetString("Token")));
-                //Eligible user count = VA Count
-                informalVoting.EligibleUserCount = daoMemberCount;
-                //Quorum count is calculated with total user count - 2(job poster, job doer)
-                informalVoting.QuorumCount = Convert.ToInt32(Math.Ceiling(InformalQuorumRatio * Convert.ToDouble(informalVoting.EligibleUserCount)));
-
-                string jsonResult = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Voting/Voting/StartInformalVoting", Helpers.Serializers.SerializeJson(informalVoting), HttpContext.Session.GetString("Token"));
-                res = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResult);
-                res.Content = null;
-
-                //Change job status 
-                Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/ChangeJobStatus?jobid=" + jobid + "&status=" + JobStatusTypes.InformalVoting, HttpContext.Session.GetString("Token"));
-
-                //Set server side toastr because page will be redirected
-                TempData["toastr-message"] = res.Message;
-                TempData["toastr-type"] = "success";
-
-                Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "User started informal voting . Job #" + auction.JobID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
-
-                //Send email notification to VAs
-                SendEmailModel emailModel = new SendEmailModel() { Subject = "Informal Voting Started For Job #" + jobid, Content = "Informal voting process started for job #" + jobid + "<br><br>Please submit your vote until " + informalVoting.EndDate.ToString(), TargetGroup = Enums.UserIdentityType.VotingAssociate };
-                Program.rabbitMq.Publish(Helpers.Constants.FeedNames.NotificationFeed, "email", Helpers.Serializers.Serialize(emailModel));
-
-                return Json(res);
             }
             catch (Exception ex)
             {
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                //Delete comment if blockchain approval failed        
+                var deleteModelJson = Helpers.Request.Delete(Program._settings.Service_ApiGateway_Url + "/Db/JobPostComment/Delete?ID=" + commentid, HttpContext.Session.GetString("Token"));
             }
 
             return Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+        }
+
+        public SimpleResponse CompleteSubmitJobProof(AuctionBidDto winnerBid, int jobid, string deployhash, int userid, string token, string ip, string port)
+        {
+            SimpleResponse res = new SimpleResponse();
+
+            //Get user model from ApiGateway
+            var userJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Users/GetId?id=" + winnerBid.UserId, token);
+            //Parse response
+            UserDto userModel = Helpers.Serializers.DeserializeJson<UserDto>(userJson);
+
+            double DefaultPolicingRate = Convert.ToDouble(Program._settings.DaoSettings.First(x => x.Key == "DefaultPolicingRate").Value) / Convert.ToDouble(1000);
+            double InformalQuorumRatio = Convert.ToDouble(Program._settings.DaoSettings.First(x => x.Key == "InformalQuorumRatio").Value) / Convert.ToDouble(1000);
+            int InformalVotingTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "InformalVotingTime").Value);
+
+            //Start informal voting
+            VotingDto informalVoting = new VotingDto();
+            informalVoting.JobID = jobid;
+            informalVoting.StartDate = DateTime.Now;
+            if (winnerBid.VaOnboarding == false && userModel.UserType == Enums.UserIdentityType.Associate.ToString())
+            {
+                //Job doer wont earn any reputations
+                informalVoting.PolicingRate = 1;
+            }
+            else
+            {
+                //Job doer will earn reputation and will be onboarded as VA
+                informalVoting.PolicingRate = DefaultPolicingRate;
+            }
+            informalVoting.QuorumRatio = InformalQuorumRatio;
+            informalVoting.Type = Enums.VoteTypes.JobCompletion;
+            informalVoting.EndDate = DateTime.Now.AddSeconds(InformalVotingTime);
+            informalVoting.DeployHash = deployhash;
+
+            //Get related job post
+            var jobJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/GetId?id=" + jobid, token);
+            JobPostDto job = Helpers.Serializers.DeserializeJson<JobPostDto>(jobJson);
+
+            //Get total dao member count
+            int daoMemberCount = Convert.ToInt32(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Users/GetCount?type=" + UserIdentityType.VotingAssociate, token));
+            //Eligible user count = VA Count
+            informalVoting.EligibleUserCount = daoMemberCount;
+            //Quorum count is calculated with total user count - 2(job poster, job doer)
+            informalVoting.QuorumCount = Convert.ToInt32(Math.Ceiling(InformalQuorumRatio * Convert.ToDouble(informalVoting.EligibleUserCount)));
+
+            string jsonResult = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Voting/Voting/StartInformalVoting", Helpers.Serializers.SerializeJson(informalVoting), token);
+            res = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResult);
+            res.Content = null;
+
+            //Change job status 
+            Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/ChangeJobStatus?jobid=" + jobid + "&status=" + JobStatusTypes.InformalVoting, token);
+
+            //Set server side toastr because page will be redirected
+            TempData["toastr-message"] = res.Message;
+            TempData["toastr-type"] = "success";
+
+            Program.monitizer.AddUserLog(userid, Helpers.Constants.Enums.UserLogType.Request, "User started informal voting . Job #" + jobid, ip, port);
+
+            //Send email notification to VAs
+            SendEmailModel emailModel = new SendEmailModel() { Subject = "Informal Voting Started For Job #" + jobid, Content = "Informal voting process started for job #" + jobid + "<br><br>Please submit your vote until " + informalVoting.EndDate.ToString(), TargetGroup = Enums.UserIdentityType.VotingAssociate };
+            Program.rabbitMq.Publish(Helpers.Constants.FeedNames.NotificationFeed, "email", Helpers.Serializers.Serialize(emailModel));
+
+            return res;
         }
 
         /// <summary>
@@ -3191,69 +3261,69 @@ namespace DAO_WebPortal.Controllers
                 //Parse result
                 var userModel = Helpers.Serializers.DeserializeJson<UserDto>(userJson);
 
-                //If job poster is admin or VA start auction immediately
-                if (userModel.UserType == UserIdentityType.VotingAssociate.ToString() || userModel.UserType == UserIdentityType.Admin.ToString())
+                ////If job poster is admin or VA start auction immediately
+                //if (userModel.UserType == UserIdentityType.VotingAssociate.ToString() || userModel.UserType == UserIdentityType.Admin.ToString())
+                //{
+                //Set JobPost Model
+                JobModel.Status = Helpers.Constants.Enums.JobStatusTypes.InternalAuction;
+
+                //Set Auction model
+
+                //Set auction end dates
+                int InternalAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "InternalAuctionTime").Value);
+                int PublicAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "PublicAuctionTime").Value);
+
+                DateTime internalAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime);
+                DateTime publicAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime + PublicAuctionTime);
+
+                AuctionDto AuctionModel = new AuctionDto()
                 {
-                    //Set JobPost Model
-                    JobModel.Status = Helpers.Constants.Enums.JobStatusTypes.InternalAuction;
+                    JobID = JobId,
+                    JobPosterUserId = JobModel.UserID,
+                    CreateDate = DateTime.Now,
+                    Status = AuctionStatusTypes.InternalBidding,
+                    InternalAuctionEndDate = internalAuctionEndDate,
+                    PublicAuctionEndDate = publicAuctionEndDate
+                };
 
-                    //Set Auction model
-
-                    //Set auction end dates
-                    int InternalAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "InternalAuctionTime").Value);
-                    int PublicAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "PublicAuctionTime").Value);
-
-                    DateTime internalAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime);
-                    DateTime publicAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime + PublicAuctionTime);
-
-                    AuctionDto AuctionModel = new AuctionDto()
-                    {
-                        JobID = JobId,
-                        JobPosterUserId = JobModel.UserID,
-                        CreateDate = DateTime.Now,
-                        Status = AuctionStatusTypes.InternalBidding,
-                        InternalAuctionEndDate = internalAuctionEndDate,
-                        PublicAuctionEndDate = publicAuctionEndDate
-                    };
-
-                    //Check existing auction related with this job
-                    var AuctionModelByJobid = Helpers.Serializers.DeserializeJson<AuctionDto>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Auction/GetByJobId?jobid=" + JobId, HttpContext.Session.GetString("Token")));
-                    if (AuctionModelByJobid != null && AuctionModelByJobid.AuctionID > 0)
-                    {
-                        result.Success = false;
-                        result.Message = "There is an existing auction related with this job.";
-                        result.Content = AuctionModel;
-
-                        return result;
-                    }
-
-                    //Post model to ApiGateway
-                    //Add new auction
-                    AuctionModel = Helpers.Serializers.DeserializeJson<AuctionDto>(Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Db/Auction/Post", Helpers.Serializers.SerializeJson(AuctionModel), HttpContext.Session.GetString("Token")));
-
-                    if (AuctionModel != null && AuctionModel.AuctionID > 0)
-                    {
-                        result.Success = true;
-                        result.Message = "Job approved. Internal auction process started for the job.";
-                        result.Content = AuctionModel;
-                    }
-                }
-                //If job poster is not admin or VA check for KYC
-                else
+                //Check existing auction related with this job
+                var AuctionModelByJobid = Helpers.Serializers.DeserializeJson<AuctionDto>(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Auction/GetByJobId?jobid=" + JobId, HttpContext.Session.GetString("Token")));
+                if (AuctionModelByJobid != null && AuctionModelByJobid.AuctionID > 0)
                 {
-                    if (userModel.KYCStatus == false)
-                    {
-                        JobModel.Status = Helpers.Constants.Enums.JobStatusTypes.KYCPending;
-                        result.Success = true;
-                        result.Message = "Job approved. User needs to complete KYC.";
-                    }
-                    else
-                    {
-                        JobModel.Status = Helpers.Constants.Enums.JobStatusTypes.DoSFeePending;
-                        result.Success = true;
-                        result.Message = "Job approved. User needs to pay DoS fee.";
-                    }
+                    result.Success = false;
+                    result.Message = "There is an existing auction related with this job.";
+                    result.Content = AuctionModel;
+
+                    return result;
                 }
+
+                //Post model to ApiGateway
+                //Add new auction
+                AuctionModel = Helpers.Serializers.DeserializeJson<AuctionDto>(Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Db/Auction/Post", Helpers.Serializers.SerializeJson(AuctionModel), HttpContext.Session.GetString("Token")));
+
+                if (AuctionModel != null && AuctionModel.AuctionID > 0)
+                {
+                    result.Success = true;
+                    result.Message = "Job approved. Internal auction process started for the job.";
+                    result.Content = AuctionModel;
+                }
+                //}
+                ////If job poster is not admin or VA check for KYC
+                //else
+                //{
+                //    if (userModel.KYCStatus == false)
+                //    {
+                //        JobModel.Status = Helpers.Constants.Enums.JobStatusTypes.KYCPending;
+                //        result.Success = true;
+                //        result.Message = "Job approved. User needs to complete KYC.";
+                //    }
+                //    else
+                //    {
+                //        JobModel.Status = Helpers.Constants.Enums.JobStatusTypes.DoSFeePending;
+                //        result.Success = true;
+                //        result.Message = "Job approved. User needs to pay DoS fee.";
+                //    }
+                //}
 
                 //Update job status 
                 JobModel = Helpers.Serializers.DeserializeJson<JobPostDto>(Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/Update", Helpers.Serializers.SerializeJson(JobModel), HttpContext.Session.GetString("Token")));

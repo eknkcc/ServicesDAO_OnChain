@@ -13,6 +13,12 @@
             <label class="mb-2"><b>Status</b></label>
             <label type="text" class="form-control" disabled>@Model.Status</label>
         </div>
+        @if(!string.IsNullOrEmpty(Model.ErrorReason)){
+            <div class="form-group mb-4">
+                <label class="mb-2"><b>Error Reason</b></label>
+                <label type="text" class="form-control" disabled style="color:red">@Model.ErrorReason</label>
+            </div>
+        }
         <div class="form-group mb-4">
             <label class="mb-2"><b>Create Date</b></label>
             <label type="text" class="form-control" disabled>@Model.CreateDate</label>

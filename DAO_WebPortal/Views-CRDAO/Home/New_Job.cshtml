@@ -1,7 +1,9 @@
 ﻿@using DAO_WebPortal.Resources
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor httpContextAccessor
+
 @{
     Layout = "../Shared/_MainLayout.cshtml";
-
 }
 
 @Html.AntiForgeryToken()
@@ -28,9 +30,18 @@
         <div class="row my-3">
             <div class="col-md-6">
                 <label class="mb-2"><b><i class="fas fa-coins mx-1"></i> Total Budget</b></label>
-                <div class="input-group mb-3">
-                    <span class="input-group-text">€</span>
-                    <input class="form-control number" type="text" placeholder="Expected job price in Euros" id="amount"><span class="input-group-text">.00</span>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">€</span>
+                            <input class="form-control number" type="text" placeholder="Expected job price in Euros" id="amount"><span class="input-group-text">.00</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group mb-3">
+                            <input class="form-control number" type="text" placeholder="Cspr amount" id="cspramount"><span class="input-group-text">Cspr</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="col-md-6">
@@ -67,6 +78,8 @@
 @section Scripts{
 
     <script>
+        var csprprice = parseFloat('@httpContextAccessor.HttpContext.Session.GetString("cspr_price")')
+
         $(document).ready(function () {
             if (document.body.classList.contains('dark-theme')) {
                 CKEDITOR.replace('description', {
@@ -78,6 +91,13 @@
                     skin: 'moono-lisa'
                 });
             }
+
+            const amountinput = document.getElementById('amount');
+            amountinput.addEventListener('input', (event) => {
+                console.log($('#amount').val());
+
+                $("#cspramount").val((parseFloat($('#amount').val()) / csprprice).toFixed(0));
+            });
         });
 
         function StartJobPost() {
@@ -114,7 +134,7 @@
                             }
 
                             if ("@Program._settings.DaoBlockchain.ToString()" == "Casper") {
-                                CheckWalletAndSendDeploy("../CasperChain/GetPostJobOfferDeploy?timeframe=" + $("#time").val() + "&budget=" + $("#amount").val(), PostNewJob);
+                                CheckWalletAndSendDeploy("../CasperChain/GetPostJobOfferDeploy?timeframe=" + $("#time").val() + "&budget=" + parseInt($("#cspramount").val()), PostNewJob);
                             }
                             else {
                                 PostNewJob("")
@@ -135,6 +155,7 @@
             var time = $('#time').val();
             var codeurl = $('#codeurl').val();
             var tags = $('#tags').val();
+            var cspramount = $('#cspramount').val();
             var description = CKEDITOR.instances["description"].getData();
             var token = $('input[name="__RequestVerificationToken"]', token).val();
 
@@ -142,7 +163,7 @@
             $.ajax({
                 type: "POST",
                 url: "../Home/New_Job_Post",
-                data: { "title": title, "amount": amount, "time": time, "description": description, "tags": tags, "codeurl": codeurl, "__RequestVerificationToken": token, "signedDeployJson": JSON.stringify(signedDeployJson) },
+                data: { "title": title, "amount": amount, "cspramount": cspramount, "time": time, "description": description, "tags": tags, "codeurl": codeurl, "__RequestVerificationToken": token, "signedDeployJson": JSON.stringify(signedDeployJson) },
                 success: function (result) {
                     if (result.success) {
                         window.location.href = "./My-Jobs";

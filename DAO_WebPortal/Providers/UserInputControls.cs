@@ -216,7 +216,7 @@ namespace DAO_WebPortal.Providers
         #endregion
 
         #region BidEscrow
-        public static SimpleResponse ControlPostJobOfferRequest(long timeframe, int budget)
+        public static SimpleResponse ControlPostJobOfferRequest(long timeframe, long budget)
         {
             if (timeframe <= 0)
             {
@@ -224,7 +224,7 @@ namespace DAO_WebPortal.Providers
             }
             if (budget <= 0)
             {
-                return new SimpleResponse { Success = false, Message = "Budget must be a positive number" };
+                return new SimpleResponse { Success = false, Message = "CSPR Budget must be a positive number" };
             }
 
             long timeframestamp = 0;

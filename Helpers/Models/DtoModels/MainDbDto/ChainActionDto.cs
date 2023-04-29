@@ -13,5 +13,7 @@ namespace Helpers.Models.DtoModels.MainDbDto
         public string ActionType { get; set; }
         public string Status { get; set; }
         public DateTime CreateDate { get; set; }
+        public string ErrorReason { get; set; }
+
     }
 }

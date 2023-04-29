@@ -33,6 +33,8 @@ namespace Helpers.Models.WebsiteViewModels
         public string DocumentUrl { get; set; }
         public string DeployHash { get; set; }
         public int? BlockchainJobID { get; set; }
+        public double CsprAmount { get; set; }
+
 
     }
 }

@@ -66,26 +66,26 @@ namespace DAO_CasperChainService.Controllers
                     else
                     {
                         chainAction.Status = Enums.ChainActionStatus.BlockchainError.ToString();
-                        chainAction.Result += "Blockchain Error: " + parsedResult;
+                        chainAction.ErrorReason = "Contract Error: " + parsedResult;
                     }
                 }
                 else
                 {
                     chainAction.Status = Enums.ChainActionStatus.Failed.ToString();
-                    chainAction.Result += Environment.NewLine + deployResponse.Error.Message;
+                    chainAction.ErrorReason = "Deploy Error: " + deployResponse.Error.Message;
                 }
             }
             catch (Exception ex)
             {
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
                 chainAction.Status = Enums.ChainActionStatus.Error.ToString();
-                chainAction.Result += Environment.NewLine + ex.Message;
+                chainAction.ErrorReason = "Error: " + ex.Message;
             }
 
             return chainAction;
         }
 
-        [HttpPost("ParseDeployResult", Name = "ParseDeployResult")]
+        [HttpGet("ParseDeployResult", Name = "ParseDeployResult")]
         public string ParseDeployResult(string rawResult)
         {
             string resultText = "";
@@ -111,6 +111,46 @@ namespace DAO_CasperChainService.Controllers
             catch (Exception ex)
             {
 
+            }
+
+            if (resultText == "")
+            {
+                try
+                {
+                    if (rawResult.Contains("error_message"))
+                    {
+                        int index = rawResult.IndexOf(",\"error_message\":") + ",\"error_message\":".Length;
+                        int firstQuote = -1;
+                        int secondQuote = -1;
+                        for (int i = index; i < rawResult.Length; i++)
+                        {
+                            if (firstQuote == -1 && rawResult[i] == '"')
+                            {
+                                firstQuote = i;
+                            }
+                            else if (firstQuote != -1 && secondQuote == -1 && rawResult[i] == '"')
+                            {
+                                secondQuote = i;
+                                break;
+                            }
+                        }
+
+                        resultText = rawResult.Substring(firstQuote, secondQuote - firstQuote).Replace('"'.ToString(), "");
+                        var errorSplitted = resultText.Split(":");
+                        if (errorSplitted.Length > 1)
+                        {
+                            var errorCode = Convert.ToInt32(errorSplitted[1].Trim());
+                            if (Models.CasperErrorDictionary.errorDictionary.ContainsKey(errorCode))
+                            {
+                                resultText += " (" + Models.CasperErrorDictionary.errorDictionary[errorCode] + ")";
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    resultText = "Error could not be parsed.";
+                }
             }
 
             return resultText;
@@ -208,7 +248,7 @@ namespace DAO_CasperChainService.Controllers
                     Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
                     Ttl = 1800000,
                     ChainName = Program._settings.ChainName,
-                    GasPrice = 3
+                    GasPrice = 10
                 };
                 var payment = new ModuleBytesDeployItem(4_000_000_000_000);
 
@@ -587,7 +627,7 @@ namespace DAO_CasperChainService.Controllers
                 //IGNORE
                 //var onboardingKeyHex = PublicKey.FromHexString(onboardwallet);
                 //var onboardingKey = GlobalStateKey.FromString(onboardingKeyHex.GetAccountHash());
-                
+
                 var onboardingKey = GlobalStateKey.FromString(Program._settings.VAOnboardingPackageHash);
 
                 var wasmFile = "./wwwroot/wasms/submit_onboarding_request.wasm";

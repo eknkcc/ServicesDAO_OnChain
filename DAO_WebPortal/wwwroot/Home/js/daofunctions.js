@@ -5,7 +5,14 @@ function ShareJobPost() {
 }
 
 //Start informal voting process, only job doer is authorized for this action
-function StartInformalVoting(JobId) {
+var selectedJobId = 0;
+var selectedBlockchainJobId = 0;
+var reviewcomment = "";
+
+function SubmitJobProof(JobId, ChainJobId, blockchain) {
+    selectedJobId = JobId; 
+    selectedBlockchainJobId = ChainJobId;
+
     $.confirm({
         title: 'Confirmation',
         content: '<b>Are you confirming that you submitted a valid evidence for job completion and start informal voting process ?</b>' +
@@ -54,46 +61,64 @@ function StartInformalVoting(JobId) {
 
                     var comment = '<div><b>Recommendation: ' + $('#revResult option:selected').text() + '</b><p>Pull Request Link: <a target="_blank" href="' + $('#prLink').val() + '">' + $('#prLink').val() + '</a></p></div>';
 
-                    $.ajax({
-                        type: "POST",
-                        url: "../Home/AddNewComment",
-                        data: { "JobId": JobId, "CommentId": 0, "Comment": comment, "__RequestVerificationToken": token },
-                        success: function (result) {
-                            if(result.success)
-                            {
-                                $.ajax({
-                                    url: "../StartInformalVoting/" + JobId,
-                                    type: "GET",
-                                    dataType: 'json',
-                                    success: function(result) {
-                                        if (result.success) {
-                                            window.location.reload();
-                                        } else {
-                                            toastr.warning(result.message);
-                                        }
-                                    },
-                                    failure: function(response) {
-                                        toastr.warning("Connection error");
-                                    },
-                                    error: function(response) {
-                                        toastr.error("Unexpected error");
-                                    }
-                                });  
-                            }
-                            else
-                            {
-                                toastr.error("Unexpected error, please try again.");
-                            }    
-                        },
-                        failure: function (response) {
-                        },
-                        error: function (response) {
-                        }
-                    });
+                    reviewcomment = comment;
+
+                    if (blockchain == "Casper") {
+                        CheckWalletAndSendDeploy("../CasperChain/GetSubmitJobProofDeploy?jobid=" + selectedBlockchainJobId + "&documenthash=" + $('#prLink').val(), CompleteSubmitJobProof);
+                    }
+                    else {
+                        CompleteSubmitJobProof("")
+                    }
 
                 }
 
             }
+        }
+    });
+}
+
+function CompleteSubmitJobProof(signedDeployJson) {
+    var token = $('input[name="__RequestVerificationToken"]', token).val();
+
+    $.ajax({
+        type: "POST",
+        url: "../Home/AddNewComment",
+        data: { "JobId": selectedJobId, "CommentId": 0, "Comment": reviewcomment, "__RequestVerificationToken": token },
+        success: function (result) {
+            if (result.success) {               
+                $.ajax({
+                    url: "../StartJobVoting",
+                    data: { "jobid": selectedJobId, "commentid": result.content.jobPostCommentID, "signedDeployJson": JSON.stringify(signedDeployJson) },
+                    type: "POST",
+                    dataType: 'json',
+                    success: function (result) {
+                        if (result.success) {
+                            window.location.reload();
+                        } else {
+                            toastr.warning(result.message);
+                            HideLoader();
+                        }
+                    },
+                    failure: function (response) {
+                        toastr.warning("Connection error");
+                        HideLoader();
+                    },
+                    error: function (response) {
+                        toastr.error("Unexpected error");
+                        HideLoader();
+                    }
+                });
+            }
+            else {
+                toastr.error("Unexpected error, please try again.");
+                HideLoader();
+            }
+        },
+        failure: function (response) {
+            HideLoader();
+        },
+        error: function (response) {
+            HideLoader();
         }
     });
 }

@@ -22,5 +22,7 @@ namespace Helpers.Models.DtoModels.MainDbDto
         public string DeployHash { get; set; }
         public int? BlockchainBidID { get; set; }
         public string signedDeployJson { get; set; }
+        public double CsprAmount { get; set; }
+
     }
 }

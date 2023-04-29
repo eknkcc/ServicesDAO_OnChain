@@ -420,8 +420,8 @@
                 <!-- Display "Start Informal Voting" button for job doer if auction is completed -->
                 @if ((Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.AuctionCompleted || Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.Failed) && Model.JobPostWebsiteModel.JobDoerUserID == httpContextAccessor.HttpContext.Session.GetInt32("UserID"))
                 {
-                    <button onclick="StartInformalVoting(@Model.JobPostWebsiteModel.JobID);" class="btn btn-sm btn-primary btn-shine float-right">
-                        Start Informal Voting
+                    <button onclick="SubmitJobProof(@Model.JobPostWebsiteModel.JobID, @(Model.JobPostWebsiteModel.BlockchainJobID == null ? 0 : Model.JobPostWebsiteModel.BlockchainJobID), '@Program._settings.DaoBlockchain.ToString()');" class="btn btn-sm btn-primary btn-shine float-right">
+                        Submit Job Proof
                     </button>
                 }
 

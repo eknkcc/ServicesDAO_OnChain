@@ -68,7 +68,9 @@ namespace DAO_DbService.Controllers
                                                             Tags = job.Tags,
                                                             IsUserFlagged = userflagged,
                                                             FlagCount = flagcount,
-                                                            TimeFrame = job.TimeFrame
+                                                            TimeFrame = job.TimeFrame,
+                                                            CsprAmount = job.CsprAmount
+
                                                         }).ToPagedList(page, pageCount);
 
                     //Match auctions and bids with jobs
@@ -209,7 +211,8 @@ namespace DAO_DbService.Controllers
                         JobDoerUsername = jobDoerUsername,
                         DocumentUrl = jobPost.DocumentUrl,
                         DeployHash = jobPost.DeployHash,
-                        BlockchainJobID = jobPost.BlockchainJobPostID
+                        BlockchainJobID = jobPost.BlockchainJobPostID,
+                        CsprAmount = jobPost.CsprAmount
                     };
 
                     result.Auction = _mapper.Map<Auction, AuctionDto>(db.Auctions.SingleOrDefault(x => x.JobID == result.JobID));

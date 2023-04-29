@@ -23,6 +23,7 @@ namespace DAO_DbService.Models
         public string Referrer { get; set; }
         public string DeployHash { get; set; }
         public int? BlockchainBidID { get; set; }
+        public double CsprAmount{ get; set; }
 
     }
 }
