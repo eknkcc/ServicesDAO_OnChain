@@ -156,79 +156,6 @@ namespace DAO_CasperChainService.Controllers
             return resultText;
         }
 
-        #region Variable Repository
-
-        [HttpGet("VariableRepositoryAllVariables", Name = "VariableRepositoryAllVariables")]
-        public SimpleResponse VariableRepository_AllVariables(string walletAddress)
-        {
-            try
-            {
-                var casperSdk = new NetCasperClient(Program._settings.NodeUrl + ":7777/rpc");
-
-                var queryResponse = casperSdk.QueryGlobalState(Program._settings.VariableRepositoryContract, null, "balances__reputation_storage__contract").Result;
-
-                var result = queryResponse.Parse();
-                var balance = result.StoredValue.CLValue.ToBigInteger();
-                Console.WriteLine("Balance: " + balance.ToString() + " $CSSDK");
-
-                return new SimpleResponse();
-            }
-            catch (Exception ex)
-            {
-                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-                return new SimpleResponse { Success = false };
-            }
-
-            //try
-            //{
-            //    var casperSdk = new NetCasperClient(Program._settings.NodeUrl + ":7777/rpc");
-
-            //    var accountHash = new AccountHashKey("account-hash-"+walletAddress);
-            //    var dictItem = Convert.ToBase64String(accountHash.GetBytes());
-
-            //    var response = casperSdk.GetDictionaryItemByContract(Program._settings.VariableRepositoryContract, "all_variables", dictItem).Result;
-
-            //    var result = response.Parse();
-            //    var balance = result.StoredValue.CLValue.ToBigInteger();
-            //    Console.WriteLine("Balance: " + balance.ToString() + " $CSSDK");
-
-            //    return new SimpleResponse();
-            //}
-            //catch (Exception ex)
-            //{
-            //    Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-            //    return new SimpleResponse { Success = false };
-            //}
-        }
-
-        #endregion
-
-        #region Reputation
-
-        [HttpGet("ReputationBalanceOf", Name = "ReputationBalanceOf")]
-        public SimpleResponse Reputation_BalanceOf(string walletAddress)
-        {
-            try
-            {
-                var casperSdk = new NetCasperClient(Program._settings.NodeUrl + ":7777/rpc");
-
-                var queryResponse = casperSdk.QueryGlobalState(Program._settings.ReputationContract, null, "balances__reputation_storage__contract").Result;
-
-                var result = queryResponse.Parse();
-                var balance = result.StoredValue.CLValue.ToBigInteger();
-                Console.WriteLine("Balance: " + balance.ToString() + " $CSSDK");
-
-                return new SimpleResponse();
-            }
-            catch (Exception ex)
-            {
-                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-                return new SimpleResponse { Success = false };
-            }
-        }
-
-        #endregion
-
         #region Bid Escrow
 
         [HttpGet("BidEscrowPostJobOffer", Name = "BidEscrowPostJobOffer")]
@@ -248,9 +175,9 @@ namespace DAO_CasperChainService.Controllers
                     Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
                     Ttl = 1800000,
                     ChainName = Program._settings.ChainName,
-                    GasPrice = 10
+                    GasPrice = 3
                 };
-                var payment = new ModuleBytesDeployItem(4_000_000_000_000);
+                var payment = new ModuleBytesDeployItem(4_000_000_000_010);
 
                 List<NamedArg> runtimeArgs = new List<NamedArg>();
                 runtimeArgs.Add(new NamedArg("bid_escrow_address", CLValue.Key(bidEscrowAddress)));
@@ -334,6 +261,7 @@ namespace DAO_CasperChainService.Controllers
                     new NamedArg("payment", CLValue.U512(userpayment)),
                     new NamedArg("reputation_stake", CLValue.U512(repstake)),
                     new NamedArg("onboard", CLValue.Bool(false)),
+                    new NamedArg("purse", CLValue.OptionNone(new CLTypeInfo(CLType.URef)))
                 };
 
                 //Create deploy object

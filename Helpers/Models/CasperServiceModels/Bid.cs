@@ -9,7 +9,7 @@ namespace Helpers.Models.CasperServiceModels
     public class Bid
     {
         public int bid_id { get; set; }
-        public long cspr_stake { get; set; }
+        public long? cspr_stake { get; set; }
         public string deploy_hash { get; set; }
         public int job_offer_id { get; set; }
         public bool onboard { get; set; }

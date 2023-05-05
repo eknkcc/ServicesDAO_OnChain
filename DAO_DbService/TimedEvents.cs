@@ -264,7 +264,7 @@ namespace DAO_DbService
                         {
                             PaginatedResponse<Bid> chainBids = Serializers.DeserializeJson<PaginatedResponse<Bid>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetBids?jobid=" + item.BlockchainJobPostID + "&page=1&page_size=100&order_direction=DESC"));
 
-                            foreach (var chainbid in chainBids.data)
+                            foreach (var chainbid in chainBids.data.Where(x=>x.job_offer_id == item.BlockchainJobPostID))
                             {
                                 if (dbWaitingBids.Count(x => x.DeployHash == chainbid.deploy_hash) > 0)
                                 {
