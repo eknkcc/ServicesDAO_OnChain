@@ -3430,19 +3430,6 @@ namespace DAO_WebPortal.Controllers
         }
 
         /// <summary>
-        ///  This view shows global parameters of the DAO
-        /// </summary>
-        /// <returns></returns>
-        [Route("Dao-Variables")]
-        [AuthorizeAdmin]
-        public IActionResult Dao_Variables()
-        {
-            ViewBag.Title = "DAO Variables";
-
-            return View();
-        }
-
-        /// <summary>
         ///  DAO Variables save changes
         /// </summary>
         /// <returns></returns>
@@ -3840,6 +3827,20 @@ namespace DAO_WebPortal.Controllers
             }
 
             return View(model);
+        }
+        #endregion
+
+        #region DAO Variables
+        /// <summary>
+        ///  This view shows global parameters of the DAO
+        /// </summary>
+        /// <returns></returns>
+        [Route("Dao-Variables")]
+        public IActionResult Dao_Variables()
+        {
+            ViewBag.Title = "DAO Variables";
+
+            return View();
         }
         #endregion
 
