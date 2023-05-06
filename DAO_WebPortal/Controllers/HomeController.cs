@@ -217,8 +217,6 @@ namespace DAO_WebPortal.Controllers
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 
-                time = (long)((dynamic)controlResult.Content).timeframe;
-
                 int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
                 string token = HttpContext.Session.GetString("Token");
                 string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
@@ -233,56 +231,6 @@ namespace DAO_WebPortal.Controllers
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
                 return Json(new SimpleResponse() { Success = false, Message = "An error occured while processing your request." });
             }
-
-
-            //SimpleResponse result = new SimpleResponse();
-
-            //try
-            //{
-            //    //Empty fields control
-            //    if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(time) || string.IsNullOrEmpty(description) || string.IsNullOrEmpty(codeurl) || amount <= 0)
-            //    {
-            //        result.Success = false;
-            //        result.Message = "You must fill all the fields to post a job.";
-            //        return Json(result);
-            //    }
-
-            //    //Create JobPost model
-            //    JobPostDto model = new JobPostDto() { UserID = Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Amount = amount, JobDescription = description, CreateDate = DateTime.Now, TimeFrame = time, LastUpdate = DateTime.Now, Title = title, Tags = tags, CodeUrl = codeurl, Status = Enums.JobStatusTypes.AdminApprovalPending };
-
-            //    //Post model to ApiGateway
-            //    string jobPostResponseJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Db/JobPost/Post", Helpers.Serializers.SerializeJson(model), HttpContext.Session.GetString("Token"));
-            //    //Parse reponse
-            //    model = Helpers.Serializers.DeserializeJson<JobPostDto>(jobPostResponseJson);
-
-            //    if (model != null && model.JobID > 0)
-            //    {
-            //        result = ApproveJob(model.JobID);
-
-            //        // result.Success = true;
-            //        // result.Message = "Job posted successfully and will be available after admin review.";
-
-            //        result.Content = model;
-
-            //        Program.monitizer.AddUserLog(Convert.ToInt32(HttpContext.Session.GetInt32("UserID")), Helpers.Constants.Enums.UserLogType.Request, "User added a new job. #" + model.JobID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
-
-
-            //        //Set server side toastr because page will be redirected
-            //        try
-            //        {
-            //            TempData["toastr-message"] = result.Message;
-            //            TempData["toastr-type"] = "success";
-            //        }
-            //        catch (Exception) { }
-
-
-            //        return Json(result);
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
-            //}
 
             return Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
         }

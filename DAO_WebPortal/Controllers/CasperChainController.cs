@@ -230,7 +230,7 @@ namespace DAO_WebPortal.Controllers
                 string deployJson = "";
                 if(HttpContext.Session.GetString("UserType") == Enums.UserIdentityType.VotingAssociate.ToString())
                 {                
-                    deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/BidEscrowSubmitBidVA?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&jobofferid=" + jobofferid + "&time=" + timeframe + "&repstake=" + repstake);
+                    deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/BidEscrowSubmitBidVA?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&jobofferid=" + jobofferid + "&time=" + timeframe + "&repstake=" + repstake + "&userpayment="+ userpayment * 1000000000);
                 }
                 else
                 {
