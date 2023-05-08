@@ -196,7 +196,7 @@ namespace DAO_WebPortal.Controllers
         {
             try
             {
-                SimpleResponse controlResult = UserInputControls.ControlPostJobOfferRequest(timeframe, budget);
+                SimpleResponse controlResult = UserInputControls.ControlPostJobOfferRequest(HttpContext.Session.GetString("KYCStatus"), timeframe, budget);
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 

@@ -216,7 +216,7 @@ namespace DAO_WebPortal.Providers
         #endregion
 
         #region BidEscrow
-        public static SimpleResponse ControlPostJobOfferRequest(long timeframe, long budget)
+        public static SimpleResponse ControlPostJobOfferRequest(string userkyc,long timeframe, long budget)
         {
             if (timeframe <= 0)
             {
@@ -225,6 +225,10 @@ namespace DAO_WebPortal.Providers
             if (budget <= 0)
             {
                 return new SimpleResponse { Success = false, Message = "CSPR Budget must be a positive number" };
+            }
+            if(userkyc.ToLower() != "true")
+            {
+                return new SimpleResponse { Success = false, Message = "This account must complete KYC process before posting a job." };
             }
 
             long timeframestamp = 0;

@@ -1,4 +1,7 @@
 @using DAO_WebPortal.Resources
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor httpContextAccessor
+
 @{
     Layout = "../Shared/_MainLayout.cshtml";
 
@@ -96,13 +99,13 @@
                 <div class="col-md-6">
                     <div class="form-group mb-4">
                         <label class="mb-2"><b><i class="fas fa-id-badge"></i> New VA Username</b></label>
-                        <input type="text" class="form-control" id="vausername" placeholder="Username">
+                        <input type="text" class="form-control" id="vausername" placeholder="Username" disabled>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group mb-4">
                         <label class="mb-2"><b><i class="fas fa-wallet"></i> New VA Public Key</b></label>
-                        <input type="text" class="form-control" id="vaaddress" placeholder="User's public key">
+                        <input type="text" class="form-control" id="vaaddress" placeholder="User's public key" disabled value="@(httpContextAccessor.HttpContext.Session.GetString("WalletAddress") != null ? httpContextAccessor.HttpContext.Session.GetString("WalletAddress") : "")">
                     </div>
                 </div>
             </div>

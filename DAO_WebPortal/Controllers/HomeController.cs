@@ -213,7 +213,7 @@ namespace DAO_WebPortal.Controllers
             try
             {
                 //User input controls
-                SimpleResponse controlResult = UserInputControls.ControlPostJobOfferRequest(time, amount);
+                SimpleResponse controlResult = UserInputControls.ControlPostJobOfferRequest(HttpContext.Session.GetString("KYCStatus"), time, amount);
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 
