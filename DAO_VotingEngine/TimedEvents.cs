@@ -332,7 +332,8 @@ namespace DAO_VotingEngine
                     if (chainVotings.data.Count(x => x.deploy_hash == formalVoting.DeployHash) > 0)
                     {
                         //Get all votes from chain and syncronize with central db (For doublecheck)
-                        SyncronizeVotesFromChain(Enums.Blockchain.Casper, Convert.ToInt32(formalVoting.BlockchainVotingID), formalVoting.VotingID);
+                        //Disabled for now because endpoints returns votes withouth knowing it belong to informal or not
+                        //SyncronizeVotesFromChain(Enums.Blockchain.Casper, Convert.ToInt32(formalVoting.BlockchainVotingID), formalVoting.VotingID);
 
                         using (dao_votesdb_context db = new dao_votesdb_context())
                         {

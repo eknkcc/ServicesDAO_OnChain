@@ -57,7 +57,7 @@ namespace DAO_DbService
             if (Program._settings.DaoBlockchain == null)
             {
                 CheckAuctionStatusOffChain(null, null);
-                CheckJobStatusOffChain(null, null);
+                CheckJobStatus(null, null);
 
                 //Auction status timer
                 auctionStatusTimer = new System.Timers.Timer(10000);
@@ -68,7 +68,7 @@ namespace DAO_DbService
                 //Job status timer
                 //It sends request to VotinEngine so it has longer interval
                 jobStatusTimer = new System.Timers.Timer(60000);
-                jobStatusTimer.Elapsed += CheckJobStatusOffChain;
+                jobStatusTimer.Elapsed += CheckJobStatus;
                 jobStatusTimer.AutoReset = true;
                 jobStatusTimer.Enabled = true;
             }
@@ -89,6 +89,12 @@ namespace DAO_DbService
                 SyncBidsCasperChain(null, null);
                 jobStatusTimer = new System.Timers.Timer(300000);
                 jobStatusTimer.Elapsed += SyncBidsCasperChain;
+                jobStatusTimer.AutoReset = true;
+                jobStatusTimer.Enabled = true;
+
+                CheckJobStatus(null, null);
+                jobStatusTimer = new System.Timers.Timer(60000);
+                jobStatusTimer.Elapsed += CheckJobStatus;
                 jobStatusTimer.AutoReset = true;
                 jobStatusTimer.Enabled = true;
             }
@@ -157,7 +163,7 @@ namespace DAO_DbService
                     dbInternalBiddingJobs = db.JobPosts.Where(x => x.Status == Enums.JobStatusTypes.InternalAuction && x.DeployHash != null && x.BlockchainJobPostID != null).ToList();
                 }
 
-                if(dbWaitingJobs.Count > 0 || dbInternalBiddingJobs.Count > 0)
+                if (dbWaitingJobs.Count > 0 || dbInternalBiddingJobs.Count > 0)
                 {
                     PaginatedResponse<JobOfferDetailed> chainJobs = Serializers.DeserializeJson<PaginatedResponse<JobOfferDetailed>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetJobOffers?page=1&page_size=100&order_direction=DESC"));
 
@@ -264,7 +270,7 @@ namespace DAO_DbService
                         {
                             PaginatedResponse<Bid> chainBids = Serializers.DeserializeJson<PaginatedResponse<Bid>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetBids?jobid=" + item.BlockchainJobPostID + "&page=1&page_size=100&order_direction=DESC"));
 
-                            foreach (var chainbid in chainBids.data.Where(x=>x.job_offer_id == item.BlockchainJobPostID))
+                            foreach (var chainbid in chainBids.data.Where(x => x.job_offer_id == item.BlockchainJobPostID))
                             {
                                 if (dbWaitingBids.Count(x => x.DeployHash == chainbid.deploy_hash) > 0)
                                 {
@@ -367,13 +373,18 @@ namespace DAO_DbService
         /// </summary>
         /// <param name="source"></param>
         /// <param name="e"></param>
-        private static void CheckJobStatusOffChain(Object source, ElapsedEventArgs e)
+        private static void CheckJobStatus(Object source, ElapsedEventArgs e)
         {
             //Check completed informal votings and update job status accordingly
             CheckCompletedInformalVotings();
 
             //Check completed formal votings and update job status accordingly
-            CheckCompletedFormalVotings();
+            bool onchain = true;
+            if (Program._settings.DaoBlockchain == null)
+            {
+                onchain = false;
+            }
+            CheckCompletedFormalVotings(onchain);
 
             //Check job doer does not provided job evidence and started informal voting within expected time frame
             CheckJobFail();
@@ -458,7 +469,7 @@ namespace DAO_DbService
         /// <summary>
         ///  Checks completed formal votings and updates job status accordingly
         /// </summary>
-        private static void CheckCompletedFormalVotings()
+        private static void CheckCompletedFormalVotings(bool onchain = false)
         {
             try
             {
@@ -514,9 +525,11 @@ namespace DAO_DbService
                                     continue;
                                 }
 
-                                //Votin result FOR
+                                //Voting result FOR
                                 job.Status = Enums.JobStatusTypes.Completed;
                                 db.SaveChanges();
+
+                                if (onchain) continue;
 
                                 //Job completion formal vote passed
                                 if (voting.Type == VoteTypes.JobCompletion)
