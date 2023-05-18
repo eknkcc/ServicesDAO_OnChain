@@ -195,8 +195,9 @@ namespace DAO_VotingEngine
                 int informalWaitingCount = dbVotings.Count(x => x.IsFormal == false && x.DeployHash != null && x.BlockchainVotingID == null);
                 int formalWaitingCount = dbVotings.Count(x => x.IsFormal == true && x.DeployHash != null && x.BlockchainVotingID == null);
                 int informalFinishedCount = dbVotings.Count(x => x.IsFormal == false && x.BlockchainVotingID != null && x.EndDate < DateTime.Now);
+                int formalFinishedCount = dbVotings.Count(x => x.IsFormal == true && x.BlockchainVotingID != null && x.EndDate < DateTime.Now);
 
-                if (informalWaitingCount == 0 && formalWaitingCount == 0 && informalFinishedCount == 0)
+                if (informalWaitingCount == 0 && formalWaitingCount == 0 && informalFinishedCount == 0 && formalFinishedCount == 0)
                 {
                     return;
                 }
@@ -326,43 +327,39 @@ namespace DAO_VotingEngine
                 }
 
                 //End formal voting in central db if formal voting ended onchain
-                if (dbVotings.Count(x => x.IsFormal == true && x.EndDate < DateTime.Now) > 0)
+                foreach (var formalVoting in dbVotings.Where(x => x.IsFormal == true && x.BlockchainVotingID != null && x.EndDate < DateTime.Now))
                 {
-                    var chainCompletedVotings = Serializers.DeserializeJson<List<Helpers.Models.CasperServiceModels.Voting>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetVotings?page=1&page_size=50&has_ended=true&is_formal=true"));
-
-                    foreach (var formalVoting in dbVotings.Where(x => x.IsFormal == true && x.EndDate < DateTime.Now))
+                    if (chainVotings.data.Count(x => x.deploy_hash == formalVoting.DeployHash) > 0)
                     {
-                        if (chainCompletedVotings.Count(x => x.deploy_hash == formalVoting.DeployHash) > 0)
+                        //Get all votes from chain and syncronize with central db (For doublecheck)
+                        SyncronizeVotesFromChain(Enums.Blockchain.Casper, Convert.ToInt32(formalVoting.BlockchainVotingID), formalVoting.VotingID);
+
+                        using (dao_votesdb_context db = new dao_votesdb_context())
                         {
-                            //Get all votes from chain and syncronize with central db (For doublecheck)
-                            SyncronizeVotesFromChain(Enums.Blockchain.Casper, Convert.ToInt32(formalVoting.BlockchainVotingID), formalVoting.VotingID);
-
-                            using (dao_votesdb_context db = new dao_votesdb_context())
+                            //Quorum isn't reached -> Set voting status to Expired
+                            if (db.Votes.Count(x => x.VotingID == formalVoting.VotingID) < formalVoting.QuorumCount)
                             {
-                                //Quorum isn't reached -> Set voting status to Expired
-                                if (db.Votes.Count(x => x.VotingID == formalVoting.VotingID) < formalVoting.QuorumCount)
-                                {
-                                    var votingdb = db.Votings.Find(formalVoting.VotingID);
-                                    votingdb.Status = Enums.VoteStatusTypes.Expired;
-                                    db.Entry(votingdb).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                                    db.SaveChanges();
-                                }
-                                else
-                                {
-                                    var votingdb = db.Votings.Find(formalVoting.VotingID);
-                                    votingdb.Status = Enums.VoteStatusTypes.Completed;
-                                    db.Entry(votingdb).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                                    db.SaveChanges();
-                                }
-
-                                //Release staked reputations
-                                Helpers.Request.Get(Program._settings.Service_Reputation_Url + "/UserReputationStake/ReleaseStakes?referenceProcessID=" + formalVoting.VotingID + "&reftype=" + Enums.StakeType.For);
-
-                                Program.monitizer.AddConsole("Formal voting completed for job #" + formalVoting.JobID);
+                                var votingdb = db.Votings.Find(formalVoting.VotingID);
+                                votingdb.Status = Enums.VoteStatusTypes.Expired;
+                                db.Entry(votingdb).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                                db.SaveChanges();
                             }
+                            else
+                            {
+                                var votingdb = db.Votings.Find(formalVoting.VotingID);
+                                votingdb.Status = Enums.VoteStatusTypes.Completed;
+                                db.Entry(votingdb).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                                db.SaveChanges();
+                            }
+
+                            //Release staked reputations
+                            Helpers.Request.Get(Program._settings.Service_Reputation_Url + "/UserReputationStake/ReleaseStakes?referenceProcessID=" + formalVoting.VotingID + "&reftype=" + Enums.StakeType.For);
+
+                            Program.monitizer.AddConsole("Formal voting completed for job #" + formalVoting.JobID);
                         }
                     }
                 }
+
             }
             catch (Exception ex)
             {
@@ -380,13 +377,13 @@ namespace DAO_VotingEngine
                 {
                     using (dao_votesdb_context db = new dao_votesdb_context())
                     {
-                        var chainVotes = Serializers.DeserializeJson<List<Helpers.Models.CasperServiceModels.Vote>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetVotesListbyVotingId?page=1&page_size=1000&voting_id=" + voting_chain_id));
+                        var chainVotes = Serializers.DeserializeJson<PaginatedResponse<Helpers.Models.CasperServiceModels.Vote>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetVotesListbyVotingId?page=1&page_size=1000&voting_id=" + voting_chain_id));
 
                         var dbVotes = db.Votes.Where(x => x.VotingID == votingId).ToList();
 
-                        foreach (var item in chainVotes)
+                        foreach (var item in chainVotes.data)
                         {
-                            var voting = db.Votings.Find(item);
+                            var voting = db.Votings.Find(votingId);
 
                             if (dbVotes.Count(x => x.DeployHash == item.deploy_hash) == 0)
                             {

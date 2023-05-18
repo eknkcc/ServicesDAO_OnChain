@@ -177,7 +177,7 @@ namespace DAO_CasperChainService.Controllers
                     ChainName = Program._settings.ChainName,
                     GasPrice = 3
                 };
-                var payment = new ModuleBytesDeployItem(4_000_000_000_010);
+                var payment = new ModuleBytesDeployItem(10);
 
                 List<NamedArg> runtimeArgs = new List<NamedArg>();
                 runtimeArgs.Add(new NamedArg("bid_escrow_address", CLValue.Key(bidEscrowAddress)));
