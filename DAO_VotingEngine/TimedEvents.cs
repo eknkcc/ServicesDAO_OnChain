@@ -199,6 +199,7 @@ namespace DAO_VotingEngine
 
                 if (informalWaitingCount == 0 && formalWaitingCount == 0 && informalFinishedCount == 0 && formalFinishedCount == 0)
                 {
+                    progress_CheckVotingStatusCasperChain = false;
                     return;
                 }
 
@@ -207,6 +208,7 @@ namespace DAO_VotingEngine
                 if(chainVotings.error != null)
                 {
                     Program.monitizer.AddConsole("CheckVotingStatusCasperChain  CasperMiddleware GetVotings error: " + chainVotings.error);
+                    progress_CheckVotingStatusCasperChain = false;
                     return;
                 }
 
