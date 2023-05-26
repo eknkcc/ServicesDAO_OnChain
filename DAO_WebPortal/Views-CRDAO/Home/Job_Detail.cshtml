@@ -5,9 +5,10 @@
 @{
     Layout = "../Shared/_MainLayout.cshtml";
 }
-<style>
-    .tab-pane {
-        min-height: 60vh;
+<style>    
+    @if (Model.JobPostWebsiteModel.BlockchainJobID == null)
+    {
+        @Html.Raw("#bidstab{display:none;}")
     }
 </style>
 
@@ -61,7 +62,10 @@
     {
         <span class="badge bg-danger float-right">@Model.JobPostWebsiteModel.Status.ToString()</span>
     }
+
 </div>
+
+
 <ul class="nav nav-underline border-0" role="tablist">
     <li class="nav-item mx-2">
         <a class="nav-link active" data-coreui-toggle="tab" href="#tabSummary" role="tab" aria-selected="false">
@@ -73,7 +77,8 @@
             <i class="fas fa-file me-1"></i></i> Content
         </a>
     </li>
-    <li class="nav-item mx-2">
+
+    <li class="nav-item mx-2" id="bidstab">
         <a class="nav-link" data-coreui-toggle="tab" href="#tabBids" role="tab" aria-selected="false">
             <i class="fas fa-gavel me-1"></i></i> Bids
         </a>
@@ -91,12 +96,15 @@
             <div class="tab-content rounded-bottom">
                 <!--Tab Panel-->
                 <div class="tab-pane active" role="tabpanel" id="tabSummary">
-                    <div class="p-3">
+                    <div class="p-3" style="height: 60vh;overflow-y: scroll;">
                         <table class="table jobDetailTable mb-0">
-                            <tr>
-                                <td><i class="fas fa-coins me-2"></i><i>Job Poster's Budget</i></td>
-                                <td>@DAO_WebPortal.Utility.StringHelper.FormatPrice(Model.JobPostWebsiteModel.Amount) €</td>
-                            </tr>
+                            @if (Model.JobPostWebsiteModel.Amount > 0)
+                            {
+                                <tr>
+                                    <td><i class="fas fa-coins me-2"></i><i>Job Poster's Budget</i></td>
+                                    <td>@DAO_WebPortal.Utility.StringHelper.FormatPrice(Model.JobPostWebsiteModel.Amount) €</td>
+                                </tr>
+                            }
                             @if (!string.IsNullOrEmpty(Model.JobPostWebsiteModel.TimeFrame))
                             {
                                 <tr>
@@ -157,7 +165,28 @@
                                     <td>@Model.JobPostWebsiteModel.DeployHash</td>
                                 </tr>
                             }
+
+                            @if (Model.JobPostWebsiteModel.Voting.Count(x => x.IsFormal == false && x.DeployHash != null) > 0)
+                            {
+                                <tr>
+                                    <td><i class="fas fa-link me-2"></i><i>Informal Deploy Hash</i></td>
+                                    <td>@Model.JobPostWebsiteModel.Voting.First(x=>x.IsFormal == false).DeployHash</td>
+                                </tr>
+                            }
+
+                            @if (Model.JobPostWebsiteModel.Voting.Count(x => x.IsFormal == true && x.DeployHash != null) > 0)
+                            {
+                                <tr>
+                                    <td><i class="fas fa-link me-2"></i><i>Formal Deploy Hash</i></td>
+                                    <td>@Model.JobPostWebsiteModel.Voting.First(x=>x.IsFormal == true).DeployHash</td>
+                                </tr>
+                            }
                         </table>
+
+                        @if (Model.JobPostWebsiteModel.BlockchainJobID == null)
+                        {
+                            <p style="margin-top: 30px;">@Html.Raw(Model.JobPostWebsiteModel.JobDescription)</p>
+                        }
 
                         @if (Model.JobPostWebsiteModel.Voting.Any(x => x.IsFormal == false && x.Status == Helpers.Constants.Enums.VoteStatusTypes.Completed))
                         {
@@ -185,11 +214,11 @@
                                 <div class="p-1">
                                     <div class="progress">
                                         <div class="progress-bar bg-success" role="progressbar" style="width:@forPerc"
-                                         aria-valuenow="@forRatio" aria-valuemin="0" aria-valuemax="100">
+                                             aria-valuenow="@forRatio" aria-valuemin="0" aria-valuemax="100">
                                             @forPerc
                                         </div>
                                         <div class="progress-bar bg-danger" role="progressbar" style="width:@againstPerc"
-                                         aria-valuenow="@againstRatio" aria-valuemin="0" aria-valuemax="100">
+                                             aria-valuenow="@againstRatio" aria-valuemin="0" aria-valuemax="100">
                                             @againstPerc
                                         </div>
                                     </div>
@@ -228,11 +257,11 @@
                                 <div class="p-1">
                                     <div class="progress">
                                         <div class="progress-bar bg-success" role="progressbar" style="width:@forPerc"
-                                         aria-valuenow="@forRatio" aria-valuemin="0" aria-valuemax="100">
+                                             aria-valuenow="@forRatio" aria-valuemin="0" aria-valuemax="100">
                                             @forPerc
                                         </div>
                                         <div class="progress-bar bg-danger" role="progressbar" style="width:@againstPerc"
-                                         aria-valuenow="@againstRatio" aria-valuemin="0" aria-valuemax="100">
+                                             aria-valuenow="@againstRatio" aria-valuemin="0" aria-valuemax="100">
                                             @againstPerc
                                         </div>
                                     </div>
@@ -249,109 +278,111 @@
                     </div>
                 </div>
                 <div class="tab-pane" role="tabpanel" id="tabCode">
-                    <div class="p-3 card-text" style="height: 572px;overflow-y: scroll;">
+                    <div class="p-3 card-text" style="height: 60vh;overflow-y: scroll;">
                         @Html.Raw(Model.JobPostWebsiteModel.JobDescription)
                     </div>
                 </div>
                 <div class="tab-pane" role="tabpanel" id="tabBids">
-                    @if (Model.JobPostWebsiteModel.Auction == null || Model.JobPostWebsiteModel.Auction.AuctionID <= 0)
-                    {
-                        <center class="p-3">
-                            <i class="fas fa-hourglass-start text-secondary my-3" style="font-size:35px"></i>
-                            <h6 class="text-secondary">Auction did not start for this job yet</h6>
-                        </center>
-                    }
-                    else if (Model.JobPostWebsiteModel.Auction.AuctionID > 0 && Model.JobPostWebsiteModel.AuctionBids.Count == 0)
-                    {
-                        <center class="p-3">
-                            <i class="fas fa-user-times text-secondary my-3" style="font-size:35px"></i>
-                            <h6 class="text-secondary">There are no bids for this job</h6>
-                        </center>
-                    }
-                    else if (Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.InternalAuction || Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.PublicAuction)
-                    {
-                        <div class="table-responsive">
-                            <table class="table table-dark">
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th>Price</th>
-                                        <th>Total Reps</th>
-                                        <th>Stake</th>
-                                        <th>Timeframe</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var bid in Model.JobPostWebsiteModel.AuctionBids)
-                                    {
-                                        string colClass = "bg-info text-white";
-                                        if (bid.UserType == Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString())
-                                        {
-                                            colClass = "bg-primary text-white";
-                                        }
+                    <div  style="height: 60vh;overflow-y: scroll;">
+                        @if (Model.JobPostWebsiteModel.Auction == null || Model.JobPostWebsiteModel.Auction.AuctionID <= 0)
+                        {
+                            <center class="p-3">
+                                <i class="fas fa-hourglass-start text-secondary my-3" style="font-size:35px"></i>
+                                <h6 class="text-secondary">Auction did not start for this job yet</h6>
+                            </center>
+                        }
+                        else if (Model.JobPostWebsiteModel.Auction.AuctionID > 0 && Model.JobPostWebsiteModel.AuctionBids.Count == 0)
+                        {
+                            <center class="p-3">
+                                <i class="fas fa-user-times text-secondary my-3" style="font-size:35px"></i>
+                                <h6 class="text-secondary">There are no bids for this job</h6>
+                            </center>
+                        }
+                        else if (Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.InternalAuction || Model.JobPostWebsiteModel.Status == Helpers.Constants.Enums.JobStatusTypes.PublicAuction)
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-dark">
+                                    <thead>
                                         <tr>
-                                            <td class="@colClass">
-                                                @if (bid.UserType == Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString())
-                                                {
-                                                    <small>VA</small>
-                                                }
-                                                else
-                                                {
-                                                    <small>NonVA</small>
-                                                }
-                                            </td>
-                                            <td class="@colClass">@bid.Price€</td>
-                                            <td class="@colClass">@DAO_WebPortal.Utility.StringHelper.AnonymizeReputation(bid.UsersTotalReputation)</td>
-                                            <td class="@colClass">@bid.ReputationStake</td>
-                                            <td class="@colClass">@bid.Time days</td>
+                                            <th></th>
+                                            <th>Price</th>
+                                            <th>Total Reps</th>
+                                            <th>Stake</th>
+                                            <th>Timeframe</th>
                                         </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="table-responsive">
-                            <table class="table table-dark">
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th>Username</th>
-                                        <th>Price</th>
-                                        <th>Timeframe</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var bid in Model.JobPostWebsiteModel.AuctionBids)
-                                    {
-                                        string colClass = "";
-                                        if (bid.AuctionBidID == Model.JobPostWebsiteModel.Auction.WinnerAuctionBidID)
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var bid in Model.JobPostWebsiteModel.AuctionBids)
                                         {
-                                            colClass = "bg-success text-white";
+                                            string colClass = "bg-info text-white";
+                                            if (bid.UserType == Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString())
+                                            {
+                                                colClass = "bg-primary text-white";
+                                            }
+                                            <tr>
+                                                <td class="@colClass">
+                                                    @if (bid.UserType == Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString())
+                                                    {
+                                                        <small>VA</small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <small>NonVA</small>
+                                                    }
+                                                </td>
+                                                <td class="@colClass">@bid.Price€</td>
+                                                <td class="@colClass">@DAO_WebPortal.Utility.StringHelper.AnonymizeReputation(bid.UsersTotalReputation)</td>
+                                                <td class="@colClass">@bid.ReputationStake</td>
+                                                <td class="@colClass">@bid.Time days</td>
+                                            </tr>
                                         }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-dark">
+                                    <thead>
                                         <tr>
-                                            <td class="@colClass">
-                                                @if (bid.UserType == Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString())
-                                                {
-                                                    <small>VA</small>
-                                                }
-                                                else
-                                                {
-                                                    <small>NonVA</small>
-                                                }
-                                            </td>
-                                            <td class="@colClass">
-                                                @bid.UserName
-                                            </td>
-                                            <td class="@colClass">@bid.Price€</td>
-                                            <td class="@colClass">@bid.Time days</td>
+                                            <th></th>
+                                            <th>Username</th>
+                                            <th>Price</th>
+                                            <th>Timeframe</th>
                                         </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    }
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var bid in Model.JobPostWebsiteModel.AuctionBids)
+                                        {
+                                            string colClass = "";
+                                            if (bid.AuctionBidID == Model.JobPostWebsiteModel.Auction.WinnerAuctionBidID)
+                                            {
+                                                colClass = "bg-success text-white";
+                                            }
+                                            <tr>
+                                                <td class="@colClass">
+                                                    @if (bid.UserType == Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString())
+                                                    {
+                                                        <small>VA</small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <small>NonVA</small>
+                                                    }
+                                                </td>
+                                                <td class="@colClass">
+                                                    @bid.UserName
+                                                </td>
+                                                <td class="@colClass">@bid.Price€</td>
+                                                <td class="@colClass">@bid.Time days</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
                 </div>
             </div>
 
@@ -485,7 +516,7 @@
             <div class="tab-content rounded-bottom">
                 <div class="tab-pane active p-3">
                     <!-- Comments footer -->
-                    <div class="commentsx">
+                    <div style="height: 61vh;overflow-y: scroll;">
                         <div id="comments" class="comment-thread">
                             @{
                                 //Set the index of the pinned comments to first index

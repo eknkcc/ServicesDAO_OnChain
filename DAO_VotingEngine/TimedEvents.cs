@@ -260,8 +260,7 @@ namespace DAO_VotingEngine
                     if (informalVoting.EndDate < DateTime.Now)
                     {
                         //Get all votes from chain and syncronize with central db (For doublecheck)
-                        //Disabled for now because endpoints returns votes withouth knowing it belong to informal or not
-                        //SyncronizeVotesFromChain(Enums.Blockchain.Casper, Convert.ToInt32(informalVoting.BlockchainVotingID), informalVoting.VotingID);
+                        SyncronizeVotesFromChain(Enums.Blockchain.Casper, Convert.ToInt32(informalVoting.BlockchainVotingID), informalVoting.VotingID);
 
                         using (dao_votesdb_context db = new dao_votesdb_context())
                         {
@@ -312,8 +311,7 @@ namespace DAO_VotingEngine
                                 Program.monitizer.AddConsole("Formal voting started for job #" + formalVoting.JobID);
 
                                 //Get all votes of formal voting from chain and syncronize with central db (For doublecheck)
-                                //Disabled for now because endpoints returns votes withouth knowing it belong to informal or not
-                                //SyncronizeVotesFromChain(Enums.Blockchain.Casper, Convert.ToInt32(formalVoting.BlockchainVotingID), formalVoting.VotingID);
+                                SyncronizeVotesFromChain(Enums.Blockchain.Casper, Convert.ToInt32(formalVoting.BlockchainVotingID), formalVoting.VotingID);
 
                                 //Release staked reputations
                                 Helpers.Request.Get(Program._settings.Service_Reputation_Url + "/UserReputationStake/ReleaseStakes?referenceProcessID=" + informalVoting.VotingID + "&reftype=" + Enums.StakeType.For);
@@ -334,8 +332,7 @@ namespace DAO_VotingEngine
                     if (chainVotings.data.Count(x => x.deploy_hash == formalVoting.DeployHash) > 0)
                     {
                         //Get all votes from chain and syncronize with central db (For doublecheck)
-                        //Disabled for now because endpoints returns votes withouth knowing it belong to informal or not
-                        //SyncronizeVotesFromChain(Enums.Blockchain.Casper, Convert.ToInt32(formalVoting.BlockchainVotingID), formalVoting.VotingID);
+                        SyncronizeVotesFromChain(Enums.Blockchain.Casper, Convert.ToInt32(formalVoting.BlockchainVotingID), formalVoting.VotingID);
 
                         using (dao_votesdb_context db = new dao_votesdb_context())
                         {
@@ -384,10 +381,10 @@ namespace DAO_VotingEngine
 
                         var dbVotes = db.Votes.Where(x => x.VotingID == votingId).ToList();
 
-                        foreach (var item in chainVotes.data)
-                        {
-                            var voting = db.Votings.Find(votingId);
+                        var voting = db.Votings.Find(votingId);
 
+                        foreach (var item in chainVotes.data.Where(x=>x.is_formal == voting.IsFormal))
+                        {
                             if (dbVotes.Count(x => x.DeployHash == item.deploy_hash) == 0)
                             {
                                 Models.Vote vote = new Models.Vote();
