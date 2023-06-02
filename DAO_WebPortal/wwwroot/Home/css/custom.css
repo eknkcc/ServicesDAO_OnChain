@@ -834,3 +834,6 @@ h5 {
     bottom:20px;
     right: 20px;
 }
+.sidebar {
+    background: linear-gradient(90deg, rgb(5 3 26) 0%, rgb(46 50 78) 97%) !important;
+}
