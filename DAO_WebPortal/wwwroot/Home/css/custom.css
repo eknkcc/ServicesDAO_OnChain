@@ -819,7 +819,7 @@ h5 {
 }
 
 .commentsx{
-    height: 572px;overflow-y: scroll;
+    overflow-y: scroll;
 }
 
 .voteTypeCard{
@@ -834,6 +834,32 @@ h5 {
     bottom:20px;
     right: 20px;
 }
-.sidebar {
-    background: linear-gradient(90deg, rgb(5 3 26) 0%, rgb(46 50 78) 97%) !important;
+
+/* Target the scrollbar */
+::-webkit-scrollbar {
+    width: 7px; /* Width of the scrollbar */
 }
+
+/* Track */
+.dark-theme ::-webkit-scrollbar-track {
+    background: #373d58; /* Color of the track */
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Color of the track */
+}
+
+/* Track */
+.dark-theme ::-webkit-scrollbar-thumb {
+    background: #172042; /* Color of the track */
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #a3a3a3; /* Color of the handle */
+}
+
+    /* Handle on hover */
+    ::-webkit-scrollbar-thumb:hover {
+        background: #555; /* Color of the handle on hover */
+    }
