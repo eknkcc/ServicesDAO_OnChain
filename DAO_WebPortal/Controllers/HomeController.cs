@@ -2133,6 +2133,66 @@ namespace DAO_WebPortal.Controllers
 
         }
 
+
+        [HttpPost]
+        [AuthorizeChainUser]
+        public JsonResult FinishVoting(int VotingID, string signedDeployJson)
+        {
+            SimpleResponse result = new SimpleResponse();
+
+            try
+            {
+
+                if (Program._settings.DaoBlockchain == Blockchain.Casper)
+                {
+                    ChainActionDto chainAction = CreateChainActionRecord(signedDeployJson, HttpContext.Session.GetString("WalletAddress"), ChainActionTypes.Finish_Voting);
+
+                    int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
+                    string token = HttpContext.Session.GetString("Token");
+
+                    new Thread(() =>
+                    {
+                        Thread.CurrentThread.IsBackground = true;
+
+                        ChainActionDto deployResult = new ChainActionDto();
+
+                        deployResult = SendSignedDeploy(chainAction);
+
+                        ////Central db operations
+                        //if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
+                        //{
+
+                        //    string jsonResponse = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Vote/SubmitVote?VotingID=" + VotingID + "&UserID=" + userid + "&Direction=" + Direction + "&ReputationStake=" + ReputationStake.ToString().Replace(",", "."), token);
+                        //    SimpleResponse votePostResponse = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResponse);
+
+                        //    //Set server side toastr because page will be redirected
+                        //    TempData["toastr-message"] = result.Message;
+                        //    TempData["toastr-type"] = "success";
+
+                        //    Program.monitizer.AddUserLog(userid, Helpers.Constants.Enums.UserLogType.Request, "User voted job. Voting #" + VotingID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+                        //}
+
+                        Program.chainQue.RemoveAt(Program.chainQue.IndexOf(chainAction));
+                        Program.chainQue.Add(deployResult);
+                    }).Start();
+
+                    //Set server side toastr because page will be redirected
+                    TempData["toastr-message"] = "Your request successfully submitted. ";
+                    TempData["toastr-type"] = "success";
+
+                    return Json(new SimpleResponse() { Success = true });
+                }
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+            }
+
+            return Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+
+        }
+
+
         /// <summary>
         /// New Simple Vote Page
         /// </summary>

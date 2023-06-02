@@ -382,6 +382,31 @@ namespace DAO_WebPortal.Controllers
                 return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
             }
         }
+        public JsonResult GetFinishVotingDeploy(int votingId)
+        {
+            try
+            {
+                //Get voting model from ApiGateway
+                var votingJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Voting/GetId?id=" + votingId, HttpContext.Session.GetString("Token"));
+                //Parse response
+                VotingDto voting = Helpers.Serializers.DeserializeJson<VotingDto>(votingJson);
+
+                //Get model from ApiGateway
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/FinishVoting?votetype=" + voting.Type + "&isFormal=" + Convert.ToInt32(voting.IsFormal) + "&votingid=" + voting.BlockchainVotingID + "&userwallet=" + HttpContext.Session.GetString("WalletAddress"));
+
+                //Parse response
+                SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
+
+                //Return deploy object in JSON
+                return base.Json(deployModel);
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+                return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
+            }
+        }
         public JsonResult GetSimpleVoteDeploy(string documenthash, int stake)
         {
             try

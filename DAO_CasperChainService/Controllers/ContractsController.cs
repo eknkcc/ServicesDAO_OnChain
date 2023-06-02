@@ -510,6 +510,74 @@ namespace DAO_CasperChainService.Controllers
             }
         }
 
+        [HttpGet("FinishVoting", Name = "FinishVoting")]
+        public SimpleResponse FinishVoting(Enums.VoteTypes votetype, byte isFormal, uint votingid, string userwallet)
+        {
+            try
+            {
+                string contractAddress = "";
+                if (votetype == VoteTypes.Simple)
+                {
+                    contractAddress = Program._settings.SimpleVoterContract;
+                }
+                else if (votetype == VoteTypes.Governance)
+                {
+                    contractAddress = Program._settings.RepoVoterContract;
+                }
+                else if (votetype == VoteTypes.Admin)
+                {
+                    contractAddress = Program._settings.AdminContract;
+                }
+                else if (votetype == VoteTypes.JobCompletion)
+                {
+                    contractAddress = Program._settings.BidEscrowContract;
+                }
+                else if (votetype == VoteTypes.VAOnboarding)
+                {
+                    contractAddress = Program._settings.OnboardingRequestContract;
+                }
+                else if (votetype == VoteTypes.KYC)
+                {
+                    contractAddress = Program._settings.KycVoterContract;
+                }
+                else if (votetype == VoteTypes.Reputation)
+                {
+                    contractAddress = Program._settings.ReputationVoterContract;
+                }
+                else if (votetype == VoteTypes.Slashing)
+                {
+                    contractAddress = Program._settings.SlashingVoterContract;
+                }
+
+                PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
+
+                var namedArgs = new List<NamedArg>()
+                {
+                    new NamedArg("voting_id", CLValue.U32(votingid)),
+                    new NamedArg("voting_type", CLValue.U8(isFormal))
+                };
+
+                //Create deploy object
+                HashKey contractHash = new HashKey(contractAddress);
+                var deploy = DeployTemplates.ContractCall(contractHash,
+                       "finish_voting",
+                       namedArgs,
+                       myAccountPK,
+                       150_000_000_000,
+                       Program._settings.ChainName);
+
+                //Return deploy object in JSON
+                return new SimpleResponse { Success = true, Message = deploy.SerializeToJson() };
+
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+                return new SimpleResponse { Success = false };
+            }
+        }
+
+
         [HttpGet("SimpleVoterCreateVoting", Name = "SimpleVoterCreateVoting")]
         public SimpleResponse SimpleVoter_CreateVoting(string userwallet, string documenthash, int stake)
         {

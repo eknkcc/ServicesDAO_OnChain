@@ -201,6 +201,7 @@
             Submit_JobProof_Grace,
 
             Submit_Vote,
+            Finish_Voting,
         }
 
 
