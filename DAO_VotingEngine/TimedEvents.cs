@@ -189,7 +189,7 @@ namespace DAO_VotingEngine
 
                 using (dao_votesdb_context db = new dao_votesdb_context())
                 {
-                    dbVotings = db.Votings.Where(x => x.Status == Enums.VoteStatusTypes.Active).ToList();
+                    dbVotings = db.Votings.Where(x => x.Status == Enums.VoteStatusTypes.BlockchainFinish).ToList();
                 }
 
                 int informalWaitingCount = dbVotings.Count(x => x.IsFormal == false && x.DeployHash != null && x.BlockchainVotingID == null);

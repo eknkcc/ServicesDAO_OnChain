@@ -108,7 +108,8 @@
             Active,
             Waiting,
             Completed,
-            Expired
+            Expired,
+            BlockchainFinish
         }
 
         /// <summary>

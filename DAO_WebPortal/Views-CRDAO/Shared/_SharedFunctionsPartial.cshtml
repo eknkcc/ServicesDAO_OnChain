@@ -495,7 +495,7 @@
             }
         }).catch(error => {
             HideLoader();
-            toastr.warning("Error while getting wallet connection status: " + error);
+            toastr.warning("Error while getting wallet connection status, please check if your wallet is connected: " + error);
         });
     }
 

@@ -2158,19 +2158,22 @@ namespace DAO_WebPortal.Controllers
 
                         deployResult = SendSignedDeploy(chainAction);
 
-                        ////Central db operations
-                        //if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
-                        //{
+                        //Central db operations
+                        if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
+                        {
 
-                        //    string jsonResponse = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Vote/SubmitVote?VotingID=" + VotingID + "&UserID=" + userid + "&Direction=" + Direction + "&ReputationStake=" + ReputationStake.ToString().Replace(",", "."), token);
-                        //    SimpleResponse votePostResponse = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResponse);
+                            string jsonResponse = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Voting/GetId?id=" + VotingID, token);
+                            VotingDto voting = Helpers.Serializers.DeserializeJson<VotingDto>(jsonResponse);
+                            voting.Status = VoteStatusTypes.BlockchainFinish;
 
-                        //    //Set server side toastr because page will be redirected
-                        //    TempData["toastr-message"] = result.Message;
-                        //    TempData["toastr-type"] = "success";
+                            string jsonResponse2 = Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/Voting/Voting/Update", Helpers.Serializers.SerializeJson(voting), token);
 
-                        //    Program.monitizer.AddUserLog(userid, Helpers.Constants.Enums.UserLogType.Request, "User voted job. Voting #" + VotingID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
-                        //}
+                            //Set server side toastr because page will be redirected
+                            TempData["toastr-message"] = result.Message;
+                            TempData["toastr-type"] = "success";
+
+                            Program.monitizer.AddUserLog(userid, Helpers.Constants.Enums.UserLogType.Request, "User finished voting. Voting #" + VotingID, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+                        }
 
                         Program.chainQue.RemoveAt(Program.chainQue.IndexOf(chainAction));
                         Program.chainQue.Add(deployResult);
