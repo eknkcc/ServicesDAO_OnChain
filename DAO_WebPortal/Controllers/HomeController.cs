@@ -2736,7 +2736,7 @@ namespace DAO_WebPortal.Controllers
                     //Parse response
                     ReputationHistoryModel = Helpers.Serializers.DeserializeJson<List<UserReputationHistoryDto>>(url);
                     ReputationHistoryModel = ReputationHistoryModel.OrderByDescending(x => x.Date).ToList();
-                    HttpContext.Session.SetString("Reputation", (ReputationHistoryModel.First().StakeReleasedAmount + ReputationHistoryModel.First().StakedAmount).ToString());
+                    //HttpContext.Session.SetString("Reputation", (ReputationHistoryModel.First().StakeReleasedAmount + ReputationHistoryModel.First().StakedAmount).ToString());
                 }
                 else
                 {

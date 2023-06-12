@@ -514,7 +514,7 @@
         <script>
 
             async function startOnchainSimpleVote() {
-                CheckWalletAndSendDeploy("../CasperChain/GetSimpleVoteDeploy?documenthash=" + $("#documenthash").val() + "&stake=" + $("#simplestake").val(), startSimpleVote);
+                CheckWalletAndSendDeploy("../CasperChain/GetSimpleVoteDeploy?documenthash=" + $("#simpledocumenthash").val() + "&stake=" + $("#simplestake").val(), startSimpleVote);
             }
 
             async function startOnchainVaOnboardingVote() {
