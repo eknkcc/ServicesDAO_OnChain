@@ -20,6 +20,8 @@ using Microsoft.AspNetCore.Hosting;
 using System.IO;
 using Helpers.Models.CasperServiceModels;
 using Account = Helpers.Models.CasperServiceModels.Account;
+using Casper.Network.SDK.ByteSerializers;
+using Org.BouncyCastle.Utilities;
 
 namespace DAO_CasperChainService.Controllers
 {
@@ -34,7 +36,7 @@ namespace DAO_CasperChainService.Controllers
             {
                 Deploy deploy = Deploy.Parse(chainAction.DeployJson);
 
-                NetCasperClient casperSdk = new NetCasperClient(Program._settings.NodeUrl + ":7777/rpc");
+                NetCasperClient casperSdk = new NetCasperClient(Program._settings.NodeUrl /*+ ":7777/rpc"*/);
 
                 var response = casperSdk.PutDeploy(deploy).Result;
 
@@ -156,6 +158,35 @@ namespace DAO_CasperChainService.Controllers
             return resultText;
         }
 
+        [HttpGet("GetUserChainProfile2", Name = "GetUserChainProfile2")]
+        public UserChainProfile GetUserChainProfile2(string publicAddress)
+        {
+            UserChainProfile profile = new UserChainProfile();
+
+            try
+            {
+                var hex = publicAddress;
+                var publicKey = PublicKey.FromHexString(hex);
+                var casperSdk = new NetCasperClient(Program._settings.NodeUrl);
+                var rpcResponse = casperSdk.GetAccountBalance(publicKey).Result;
+
+                double balanceParsed = Convert.ToInt64(rpcResponse.Parse().BalanceValue.ToString()) / (double)1000000000;
+                profile.Balance = balanceParsed.ToString("N2");
+
+                // Console.WriteLine("Public Key Balance: " + rpcResponse.Parse().BalanceValue);
+
+                // CasperClient casperClient = new CasperClient(rpcUrl);
+                // var result = casperClient.RpcService.GetAccountBalance(publicAddress);
+                // double balanceParsed = Convert.ToInt64(result.result.balance_value) / (double)1000000000;
+                // profile.Balance = balanceParsed.ToString("N2");
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
+            }
+
+            return profile;
+        }
         #region Bid Escrow
 
         [HttpGet("BidEscrowPostJobOffer", Name = "BidEscrowPostJobOffer")]
@@ -164,9 +195,8 @@ namespace DAO_CasperChainService.Controllers
             try
             {
                 PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
-                var bidEscrowAddress = GlobalStateKey.FromString(Program._settings.BidEscrowContractPackageHash);
 
-                var wasmFile = "./wwwroot/wasms/post_job_offer.wasm";
+                var wasmFile = "./wwwroot/wasms/proxy_caller.wasm";
                 var wasmBytes = System.IO.File.ReadAllBytes(wasmFile);
 
                 var header = new DeployHeader()
@@ -175,16 +205,42 @@ namespace DAO_CasperChainService.Controllers
                     Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
                     Ttl = 1800000,
                     ChainName = Program._settings.ChainName,
-                    GasPrice = 3
+                    GasPrice = 1
                 };
-                var payment = new ModuleBytesDeployItem(10);
+                var payment = new ModuleBytesDeployItem(500_000_000_000);
 
+                //Job parameters which will be converted to bytes
+                List<NamedArg> runtimeJobArgs = new List<NamedArg>();
+                runtimeJobArgs.Add(new NamedArg("expected_timeframe", CLValue.U64(expectedtimeframe)));
+                runtimeJobArgs.Add(new NamedArg("budget", CLValue.U512(budget)));
+                // 10 $ OR MORE EQUIVALENT CSPR
+                runtimeJobArgs.Add(new NamedArg("dos_fee", CLValue.U512(500_000_000_000)));
+
+                List<CLValue> clVals = new List<CLValue>();
+
+                NamedArgByteSerializer namedArgByteSerializer = new NamedArgByteSerializer();
+                MemoryStream memoryStream = new MemoryStream();
+                memoryStream.Write(BitConverter.GetBytes(runtimeJobArgs.Count));
+
+                foreach (NamedArg runtimeArg in runtimeJobArgs)
+                {
+                    var bytes = namedArgByteSerializer.ToBytes(runtimeArg);
+
+                    memoryStream.Write(bytes);   
+                }
+
+                foreach (var byt in memoryStream.ToArray())
+                {
+                    clVals.Add(CLValue.U8(byt));
+                }
+
+                //MAIN PROXY ARGS
                 List<NamedArg> runtimeArgs = new List<NamedArg>();
-                runtimeArgs.Add(new NamedArg("bid_escrow_address", CLValue.Key(bidEscrowAddress)));
-                runtimeArgs.Add(new NamedArg("cspr_amount", CLValue.U512(4_000_000_000_000)));
-                runtimeArgs.Add(new NamedArg("expected_timeframe", CLValue.U64(expectedtimeframe)));
-                runtimeArgs.Add(new NamedArg("budget", CLValue.U512(budget)));
-                runtimeArgs.Add(new NamedArg("amount", CLValue.U512(4_000_000_000_000)));
+                runtimeArgs.Add(new NamedArg("contract_package_hash", CLValue.ByteArray(Program._settings.BidEscrowContractPackageHash)));
+                runtimeArgs.Add(new NamedArg("entry_point", CLValue.String("post_job_offer")));
+                runtimeArgs.Add(new NamedArg("args", CLValue.List(clVals.ToArray())));
+                runtimeArgs.Add(new NamedArg("attached_value", CLValue.Option(CLValue.U512(4_000_000_000_000))));
+                runtimeArgs.Add(new NamedArg("amount", CLValue.Option(CLValue.U512(4_000_000_000_000))));
 
                 var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
 

@@ -184,18 +184,23 @@ namespace DAO_VotingEngine
             try
             {
                 //Get voting data from chain and central db
-                List<Models.Voting> dbVotings = new List<Models.Voting>();
+                List<Models.Voting> dbActiveVotings = new List<Models.Voting>();
+                List<Models.Voting> dbFinishedVotings = new List<Models.Voting>();
+
                 PaginatedResponse<Helpers.Models.CasperServiceModels.Voting> chainVotings = new PaginatedResponse<Helpers.Models.CasperServiceModels.Voting>();
 
                 using (dao_votesdb_context db = new dao_votesdb_context())
                 {
-                    dbVotings = db.Votings.Where(x => x.Status == Enums.VoteStatusTypes.BlockchainFinish).ToList();
+                    dbActiveVotings = db.Votings.Where(x => x.Status == Enums.VoteStatusTypes.Active).ToList();
+                    dbFinishedVotings = db.Votings.Where(x => x.Status == Enums.VoteStatusTypes.BlockchainFinish).ToList();
+
                 }
 
-                int informalWaitingCount = dbVotings.Count(x => x.IsFormal == false && x.DeployHash != null && x.BlockchainVotingID == null);
-                int formalWaitingCount = dbVotings.Count(x => x.IsFormal == true && x.DeployHash != null && x.BlockchainVotingID == null);
-                int informalFinishedCount = dbVotings.Count(x => x.IsFormal == false && x.BlockchainVotingID != null && x.EndDate < DateTime.Now);
-                int formalFinishedCount = dbVotings.Count(x => x.IsFormal == true && x.BlockchainVotingID != null && x.EndDate < DateTime.Now);
+                int informalWaitingCount = dbActiveVotings.Count(x => x.IsFormal == false && x.DeployHash != null && x.BlockchainVotingID == null);
+                int formalWaitingCount = dbActiveVotings.Count(x => x.IsFormal == true && x.DeployHash != null && x.BlockchainVotingID == null);
+
+                int informalFinishedCount = dbFinishedVotings.Count(x => x.IsFormal == false && x.BlockchainVotingID != null && x.EndDate < DateTime.Now);
+                int formalFinishedCount = dbFinishedVotings.Count(x => x.IsFormal == true && x.BlockchainVotingID != null && x.EndDate < DateTime.Now);
 
                 if (informalWaitingCount == 0 && formalWaitingCount == 0 && informalFinishedCount == 0 && formalFinishedCount == 0)
                 {
@@ -213,7 +218,7 @@ namespace DAO_VotingEngine
                 }
 
                 //Sync blockchain informal voting ids
-                foreach (var item in dbVotings.Where(x => x.IsFormal == false && x.DeployHash != null && x.BlockchainVotingID == null))
+                foreach (var item in dbActiveVotings.Where(x => x.IsFormal == false && x.DeployHash != null && x.BlockchainVotingID == null))
                 {
                     if (chainVotings.data.Count(x => x.deploy_hash == item.DeployHash) > 0)
                     {
@@ -232,7 +237,7 @@ namespace DAO_VotingEngine
                 }
 
                 //Sync blockchain formal voting ids & deploy hash
-                foreach (var item in dbVotings.Where(x => x.IsFormal == true && x.DeployHash == null && x.BlockchainVotingID == null))
+                foreach (var item in dbActiveVotings.Where(x => x.IsFormal == true && x.DeployHash == null && x.BlockchainVotingID == null))
                 {
                     using (dao_votesdb_context db = new dao_votesdb_context())
                     {
@@ -255,7 +260,7 @@ namespace DAO_VotingEngine
                 }
 
                 //Start formal voting in central db if formal voting started onchain
-                foreach (var informalVoting in dbVotings.Where(x => x.IsFormal == false && x.BlockchainVotingID != null))
+                foreach (var informalVoting in dbFinishedVotings.Where(x => x.IsFormal == false && x.BlockchainVotingID != null))
                 {
                     if (informalVoting.EndDate < DateTime.Now)
                     {
@@ -327,7 +332,7 @@ namespace DAO_VotingEngine
                 }
 
                 //End formal voting in central db if formal voting ended onchain
-                foreach (var formalVoting in dbVotings.Where(x => x.IsFormal == true && x.BlockchainVotingID != null && x.EndDate < DateTime.Now))
+                foreach (var formalVoting in dbFinishedVotings.Where(x => x.IsFormal == true && x.BlockchainVotingID != null && x.EndDate < DateTime.Now))
                 {
                     if (chainVotings.data.Count(x => x.deploy_hash == formalVoting.DeployHash) > 0)
                     {
