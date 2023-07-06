@@ -230,11 +230,11 @@ namespace DAO_WebPortal.Controllers
                 string deployJson = "";
                 if(HttpContext.Session.GetString("UserType") == Enums.UserIdentityType.VotingAssociate.ToString())
                 {                
-                    deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/BidEscrowSubmitBidVA?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&jobofferid=" + jobofferid + "&time=" + timeframe + "&repstake=" + repstake + "&userpayment="+ userpayment * 1000000000);
+                    deployJson = Helpers.Request.Get("https://localhost:44347/Contracts/BidEscrowSubmitBidVA?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&jobofferid=" + jobofferid + "&time=" + timeframe + "&repstake=" + repstake + "&userpayment="+ userpayment * 1000000000);
                 }
                 else
                 {
-                    deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/BidEscrowSubmitBid?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&jobofferid=" + jobofferid + "&time=" + timeframe + "&userpayment=" + userpayment * 1000000000 + "&onboard=" + onboard);
+                    deployJson = Helpers.Request.Get("https://localhost:44347/Contracts/BidEscrowSubmitBid?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&jobofferid=" + jobofferid + "&time=" + timeframe + "&userpayment=" + userpayment * 1000000000 + "&onboard=" + onboard);
                 }
 
 

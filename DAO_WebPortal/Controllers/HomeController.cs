@@ -29,6 +29,7 @@ using System.Threading;
 using MySqlX.XDevAPI.Common;
 using Newtonsoft.Json.Linq;
 using Helpers.Models.CasperServiceModels;
+using MySqlX.XDevAPI;
 
 namespace DAO_WebPortal.Controllers
 {
@@ -1052,8 +1053,8 @@ namespace DAO_WebPortal.Controllers
                     int InternalAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "InternalAuctionTime").Value);
                     int PublicAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "PublicAuctionTime").Value);
 
-                    DateTime internalAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime);
-                    DateTime publicAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime + PublicAuctionTime);
+                    DateTime internalAuctionEndDate = DateTime.Now.AddMilliseconds(InternalAuctionTime);
+                    DateTime publicAuctionEndDate = DateTime.Now.AddMilliseconds(InternalAuctionTime + PublicAuctionTime);
 
                     AuctionDto AuctionModel = new AuctionDto()
                     {
@@ -1984,7 +1985,7 @@ namespace DAO_WebPortal.Controllers
             }
             informalVoting.QuorumRatio = InformalQuorumRatio;
             informalVoting.Type = Enums.VoteTypes.JobCompletion;
-            informalVoting.EndDate = DateTime.Now.AddSeconds(InformalVotingTime);
+            informalVoting.EndDate = DateTime.Now.AddMilliseconds(InformalVotingTime);
             informalVoting.DeployHash = deployhash;
 
             //Get related job post
@@ -2085,7 +2086,7 @@ namespace DAO_WebPortal.Controllers
                         if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
                         {
 
-                            string jsonResponse = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Vote/SubmitVote?VotingID=" + VotingID + "&UserID=" + userid + "&Direction=" + Direction + "&ReputationStake=" + ReputationStake.ToString().Replace(",", "."), token);
+                            string jsonResponse = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Vote/SubmitVote?VotingID=" + VotingID + "&UserID=" + userid + "&Direction=" + Direction + "&ReputationStake=" + ReputationStake.ToString().Replace(",", ".") + "&DeployHash=" + deployResult.DeployHash + "&WalletAddress=" + HttpContext.Session.GetString("WalletAddress"), token);
                             SimpleResponse votePostResponse = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResponse);
 
                             //Set server side toastr because page will be redirected
@@ -2580,7 +2581,7 @@ namespace DAO_WebPortal.Controllers
                     informalVoting.QuorumRatio = InformalQuorumRatio;
                     informalVoting.Type = voteType;
                     informalVoting.DeployHash = deployHash;
-                    informalVoting.EndDate = DateTime.Now.AddSeconds(InformalVotingTime);
+                    informalVoting.EndDate = DateTime.Now.AddMilliseconds(InformalVotingTime);
 
                     //Get total dao member count
                     int daoMemberCount = Convert.ToInt32(Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Users/GetCount?type=" + UserIdentityType.VotingAssociate, token));
@@ -3092,8 +3093,8 @@ namespace DAO_WebPortal.Controllers
                 int InternalAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "InternalAuctionTime").Value);
                 int PublicAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "PublicAuctionTime").Value);
 
-                DateTime internalAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime);
-                DateTime publicAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime + PublicAuctionTime);
+                DateTime internalAuctionEndDate = DateTime.Now.AddMilliseconds(InternalAuctionTime);
+                DateTime publicAuctionEndDate = DateTime.Now.AddMilliseconds(InternalAuctionTime + PublicAuctionTime);
 
 
                 AuctionDto AuctionModel = new AuctionDto()
@@ -3284,8 +3285,8 @@ namespace DAO_WebPortal.Controllers
                 int InternalAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "InternalAuctionTime").Value);
                 int PublicAuctionTime = Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "PublicAuctionTime").Value);
 
-                DateTime internalAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime);
-                DateTime publicAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime + PublicAuctionTime);
+                DateTime internalAuctionEndDate = DateTime.Now.AddMilliseconds(InternalAuctionTime);
+                DateTime publicAuctionEndDate = DateTime.Now.AddMilliseconds(InternalAuctionTime + PublicAuctionTime);
 
                 AuctionDto AuctionModel = new AuctionDto()
                 {
@@ -3950,7 +3951,13 @@ namespace DAO_WebPortal.Controllers
 
             Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Sending Deploy: " + signedDeployJson);
 
-            chainAction = new ChainActionDto() { ActionType = voteType.ToString(), CreateDate = DateTime.Now, WalletAddress = walletAddress, DeployJson = signedDeployJson, Status = Enums.ChainActionStatus.InProgress.ToString() };
+            int userid = 0;
+            if(HttpContext.Session.GetInt32("UserID") != null)
+            {
+                userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
+            }
+
+            chainAction = new ChainActionDto() { ActionType = voteType.ToString(), CreateDate = DateTime.Now, WalletAddress = walletAddress, DeployJson = signedDeployJson, Status = Enums.ChainActionStatus.InProgress.ToString(), UserId = userid };
             var chainQuePostJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/ChainAction/Post", Helpers.Serializers.SerializeJson(chainAction));
             chainAction = Helpers.Serializers.DeserializeJson<ChainActionDto>(chainQuePostJson);
             if (chainAction != null && chainAction.ChainActionId > 0)

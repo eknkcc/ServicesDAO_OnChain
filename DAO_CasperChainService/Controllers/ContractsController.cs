@@ -207,14 +207,14 @@ namespace DAO_CasperChainService.Controllers
                     ChainName = Program._settings.ChainName,
                     GasPrice = 1
                 };
-                var payment = new ModuleBytesDeployItem(500_000_000_000);
+                var payment = new ModuleBytesDeployItem(100_000_000_000);
 
                 //Job parameters which will be converted to bytes
                 List<NamedArg> runtimeJobArgs = new List<NamedArg>();
                 runtimeJobArgs.Add(new NamedArg("expected_timeframe", CLValue.U64(expectedtimeframe)));
                 runtimeJobArgs.Add(new NamedArg("budget", CLValue.U512(budget)));
                 // 10 $ OR MORE EQUIVALENT CSPR
-                runtimeJobArgs.Add(new NamedArg("dos_fee", CLValue.U512(500_000_000_000)));
+                runtimeJobArgs.Add(new NamedArg("dos_fee", CLValue.U512(340_000_000_000)));
 
                 List<CLValue> clVals = new List<CLValue>();
 
@@ -235,12 +235,12 @@ namespace DAO_CasperChainService.Controllers
                 }
 
                 //MAIN PROXY ARGS
-                List<NamedArg> runtimeArgs = new List<NamedArg>();
+                List<NamedArg> runtimeArgs = new List<NamedArg>(); 
                 runtimeArgs.Add(new NamedArg("contract_package_hash", CLValue.ByteArray(Program._settings.BidEscrowContractPackageHash)));
                 runtimeArgs.Add(new NamedArg("entry_point", CLValue.String("post_job_offer")));
+                runtimeArgs.Add(new NamedArg("amount", CLValue.U512(340_000_000_000)));
+                runtimeArgs.Add(new NamedArg("attached_value", CLValue.Option(CLValue.U512(340_000_000_000))));
                 runtimeArgs.Add(new NamedArg("args", CLValue.List(clVals.ToArray())));
-                runtimeArgs.Add(new NamedArg("attached_value", CLValue.Option(CLValue.U512(4_000_000_000_000))));
-                runtimeArgs.Add(new NamedArg("amount", CLValue.Option(CLValue.U512(4_000_000_000_000))));
 
                 var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
 
@@ -263,9 +263,8 @@ namespace DAO_CasperChainService.Controllers
             try
             {
                 PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
-                var bidEscrowAddress = GlobalStateKey.FromString(Program._settings.BidEscrowContractPackageHash);
 
-                var wasmFile = "./wwwroot/wasms/submit_bid.wasm";
+                var wasmFile = "./wwwroot/wasms/proxy_caller.wasm";
                 var wasmBytes = System.IO.File.ReadAllBytes(wasmFile);
 
                 var header = new DeployHeader()
@@ -278,17 +277,41 @@ namespace DAO_CasperChainService.Controllers
                 };
                 var payment = new ModuleBytesDeployItem(150_000_000_000);
 
+                List<NamedArg> runtimeBidArgs = new List<NamedArg>();
+                runtimeBidArgs.Add(new NamedArg("job_offer_id", CLValue.U32(jobofferid)));
+                runtimeBidArgs.Add(new NamedArg("time", CLValue.U64(time)));
+                runtimeBidArgs.Add(new NamedArg("payment", CLValue.U512(userpayment)));
+                runtimeBidArgs.Add(new NamedArg("reputation_stake", CLValue.U512(0)));
+                runtimeBidArgs.Add(new NamedArg("onboard", CLValue.Bool(onboard)));
+                runtimeBidArgs.Add(new NamedArg("cspr_stake", CLValue.Option(CLValue.U512(150_000_000_000))));
+
+                List<CLValue> clVals = new List<CLValue>();
+
+                NamedArgByteSerializer namedArgByteSerializer = new NamedArgByteSerializer();
+                MemoryStream memoryStream = new MemoryStream();
+                memoryStream.Write(BitConverter.GetBytes(runtimeBidArgs.Count));
+
+                foreach (NamedArg runtimeArg in runtimeBidArgs)
+                {
+                    var bytes = namedArgByteSerializer.ToBytes(runtimeArg);
+
+                    memoryStream.Write(bytes);
+                }
+
+                foreach (var byt in memoryStream.ToArray())
+                {
+                    clVals.Add(CLValue.U8(byt));
+                }
+
+                //MAIN PROXY ARGS
                 List<NamedArg> runtimeArgs = new List<NamedArg>();
-                runtimeArgs.Add(new NamedArg("bid_escrow_address", CLValue.Key(bidEscrowAddress)));
-                runtimeArgs.Add(new NamedArg("job_offer_id", CLValue.U32(jobofferid)));
-                runtimeArgs.Add(new NamedArg("time", CLValue.U64(time)));
-                runtimeArgs.Add(new NamedArg("payment", CLValue.U512(userpayment)));
-                runtimeArgs.Add(new NamedArg("reputation_stake", CLValue.U512(0)));
-                runtimeArgs.Add(new NamedArg("onboard", CLValue.Bool(onboard)));
-                runtimeArgs.Add(new NamedArg("cspr_amount", CLValue.U512(150_000_000_000)));
+                runtimeArgs.Add(new NamedArg("contract_package_hash", CLValue.ByteArray(Program._settings.BidEscrowContractPackageHash)));
+                runtimeArgs.Add(new NamedArg("entry_point", CLValue.String("submit_bid")));
+                runtimeArgs.Add(new NamedArg("args", CLValue.List(clVals.ToArray())));
+                runtimeArgs.Add(new NamedArg("attached_value", CLValue.U512(150_000_000_000)));
                 runtimeArgs.Add(new NamedArg("amount", CLValue.U512(150_000_000_000)));
 
-                var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
+                var session = new ModuleBytesDeployItem(wasmBytes, runtimeBidArgs);
 
                 var deploy = new Deploy(header, payment, session);
 
@@ -317,7 +340,7 @@ namespace DAO_CasperChainService.Controllers
                     new NamedArg("payment", CLValue.U512(userpayment)),
                     new NamedArg("reputation_stake", CLValue.U512(repstake)),
                     new NamedArg("onboard", CLValue.Bool(false)),
-                    new NamedArg("purse", CLValue.OptionNone(new CLTypeInfo(CLType.URef)))
+                    new NamedArg("cspr_stake", CLValue.Option(CLValue.U512(150_000_000_000)))
                 };
 
                 //Create deploy object
@@ -378,9 +401,8 @@ namespace DAO_CasperChainService.Controllers
             try
             {
                 PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
-                var bidEscrowAddress = GlobalStateKey.FromString(Program._settings.BidEscrowContractPackageHash);
 
-                var wasmFile = "./wwwroot/wasms/pick_bid.wasm";
+                var wasmFile = "./wwwroot/wasms/proxy_caller.wasm";
                 var wasmBytes = System.IO.File.ReadAllBytes(wasmFile);
 
                 var header = new DeployHeader()
@@ -393,11 +415,33 @@ namespace DAO_CasperChainService.Controllers
                 };
                 var payment = new ModuleBytesDeployItem(200_000_000_000);
 
+                List<NamedArg> runtimeBidArgs = new List<NamedArg>();
+                runtimeBidArgs.Add(new NamedArg("job_offer_id", CLValue.U32(jobid)));
+                runtimeBidArgs.Add(new NamedArg("bid_id", CLValue.U32(bidid)));
+
+                List<CLValue> clVals = new List<CLValue>();
+
+                NamedArgByteSerializer namedArgByteSerializer = new NamedArgByteSerializer();
+                MemoryStream memoryStream = new MemoryStream();
+                memoryStream.Write(BitConverter.GetBytes(runtimeBidArgs.Count));
+
+                foreach (NamedArg runtimeArg in runtimeBidArgs)
+                {
+                    var bytes = namedArgByteSerializer.ToBytes(runtimeArg);
+
+                    memoryStream.Write(bytes);
+                }
+
+                foreach (var byt in memoryStream.ToArray())
+                {
+                    clVals.Add(CLValue.U8(byt));
+                }
+
                 List<NamedArg> runtimeArgs = new List<NamedArg>();
-                runtimeArgs.Add(new NamedArg("bid_escrow_address", CLValue.Key(bidEscrowAddress)));
-                runtimeArgs.Add(new NamedArg("cspr_amount", CLValue.U512(bidamount)));
-                runtimeArgs.Add(new NamedArg("job_offer_id", CLValue.U32(jobid)));
-                runtimeArgs.Add(new NamedArg("bid_id", CLValue.U32(bidid)));
+                runtimeArgs.Add(new NamedArg("contract_package_hash", CLValue.ByteArray(Program._settings.BidEscrowContractPackageHash)));
+                runtimeArgs.Add(new NamedArg("entry_point", CLValue.String("pick_bid")));
+                runtimeArgs.Add(new NamedArg("args", CLValue.List(clVals.ToArray())));
+                runtimeArgs.Add(new NamedArg("attached_value", CLValue.U512(bidamount)));
                 runtimeArgs.Add(new NamedArg("amount", CLValue.U512(bidamount)));
 
                 var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
@@ -456,7 +500,7 @@ namespace DAO_CasperChainService.Controllers
                 PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
                 var bidEscrowAddress = GlobalStateKey.FromString(Program._settings.BidEscrowContractPackageHash);
 
-                var wasmFile = "./wwwroot/wasms/submit_job_proof_during_grace_period.wasm";
+                var wasmFile = "./wwwroot/wasms/proxy_caller.wasm";
                 var wasmBytes = System.IO.File.ReadAllBytes(wasmFile);
 
                 var header = new DeployHeader()
@@ -469,13 +513,36 @@ namespace DAO_CasperChainService.Controllers
                 };
                 var payment = new ModuleBytesDeployItem(150_000_000_000);
 
+                List<NamedArg> runtimeJobArgs = new List<NamedArg>();
+                runtimeJobArgs.Add(new NamedArg("bid_escrow_address", CLValue.Key(bidEscrowAddress)));
+                runtimeJobArgs.Add(new NamedArg("job_id", CLValue.U32(jobid)));
+                runtimeJobArgs.Add(new NamedArg("proof", CLValue.String(proof)));
+                runtimeJobArgs.Add(new NamedArg("reputation_stake", CLValue.U512(repstake)));
+                runtimeJobArgs.Add(new NamedArg("onboard", CLValue.Bool(onboard)));
+
+                List<CLValue> clVals = new List<CLValue>();
+
+                NamedArgByteSerializer namedArgByteSerializer = new NamedArgByteSerializer();
+                MemoryStream memoryStream = new MemoryStream();
+                memoryStream.Write(BitConverter.GetBytes(runtimeJobArgs.Count));
+
+                foreach (NamedArg runtimeArg in runtimeJobArgs)
+                {
+                    var bytes = namedArgByteSerializer.ToBytes(runtimeArg);
+
+                    memoryStream.Write(bytes);
+                }
+
+                foreach (var byt in memoryStream.ToArray())
+                {
+                    clVals.Add(CLValue.U8(byt));
+                }
+
                 List<NamedArg> runtimeArgs = new List<NamedArg>();
-                runtimeArgs.Add(new NamedArg("bid_escrow_address", CLValue.Key(bidEscrowAddress)));
-                runtimeArgs.Add(new NamedArg("cspr_amount", CLValue.U512(150_000_000_000)));
-                runtimeArgs.Add(new NamedArg("job_id", CLValue.U32(jobid)));
-                runtimeArgs.Add(new NamedArg("proof", CLValue.String(proof)));
-                runtimeArgs.Add(new NamedArg("reputation_stake", CLValue.U512(repstake)));
-                runtimeArgs.Add(new NamedArg("onboard", CLValue.Bool(onboard)));
+                runtimeArgs.Add(new NamedArg("contract_package_hash", CLValue.ByteArray(Program._settings.BidEscrowContractPackageHash)));
+                runtimeArgs.Add(new NamedArg("entry_point", CLValue.String("submit_job_proof_during_grace_period")));
+                runtimeArgs.Add(new NamedArg("args", CLValue.List(clVals.ToArray())));
+                runtimeArgs.Add(new NamedArg("attached_value", CLValue.U512(150_000_000_000)));
                 runtimeArgs.Add(new NamedArg("amount", CLValue.U512(150_000_000_000)));
 
                 var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
@@ -541,8 +608,8 @@ namespace DAO_CasperChainService.Controllers
                 var namedArgs = new List<NamedArg>()
                 {
                     new NamedArg("voting_id", CLValue.U32(votingid)),
-                    new NamedArg("voting_type", CLValue.U8(isFormal)),
-                    new NamedArg("choice", CLValue.U8(choice)),
+                    new NamedArg("voting_type", CLValue.U32(isFormal)),
+                    new NamedArg("choice", CLValue.U32(choice)),
                     new NamedArg("stake", CLValue.U512(stake))
                 };
 
@@ -633,7 +700,6 @@ namespace DAO_CasperChainService.Controllers
             }
         }
 
-
         [HttpGet("SimpleVoterCreateVoting", Name = "SimpleVoterCreateVoting")]
         public SimpleResponse SimpleVoter_CreateVoting(string userwallet, string documenthash, int stake)
         {
@@ -680,9 +746,7 @@ namespace DAO_CasperChainService.Controllers
                 //var onboardingKeyHex = PublicKey.FromHexString(onboardwallet);
                 //var onboardingKey = GlobalStateKey.FromString(onboardingKeyHex.GetAccountHash());
 
-                var onboardingKey = GlobalStateKey.FromString(Program._settings.VAOnboardingPackageHash);
-
-                var wasmFile = "./wwwroot/wasms/submit_onboarding_request.wasm";
+                var wasmFile = "./wwwroot/wasms/proxy_caller.wasm";
                 var wasmBytes = System.IO.File.ReadAllBytes(wasmFile);
 
                 var header = new DeployHeader()
@@ -695,10 +759,33 @@ namespace DAO_CasperChainService.Controllers
                 };
                 var payment = new ModuleBytesDeployItem(150_000_000_000);
 
+                List<NamedArg> runtimeOnboardingArgs = new List<NamedArg>();
+                runtimeOnboardingArgs.Add(new NamedArg("reason", CLValue.String(reason)));
+
+                List<CLValue> clVals = new List<CLValue>();
+
+                NamedArgByteSerializer namedArgByteSerializer = new NamedArgByteSerializer();
+                MemoryStream memoryStream = new MemoryStream();
+                memoryStream.Write(BitConverter.GetBytes(runtimeOnboardingArgs.Count));
+
+                foreach (NamedArg runtimeArg in runtimeOnboardingArgs)
+                {
+                    var bytes = namedArgByteSerializer.ToBytes(runtimeArg);
+
+                    memoryStream.Write(bytes);
+                }
+
+                foreach (var byt in memoryStream.ToArray())
+                {
+                    clVals.Add(CLValue.U8(byt));
+                }
+
+                //MAIN PROXY ARGS
                 List<NamedArg> runtimeArgs = new List<NamedArg>();
-                runtimeArgs.Add(new NamedArg("onboarding_address", CLValue.Key(onboardingKey)));
-                runtimeArgs.Add(new NamedArg("cspr_amount", CLValue.U512(150_000_000_000)));
-                runtimeArgs.Add(new NamedArg("reason", CLValue.String(reason)));
+                runtimeArgs.Add(new NamedArg("contract_package_hash", CLValue.ByteArray(Program._settings.VAOnboardingPackageHash)));
+                runtimeArgs.Add(new NamedArg("entry_point", CLValue.String("create_voting")));
+                runtimeArgs.Add(new NamedArg("args", CLValue.List(clVals.ToArray())));
+                runtimeArgs.Add(new NamedArg("attached_value", CLValue.U512(150_000_000_000)));
                 runtimeArgs.Add(new NamedArg("amount", CLValue.U512(150_000_000_000)));
 
                 var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
