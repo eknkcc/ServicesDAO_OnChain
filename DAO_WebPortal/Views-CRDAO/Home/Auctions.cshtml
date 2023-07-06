@@ -86,7 +86,7 @@
                                 @{
                                     var internalAuctions = Model.Where(x => x.Status == Helpers.Constants.Enums.AuctionStatusTypes.InternalBidding).ToList();
 
-                                                @foreach (var auction in internalAuctions)
+                                    @foreach (var auction in internalAuctions)
                                     {
                                         string rowclass = "noneligible";
                                         if (auction.UsersBidId == null)
@@ -97,48 +97,48 @@
                                             }
                                         }
 
-                                                    <tr class="internal-@rowclass">
-                                                        <th scope="row">@auction.JobID</th>
-                                                        <td><a href="../Job-Detail/@auction.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(auction.Title, 25)</a></td>
-                                                        <td>@DAO_WebPortal.Utility.StringHelper.FormatPrice(auction.JobPrice) €</td>
-                                                        <td>@auction.JobPosterUsername</td>
-                                                        <td>@auction.ExpectedTimeframe days</td>
-                                                        <td>@auction.CreateDate.ToString("MM/dd/yyyy HH:mm")</td>
-                                                        <td><b id="counter_@auction.AuctionID"></b></td>
-                                                        <td>@auction.BidCount</td>
-                                                        <td>
-                                                            @*If user is job poster*@
-                                                            @if (auction.JobPosterUserId == userid || userType == Enums.UserIdentityType.Admin.ToString())
+                                        <tr class="internal-@rowclass">
+                                            <th scope="row">@auction.JobID</th>
+                                            <td><a href="../Job-Detail/@auction.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(auction.Title, 25)</a></td>
+                                            <td>@DAO_WebPortal.Utility.StringHelper.FormatPrice(auction.JobPrice) €</td>
+                                            <td>@auction.JobPosterUsername</td>
+                                            <td>@auction.ExpectedTimeframe days</td>
+                                            <td>@auction.CreateDate.ToString("MM/dd/yyyy HH:mm")</td>
+                                            <td><b id="counter_@auction.AuctionID"></b></td>
+                                            <td>@auction.BidCount</td>
+                                            <td>
+                                                @*If user is job poster*@
+                                                @if (auction.JobPosterUserId == userid || userType == Enums.UserIdentityType.Admin.ToString())
                                                 {
-                                                                <a class="btn btn-sm btn-primary me-2" href="../Auction-Detail/@auction.AuctionID">
-                                                                    <svg class="icon">
-                                                                        <use xlink:href="/Home/images/svg/free.svg#cil-notes"></use>
-                                                                    </svg> Show Bids
-                                                                </a>
+                                                    <a class="btn btn-sm btn-primary me-2" href="../Auction-Detail/@auction.AuctionID">
+                                                        <svg class="icon">
+                                                            <use xlink:href="/Home/images/svg/free.svg#cil-notes"></use>
+                                                        </svg> Show Bids
+                                                    </a>
                                                 }
                                                 else
                                                 {
-                                                                @*If user doesn't have bid for this auction*@
-                                                                @if (rowclass == "eligible")
+                                                    @*If user doesn't have bid for this auction*@
+                                                    @if (rowclass == "eligible")
                                                     {
 
-                                                                    <a class="btn btn-sm btn-primary text-white btn-shine me-2" onclick="OpenPaymentConfirmation(@auction.AuctionID, @auction.JobID, @auction.BlockChainJobID)">
-                                                                        <svg class="icon">
-                                                                            <use xlink:href="/Home/images/svg/free.svg#cil-send"></use>
-                                                                        </svg> Submit Bid
-                                                                    </a>
+                                                        <a class="btn btn-sm btn-primary text-white btn-shine me-2" onclick="OpenPaymentConfirmation(@auction.AuctionID, @auction.JobID, @auction.BlockChainJobID)">
+                                                            <svg class="icon">
+                                                                <use xlink:href="/Home/images/svg/free.svg#cil-send"></use>
+                                                            </svg> Submit Bid
+                                                        </a>
                                                     }
                                                     else if (auction.UsersBidId != null && auction.UsersChainBidId != null)
                                                     {
-                                                                    <a class="btn btn-sm btn-danger text-white me-2" onclick="DeleteBid(this, @auction.UsersBidId, @auction.UsersChainBidId)">
-                                                                        <svg class="icon">
-                                                                            <use xlink:href="/Home/images/svg/free.svg#cil-trash"></use>
-                                                                        </svg> Delete Bid
-                                                                    </a>
+                                                        <a class="btn btn-sm btn-danger text-white me-2" onclick="DeleteBid(this, @auction.UsersBidId, @auction.UsersChainBidId)">
+                                                            <svg class="icon">
+                                                                <use xlink:href="/Home/images/svg/free.svg#cil-trash"></use>
+                                                            </svg> Delete Bid
+                                                        </a>
                                                     }
                                                 }
-                                                        </td>
-                                                    </tr>
+                                            </td>
+                                        </tr>
                                     }
                                 }
                             </tbody>
@@ -182,7 +182,7 @@
                                 @{
                                     var publicAuctions = Model.Where(x => x.Status == Helpers.Constants.Enums.AuctionStatusTypes.PublicBidding).ToList();
 
-                                                @foreach (var auction in publicAuctions)
+                                    @foreach (var auction in publicAuctions)
                                     {
                                         string rowclass = "noneligible";
                                         if (auction.UsersBidId == null)
@@ -193,48 +193,48 @@
                                             }
                                         }
 
-                                                    <tr class="public-@rowclass">
-                                                        <th scope="row">@auction.JobID</th>
-                                                        <td><a href="../Job-Detail/@auction.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(auction.Title, 25)</a></td>
-                                                        <td>@DAO_WebPortal.Utility.StringHelper.FormatPrice(auction.JobPrice) €</td>
-                                                        <td>@auction.JobPosterUsername</td>
-                                                        <td>@auction.ExpectedTimeframe days</td>
-                                                        <td>@auction.InternalAuctionEndDate.ToString("MM/dd/yyyy HH:mm")</td>
-                                                        <td><b id="counter_@auction.AuctionID"></b></td>
-                                                        <td>@auction.BidCount</td>
-                                                        <td>
-                                                            @*If user is job poster*@
-                                                            @if (auction.JobPosterUserId == userid || userType == Enums.UserIdentityType.Admin.ToString())
+                                        <tr class="public-@rowclass">
+                                            <th scope="row">@auction.JobID</th>
+                                            <td><a href="../Job-Detail/@auction.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(auction.Title, 25)</a></td>
+                                            <td>@DAO_WebPortal.Utility.StringHelper.FormatPrice(auction.JobPrice) €</td>
+                                            <td>@auction.JobPosterUsername</td>
+                                            <td>@auction.ExpectedTimeframe days</td>
+                                            <td>@auction.InternalAuctionEndDate.ToString("MM/dd/yyyy HH:mm")</td>
+                                            <td><b id="counter_@auction.AuctionID"></b></td>
+                                            <td>@auction.BidCount</td>
+                                            <td>
+                                                @*If user is job poster*@
+                                                @if (auction.JobPosterUserId == userid || userType == Enums.UserIdentityType.Admin.ToString())
                                                 {
-                                                                <a class="btn btn-sm btn-primary me-2" href="../Auction-Detail/@auction.AuctionID">
-                                                                    <svg class="icon">
-                                                                        <use xlink:href="/Home/images/svg/free.svg#cil-notes"></use>
-                                                                    </svg> Show Bids
-                                                                </a>
+                                                    <a class="btn btn-sm btn-primary me-2" href="../Auction-Detail/@auction.AuctionID">
+                                                        <svg class="icon">
+                                                            <use xlink:href="/Home/images/svg/free.svg#cil-notes"></use>
+                                                        </svg> Show Bids
+                                                    </a>
                                                 }
                                                 else
                                                 {
-                                                                @*If user doesn't have bid for this auction*@
-                                                                @if (rowclass == "eligible")
+                                                    @*If user doesn't have bid for this auction*@
+                                                    @if (rowclass == "eligible")
                                                     {
 
-                                                                    <a class="btn btn-sm btn-primary text-white btn-shine me-2" onclick="OpenPaymentConfirmation(@auction.AuctionID, @auction.JobID, @auction.BlockChainJobID)">
-                                                                        <svg class="icon">
-                                                                            <use xlink:href="/Home/images/svg/free.svg#cil-send"></use>
-                                                                        </svg> Submit Bid
-                                                                    </a>
+                                                        <a class="btn btn-sm btn-primary text-white btn-shine me-2" onclick="OpenPaymentConfirmation(@auction.AuctionID, @auction.JobID, @auction.BlockChainJobID)">
+                                                            <svg class="icon">
+                                                                <use xlink:href="/Home/images/svg/free.svg#cil-send"></use>
+                                                            </svg> Submit Bid
+                                                        </a>
                                                     }
                                                     else if (auction.UsersBidId != null)
                                                     {
-                                                                    <a class="btn btn-sm btn-danger text-white me-2" onclick="DeleteBid(this, @auction.UsersBidId)">
-                                                                        <svg class="icon">
-                                                                            <use xlink:href="/Home/images/svg/free.svg#cil-trash"></use>
-                                                                        </svg> Delete Bid
-                                                                    </a>
+                                                        <a class="btn btn-sm btn-danger text-white me-2" onclick="DeleteBid(this, @auction.UsersBidId)">
+                                                            <svg class="icon">
+                                                                <use xlink:href="/Home/images/svg/free.svg#cil-trash"></use>
+                                                            </svg> Delete Bid
+                                                        </a>
                                                     }
                                                 }
-                                                        </td>
-                                                    </tr>
+                                            </td>
+                                        </tr>
                                     }
                                 }
                             </tbody>
@@ -277,24 +277,24 @@
                                 @{
                                     var completedAuctions = Model.Where(x => x.Status == Helpers.Constants.Enums.AuctionStatusTypes.Completed).ToList();
 
-                                                @foreach (var auction in completedAuctions)
+                                    @foreach (var auction in completedAuctions)
                                     {
-                                                    <tr>
-                                                        <th scope="row">@auction.JobID</th>
-                                                        <td><a href="../Job-Detail/@auction.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(auction.Title, 25)</a></td>
-                                                        <td>@DAO_WebPortal.Utility.StringHelper.FormatPrice(auction.JobPrice)</td>
-                                                        <td>@auction.JobPosterUsername</td>
-                                                        <td>@auction.ExpectedTimeframe</td>
-                                                        <td>@auction.WinnerUserName</td>
-                                                        <td>@auction.BidCount</td>
-                                                        <td>
-                                                            <a class="btn btn-sm btn-primary me-2" href="../Auction-Detail/@auction.AuctionID">
-                                                                <svg class="icon">
-                                                                    <use xlink:href="/Home/images/svg/free.svg#cil-notes"></use>
-                                                                </svg> Show Bids
-                                                            </a>
-                                                        </td>
-                                                    </tr>
+                                        <tr>
+                                            <th scope="row">@auction.JobID</th>
+                                            <td><a href="../Job-Detail/@auction.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(auction.Title, 25)</a></td>
+                                            <td>@DAO_WebPortal.Utility.StringHelper.FormatPrice(auction.JobPrice)</td>
+                                            <td>@auction.JobPosterUsername</td>
+                                            <td>@auction.ExpectedTimeframe</td>
+                                            <td>@auction.WinnerUserName</td>
+                                            <td>@auction.BidCount</td>
+                                            <td>
+                                                <a class="btn btn-sm btn-primary me-2" href="../Auction-Detail/@auction.AuctionID">
+                                                    <svg class="icon">
+                                                        <use xlink:href="/Home/images/svg/free.svg#cil-notes"></use>
+                                                    </svg> Show Bids
+                                                </a>
+                                            </td>
+                                        </tr>
                                     }
                                 }
                             </tbody>
@@ -331,24 +331,24 @@
                                 @{
                                     var expiredAuctions = Model.Where(x => x.Status == Helpers.Constants.Enums.AuctionStatusTypes.Expired).ToList();
 
-                                                @foreach (var auction in expiredAuctions)
+                                    @foreach (var auction in expiredAuctions)
                                     {
-                                                    <tr>
-                                                        <th scope="row">@auction.JobID</th>
-                                                        <td><a href="../Job-Detail/@auction.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(auction.Title, 25)</a></td>
-                                                        <td>@DAO_WebPortal.Utility.StringHelper.FormatPrice(auction.JobPrice)</td>
-                                                        <td>@auction.JobPosterUsername</td>
-                                                        <td>@auction.ExpectedTimeframe</td>
-                                                        <td>-</td>
-                                                        <td>@auction.BidCount</td>
-                                                        <td>
-                                                            <a class="btn btn-sm btn-primary me-2" href="../Auction-Detail/@auction.AuctionID">
-                                                                <svg class="icon">
-                                                                    <use xlink:href="/Home/images/svg/free.svg#cil-notes"></use>
-                                                                </svg> Show Bids
-                                                            </a>
-                                                        </td>
-                                                    </tr>
+                                        <tr>
+                                            <th scope="row">@auction.JobID</th>
+                                            <td><a href="../Job-Detail/@auction.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(auction.Title, 25)</a></td>
+                                            <td>@DAO_WebPortal.Utility.StringHelper.FormatPrice(auction.JobPrice)</td>
+                                            <td>@auction.JobPosterUsername</td>
+                                            <td>@auction.ExpectedTimeframe</td>
+                                            <td>-</td>
+                                            <td>@auction.BidCount</td>
+                                            <td>
+                                                <a class="btn btn-sm btn-primary me-2" href="../Auction-Detail/@auction.AuctionID">
+                                                    <svg class="icon">
+                                                        <use xlink:href="/Home/images/svg/free.svg#cil-notes"></use>
+                                                    </svg> Show Bids
+                                                </a>
+                                            </td>
+                                        </tr>
                                     }
                                 }
                             </tbody>
@@ -410,6 +410,12 @@
                         <label class="form-label" for="Note"><b>Note</b></label>
                         <div class="input-group mb-3">
                             <textarea class="form-control" type="text" aria-label="Note" placeholder="Please put any additional notes and expriences into this field" id="note"></textarea>
+                        </div>
+                    </div>
+                    <div class="d-none">
+                        <label class="form-label" for="reputation"><b>Reputation Stake</b></label>
+                        <div class="input-group mb-3">
+                            <input class="form-control" type="text" placeholder="Reputation" id="reputation" value="0"><span class="input-group-text" id="basic-addon2"> Reputation Points</span>
                         </div>
                     </div>
                 }
@@ -595,7 +601,7 @@
                     options: pieChartOptions
                     }); *@
 
-                            const cardChart2 = new Chart(document.getElementById('reputation-chart2'), {
+                                    const cardChart2 = new Chart(document.getElementById('reputation-chart2'), {
                             type: 'pie',
                             data: {
                                 labels: result.labels,
@@ -697,6 +703,19 @@
 
         //Auction bids adding function
         function AuctionBidAdd(e) {
+            if ($("#time").val().length <= 0 || $("#reputation").val().length <= 0 || $("#price").val().length <= 0) {
+                toastr.warning("All fields must be filled.");
+                return;
+            }
+
+            if (!($("#reputation").val() + "").match(/^\d+$/)) {
+                toastr.warning("Reputation stake must be an integer.");
+                return;
+            }
+            if (!($("#price").val() + "").match(/^\d+$/)) {
+                toastr.warning("Price must be an integer.");
+                return;
+            }
 
             $.confirm({
                 title: 'Confirmation',
@@ -740,6 +759,7 @@
                                 if (selectedDirection == 1) {
                                     vaOnboarding = true;
                                 }
+
 
                                 CheckWalletAndSendDeploy("../CasperChain/GetSubmitBidDeploy?jobofferid=" + selectedChainJobId + "&time=" + $("#time").val() + "&userpayment=" + $("#price").val() + "&repstake=" + $("#reputation").val() + "&onboard=" + vaOnboarding, PostNewBid);
                             }
@@ -823,7 +843,7 @@
         {
             @Html.Raw("$('#AddBid-Modal').modal('toggle');")
         }
-                }
+                        }
 
         //Payment policy agree
         function AgreeTerms() {

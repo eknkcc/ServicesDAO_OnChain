@@ -22,6 +22,9 @@ using Helpers.Models.CasperServiceModels;
 using Account = Helpers.Models.CasperServiceModels.Account;
 using Casper.Network.SDK.ByteSerializers;
 using Org.BouncyCastle.Utilities;
+using System.Diagnostics.Metrics;
+using Casper.Network.SDK.JsonRpc;
+using Casper.Network.SDK.JsonRpc.ResultTypes;
 
 namespace DAO_CasperChainService.Controllers
 {
@@ -50,8 +53,24 @@ namespace DAO_CasperChainService.Controllers
                 chainAction.DeployHash = deployHash;
                 Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Deploy Hash: " + deployHash);
 
-                var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(120));
-                var deployResponse = casperSdk.GetDeploy(deployHash, tokenSource.Token).Result;
+                int counter = 0;
+                RpcResponse<GetDeployResult> deployResponse = new RpcResponse<GetDeployResult>();
+
+                while (counter < 10) 
+                {
+                    counter++;
+                    try
+                    {
+                        var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+                        deployResponse = casperSdk.GetDeploy(deployHash, tokenSource.Token).Result;
+                        break;
+                    }
+                    catch
+                    {
+
+                    }
+                    Thread.Sleep(5000);
+                }
 
                 chainAction.Result = deployResponse.Result.GetRawText();
 
@@ -418,6 +437,7 @@ namespace DAO_CasperChainService.Controllers
                 List<NamedArg> runtimeBidArgs = new List<NamedArg>();
                 runtimeBidArgs.Add(new NamedArg("job_offer_id", CLValue.U32(jobid)));
                 runtimeBidArgs.Add(new NamedArg("bid_id", CLValue.U32(bidid)));
+                runtimeBidArgs.Add(new NamedArg("cspr_amount", CLValue.U512(bidamount)));
 
                 List<CLValue> clVals = new List<CLValue>();
 
@@ -440,9 +460,9 @@ namespace DAO_CasperChainService.Controllers
                 List<NamedArg> runtimeArgs = new List<NamedArg>();
                 runtimeArgs.Add(new NamedArg("contract_package_hash", CLValue.ByteArray(Program._settings.BidEscrowContractPackageHash)));
                 runtimeArgs.Add(new NamedArg("entry_point", CLValue.String("pick_bid")));
-                runtimeArgs.Add(new NamedArg("args", CLValue.List(clVals.ToArray())));
-                runtimeArgs.Add(new NamedArg("attached_value", CLValue.U512(bidamount)));
                 runtimeArgs.Add(new NamedArg("amount", CLValue.U512(bidamount)));
+                runtimeArgs.Add(new NamedArg("attached_value", CLValue.Option(CLValue.U512(bidamount))));
+                runtimeArgs.Add(new NamedArg("args", CLValue.List(clVals.ToArray())));
 
                 var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
 
@@ -541,9 +561,9 @@ namespace DAO_CasperChainService.Controllers
                 List<NamedArg> runtimeArgs = new List<NamedArg>();
                 runtimeArgs.Add(new NamedArg("contract_package_hash", CLValue.ByteArray(Program._settings.BidEscrowContractPackageHash)));
                 runtimeArgs.Add(new NamedArg("entry_point", CLValue.String("submit_job_proof_during_grace_period")));
-                runtimeArgs.Add(new NamedArg("args", CLValue.List(clVals.ToArray())));
-                runtimeArgs.Add(new NamedArg("attached_value", CLValue.U512(150_000_000_000)));
                 runtimeArgs.Add(new NamedArg("amount", CLValue.U512(150_000_000_000)));
+                runtimeArgs.Add(new NamedArg("attached_value", CLValue.Option(CLValue.U512(150_000_000_000))));
+                runtimeArgs.Add(new NamedArg("args", CLValue.List(clVals.ToArray())));
 
                 var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
 
@@ -784,9 +804,9 @@ namespace DAO_CasperChainService.Controllers
                 List<NamedArg> runtimeArgs = new List<NamedArg>();
                 runtimeArgs.Add(new NamedArg("contract_package_hash", CLValue.ByteArray(Program._settings.VAOnboardingPackageHash)));
                 runtimeArgs.Add(new NamedArg("entry_point", CLValue.String("create_voting")));
-                runtimeArgs.Add(new NamedArg("args", CLValue.List(clVals.ToArray())));
-                runtimeArgs.Add(new NamedArg("attached_value", CLValue.U512(150_000_000_000)));
                 runtimeArgs.Add(new NamedArg("amount", CLValue.U512(150_000_000_000)));
+                runtimeArgs.Add(new NamedArg("attached_value", CLValue.Option(CLValue.U512(150_000_000_000))));
+                runtimeArgs.Add(new NamedArg("args", CLValue.List(clVals.ToArray())));
 
                 var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
 

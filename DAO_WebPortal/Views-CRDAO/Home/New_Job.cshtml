@@ -15,8 +15,7 @@
         <h4 class="mb-3">Job Posting Rules</h4>
         <p><small>1. The job description should be written in a way that is comprehensive and describes the details of the job.</small></p>
         <p><small>2. The completion criteria for the work should be clearly stated and should not allow any misunderstanding.</small></p>
-        <p><small>3. Job posts will be available in forum after system admin approval.</small></p>
-        <p><small>4. If no bids are received at the end of the internal auction and public auction period, the job post will be marked as expired.</small></p>
+        <p><small>3. If no bids are received at the end of the internal auction and public auction period, the job post will be marked as expired.</small></p>
     </div>
 </div>
 
@@ -101,6 +100,21 @@
         });
 
         function StartJobPost() {
+            //Create job model
+            var title = $('#title').val()
+            var amount = $('#amount').val();
+            var time = $('#time').val();
+            var codeurl = $('#codeurl').val();
+            var tags = $('#tags').val();
+            var cspramount = $('#cspramount').val();
+            var description = CKEDITOR.instances["description"].getData();
+            var token = $('input[name="__RequestVerificationToken"]', token).val();
+
+            if (title.length <= 0 || amount.length <= 0 || time.length <= 0 || codeurl.length <= 0 || tags.length <= 0 || cspramount.length <= 0 || description.length <= 0) {
+                toastr.warning("All fields must be filled.");
+                return;
+            }
+
             $.confirm({
                 title: 'Confirmation',
                 content: '<b>By posting a job, you unconditionally and irrevocably agree: </b>' +
@@ -158,6 +172,11 @@
             var cspramount = $('#cspramount').val();
             var description = CKEDITOR.instances["description"].getData();
             var token = $('input[name="__RequestVerificationToken"]', token).val();
+
+            if (title.length <= 0 || amount.length <= 0 || time.length <= 0 || codeurl.length <= 0 || tags.length <= 0 || cspramount.length <= 0 || description.length <= 0) {
+                toastr.warning("All fields must be filled.");
+                return;
+            }
 
             //Ajax post action
             $.ajax({
