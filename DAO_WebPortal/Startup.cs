@@ -159,17 +159,17 @@ namespace DAO_WebPortal
                 options.Cookie.IsEssential = true;
             });
 
-            //services.AddHsts(options =>
-            //{
-            //    //options.MaxAge = TimeSpan.FromDays(100);
-            //    options.IncludeSubDomains = true;
-            //    options.Preload = true;
-            //});
+            services.AddHsts(options =>
+            {
+                options.IncludeSubDomains = true;
+                options.MaxAge = TimeSpan.FromDays(365);
+            });
 
-            //services.AddHttpsRedirection(options =>
-            //{
-            //    options.RedirectStatusCode = StatusCodes.Status308PermanentRedirect;
-            //});
+            services.AddHttpsRedirection(options =>
+            {
+                options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
+                options.HttpsPort = 443;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -187,7 +187,9 @@ namespace DAO_WebPortal
 
             app.UseStaticFiles();
 
-            //app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
+
+            app.UseHsts();
 
             var defaultDateCulture = "en-US";
             var ci = new CultureInfo(defaultDateCulture);
