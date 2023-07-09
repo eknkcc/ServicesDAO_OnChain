@@ -200,7 +200,7 @@ namespace DAO_VotingEngine.Controllers
 
         [Route("SubmitVote")]
         [HttpGet]
-        public SimpleResponse SubmitVote(int VotingID, int UserID, StakeType Direction, double? ReputationStake, string? DeployHash)
+        public SimpleResponse SubmitVote(int VotingID, int UserID, StakeType Direction, double? ReputationStake, string? DeployHash, string? WalletAddress)
         {
             SimpleResponse res = new SimpleResponse();
 
@@ -247,6 +247,10 @@ namespace DAO_VotingEngine.Controllers
                         if(!string.IsNullOrEmpty(DeployHash))
                         {
                             vote.DeployHash = DeployHash;
+                        }
+                        if (!string.IsNullOrEmpty(WalletAddress))
+                        {
+                            vote.WalletAddress = WalletAddress;
                         }
                         db.Votes.Add(vote);
                         db.SaveChanges();

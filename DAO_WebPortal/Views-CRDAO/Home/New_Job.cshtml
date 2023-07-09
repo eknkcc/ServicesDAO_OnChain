@@ -15,8 +15,7 @@
         <h4 class="mb-3">Job Posting Rules</h4>
         <p><small>1. The job description should be written in a way that is comprehensive and describes the details of the job.</small></p>
         <p><small>2. The completion criteria for the work should be clearly stated and should not allow any misunderstanding.</small></p>
-        <p><small>3. Job posts will be available in forum after system admin approval.</small></p>
-        <p><small>4. If no bids are received at the end of the internal auction and public auction period, the job post will be marked as expired.</small></p>
+        <p><small>3. If no bids are received at the end of the internal auction, your job will be opened to public bidders.</small></p>
     </div>
 </div>
 
@@ -101,12 +100,26 @@
         });
 
         function StartJobPost() {
+            //Create job model
+            var title = $('#title').val()
+            var amount = $('#amount').val();
+            var time = $('#time').val();
+            var codeurl = $('#codeurl').val();
+            var tags = $('#tags').val();
+            var cspramount = $('#cspramount').val();
+            var description = CKEDITOR.instances["description"].getData();
+            var token = $('input[name="__RequestVerificationToken"]', token).val();
+
+            if (title.length <= 0 || amount.length <= 0 || time.length <= 0 || codeurl.length <= 0 || tags.length <= 0 || cspramount.length <= 0 || description.length <= 0) {
+                toastr.warning("All fields must be filled.");
+                return;
+            }
+
             $.confirm({
-                title: 'Confirmation',
+                title: 'Disclaimer of Warranty',
                 content: '<b>By posting a job, you unconditionally and irrevocably agree: </b>' +
 
-                    '<div class="form-check m-2"><input class="form-check-input" type="checkbox" value="" id="checkConfirm1"><label class="form-check-label text-justify" for="flexCheckDefault">To be legally bound by the terms and conditions stated in your job posting and the winning bid selected by yourself; that a binding legal relationship is established between you and the winning bidder selected by yourself; to deposit the amount offered by the selected winning bid as remuneration into an escrow smart contract provided by CRDAO; and that unless specified otherwise in your job posting or the winning bid selected by yourself, the relationship between you, the winning bidder, and CRDAO is exclusively governed by the general terms and conditions of CRDAO</label></div>'
-                    + '<div class="form-check m-2"><input class="form-check-input" type="checkbox" value="" id="checkConfirm2"><label class="form-check-label text-justify" for="flexCheckDefault">I hereby acknowledge that any work product created by a bidder will be open source and never is or will be the sole property of the job poster.</label></div>'
+                    '<div class="form-check m-2"><input class="form-check-input" type="checkbox" value="" id="checkConfirm1"><label class="form-check-label text-justify" for="flexCheckDefault">Unless required by applicable law or agreed to in writing, each Contributor having participated in a code review or other CRDAO work product provides its Contribution to the Work on an AS IS BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied, including, without limitation, any warranties or conditions of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE. Code Review DAO (CRDAO) as a pure facilitator of the review process assumes liability neither for the Contributions to the Work nor for the Work itself, in particular, but not limited to, with regard to accuracy, completeness, or diligence of the Contributions and the Work. You are solely responsible for determining the appropriateness of using or redistributing the Work and assume any risks associated with Your exercise of permissions under this License.</label></div>'
                 ,
                 columnClass: 'col-md-8 col-md-offset-2',
                 buttons: {
@@ -119,13 +132,19 @@
                         action: function () {
                             var confirmationControl = true;
 
-                            for (var i = 1; i < 3; i++) {
-                                var checked = $("#checkConfirm" + i).is(':checked');
+                            var checked = $("#checkConfirm1").is(':checked');
 
-                                if (checked == false) {
-                                    confirmationControl = false;
-                                }
+                            if (checked == false) {
+                                confirmationControl = false;
                             }
+
+                            //for (var i = 1; i < 3; i++) {
+                            //    var checked = $("#checkConfirm" + i).is(':checked');
+
+                            //    if (checked == false) {
+                            //        confirmationControl = false;
+                            //    }
+                            //}
 
                             if (confirmationControl == false) {
                                 toastr.warning("You must confirm agreements.");
@@ -158,6 +177,11 @@
             var cspramount = $('#cspramount').val();
             var description = CKEDITOR.instances["description"].getData();
             var token = $('input[name="__RequestVerificationToken"]', token).val();
+
+            if (title.length <= 0 || amount.length <= 0 || time.length <= 0 || codeurl.length <= 0 || tags.length <= 0 || cspramount.length <= 0 || description.length <= 0) {
+                toastr.warning("All fields must be filled.");
+                return;
+            }
 
             //Ajax post action
             $.ajax({

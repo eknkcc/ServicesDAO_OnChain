@@ -27,7 +27,7 @@ namespace DAO_CasperChainService.Controllers
             {
                 var hex = publicAddress;
                 var publicKey = PublicKey.FromHexString(hex);
-                var casperSdk = new NetCasperClient(Program._settings.NodeUrl + ":7777/rpc");
+                var casperSdk = new NetCasperClient(Program._settings.NodeUrl/* + ":7777/rpc"*/);
                 var rpcResponse = casperSdk.GetAccountBalance(publicKey).Result;
 
                 double balanceParsed = Convert.ToInt64(rpcResponse.Parse().BalanceValue.ToString()) / (double)1000000000;

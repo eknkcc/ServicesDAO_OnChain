@@ -96,12 +96,12 @@
         </div>
         <div class="voteInputSection d-none" id="vaonboardingDiv">
             <div class="row">
-                <div class="col-md-6">
+               @* <div class="col-md-6">
                     <div class="form-group mb-4">
                         <label class="mb-2"><b><i class="fas fa-id-badge"></i> New VA Username</b></label>
                         <input type="text" class="form-control" id="vausername" placeholder="Username" disabled>
                     </div>
-                </div>
+                </div>*@
                 <div class="col-md-6">
                     <div class="form-group mb-4">
                         <label class="mb-2"><b><i class="fas fa-wallet"></i> New VA Public Key</b></label>
@@ -315,7 +315,7 @@
 
         function startVaOnboardingVote(signedDeployJson) {
             //VA Onboarding Vote parameters
-            var newvausername = $("#vausername").val();
+            var newvausername = "";
             var vaaddress = $("#vaaddress").val();
             var reason = $("#reason").val();
             var stake = $("#vaonboardingstake").val();
@@ -327,7 +327,7 @@
                 data: {
                     "stake": stake,
                     "reason": reason,
-                    "newvausername": newvausername,
+                    "newvausername": "",
                     "newvaaddress": vaaddress,
                     "signedDeployJson": JSON.stringify(signedDeployJson)
                 },
@@ -514,26 +514,80 @@
         <script>
 
             async function startOnchainSimpleVote() {
+                if ($("#simpledocumenthash").val().length <= 0 || $("#simplestake").val().length <= 0 || CKEDITOR.instances["description"].getData().length <= 0) {
+                    toastr.warning("All fields must be filled.");
+                    return;
+                }
+                if (!($("#simplestake").val() + "").match(/^\d+$/)) {
+                    toastr.warning("Reputation stake must be an integer.");
+                    return;
+                }
+
                 CheckWalletAndSendDeploy("../CasperChain/GetSimpleVoteDeploy?documenthash=" + $("#simpledocumenthash").val() + "&stake=" + $("#simplestake").val(), startSimpleVote);
             }
 
             async function startOnchainVaOnboardingVote() {
-                CheckWalletAndSendDeploy("../CasperChain/GetVaOnboardingVoteDeploy?username=" + $("#vausername").val() + "&newvaaddress=" + $("#vaaddress").val() + "&reason=" + $("#reason").val(), startVaOnboardingVote);
+                if ($("#vaaddress").val().length <= 0 || $("#reason").val().length <= 0) {
+                    toastr.warning("All fields must be filled.");
+                    return;
+                }
+
+                CheckWalletAndSendDeploy("../CasperChain/GetVaOnboardingVoteDeploy?username=&newvaaddress=" + $("#vaaddress").val() + "&reason=" + $("#reason").val(), startVaOnboardingVote);
             }
 
             async function startOnchainRepoVote() {
+                if ($("#repokey").val().length <= 0 || $("#repovalue").val().length <= 0 || $("#repostake").val().length <= 0) {
+                    toastr.warning("All fields must be filled.");
+                    return;
+                }
+                if (!($("#repostake").val() + "").match(/^\d+$/)) {
+                    toastr.warning("Reputation stake must be an integer.");
+                    return;
+                }
+
                 CheckWalletAndSendDeploy("../CasperChain/GetRepoVoteDeploy?key=" + $("#repokey").val() + "&value=" + $("#repovalue").val() + "&stake=" + $("#repostake").val(), startRepoVote);
             }
 
             async function startOnchainKycVote() {
+                if ($("#kycusername").val().length <= 0 || $("#kycstake").val().length <= 0) {
+                    toastr.warning("All fields must be filled.");
+                    return;
+                }
+                if (!($("#kycstake").val() + "").match(/^\d+$/)) {
+                    toastr.warning("Reputation stake must be an integer.");
+                    return;
+                }
+
                 CheckWalletAndSendDeploy("../CasperChain/GetKYCVoteDeploy?username=" + $("#kycusername").val() + "&stake=" + $("#kycstake").val(), startKycVote);
             }
 
             async function startOnchainReputationVote() {
+                if ($("#repstake").val().length <= 0 || ($("#repwallet").val().length <= 0 && $("#repusername").val().length <= 0) || $("#repamount").val().length <= 0 || $("#repdocumenthash").val().length <= 0) {
+                    toastr.warning("All fields must be filled.");
+                    return;
+                }
+                if (!($("#repstake").val() + "").match(/^\d+$/)) {
+                    toastr.warning("Reputation stake must be an integer.");
+                    return;
+                }
+                if (!($("#repamount").val() + "").match(/^\d+$/)) {
+                    toastr.warning("Reputation amount must be an integer.");
+                    return;
+                }
+
                 CheckWalletAndSendDeploy("../CasperChain/GetReputationVoteDeploy?action=" + $("#repaction").val() + "&stake=" + $("#repstake").val() + "&subjectaddress=" + $("#repwallet").val() + "&amount=" + $("#repamount").val() + "&documenthash=" + $("#repdocumenthash").val() + "&repusername=" + $("#repusername").val(), startReputationVote);
             }
 
             async function startOnchainSlashingVote() {
+                if (($("#slashaddress").val().length <= 0 && $("#slashusername").val().length <= 0) || $("#slashstake").val().length <= 0 || $("#slashratio").val().length <= 0) {
+                    toastr.warning("All fields must be filled.");
+                    return;
+                }
+                if (!($("#slashstake").val() + "").match(/^\d+$/)) {
+                    toastr.warning("Reputation stake must be an integer.");
+                    return;
+                }
+
                 var slash_ratio = parseFloat($("#slashratio").val()) * 1000;
                 CheckWalletAndSendDeploy("../CasperChain/GetSlashingVoteDeploy?addresstoslash=" + $("#slashaddress").val() + "&slashratio=" + slash_ratio + "&stake=" + $("#slashstake").val() + "&slashusername=" + $("#slashusername").val(), startSlashingVote);
             }

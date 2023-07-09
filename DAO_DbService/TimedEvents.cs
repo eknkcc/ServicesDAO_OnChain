@@ -184,8 +184,8 @@ namespace DAO_DbService
                                 int InternalAuctionTime = Convert.ToInt32(db.DaoSettings.First(x => x.Key == "InternalAuctionTime").Value);
                                 int PublicAuctionTime = Convert.ToInt32(db.DaoSettings.First(x => x.Key == "PublicAuctionTime").Value);
 
-                                DateTime internalAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime);
-                                DateTime publicAuctionEndDate = DateTime.Now.AddSeconds(InternalAuctionTime + PublicAuctionTime);
+                                DateTime internalAuctionEndDate = DateTime.Now.AddMilliseconds(InternalAuctionTime);
+                                DateTime publicAuctionEndDate = DateTime.Now.AddMilliseconds(InternalAuctionTime + PublicAuctionTime);
 
                                 Auction AuctionModel = new Auction()
                                 {
