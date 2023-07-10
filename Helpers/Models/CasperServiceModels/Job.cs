@@ -7,7 +7,7 @@ using static Helpers.Constants.Enums;
 
 namespace Helpers.Models.CasperServiceModels
 {
-    public class JobOffer
+    public class Job
     {
         public int bid_id { get; set; }
         public string caller { get; set; }

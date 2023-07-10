@@ -697,7 +697,7 @@ namespace DAO_CasperChainService.Controllers
                 var namedArgs = new List<NamedArg>()
                 {
                     new NamedArg("voting_id", CLValue.U32(votingid)),
-                    new NamedArg("voting_type", CLValue.U8(isFormal))
+                    new NamedArg("voting_type", CLValue.U32(isFormal))
                 };
 
                 //Create deploy object

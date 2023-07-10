@@ -2073,6 +2073,7 @@ namespace DAO_WebPortal.Controllers
 
                     int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
                     string token = HttpContext.Session.GetString("Token");
+                    string wallet = HttpContext.Session.GetString("WalletAddress");
 
                     new Thread(() =>
                     {
@@ -2086,7 +2087,7 @@ namespace DAO_WebPortal.Controllers
                         if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
                         {
 
-                            string jsonResponse = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Vote/SubmitVote?VotingID=" + VotingID + "&UserID=" + userid + "&Direction=" + Direction + "&ReputationStake=" + ReputationStake.ToString().Replace(",", ".") + "&DeployHash=" + deployResult.DeployHash + "&WalletAddress=" + HttpContext.Session.GetString("WalletAddress"), token);
+                            string jsonResponse = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Vote/SubmitVote?VotingID=" + VotingID + "&UserID=" + userid + "&Direction=" + Direction + "&ReputationStake=" + ReputationStake.ToString().Replace(",", ".") + "&DeployHash=" + deployResult.DeployHash + "&WalletAddress=" + wallet, token);
                             SimpleResponse votePostResponse = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResponse);
 
                             //Set server side toastr because page will be redirected

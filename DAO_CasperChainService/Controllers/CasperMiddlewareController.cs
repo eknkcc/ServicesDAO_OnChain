@@ -498,20 +498,20 @@ namespace DAO_CasperChainService.Controllers
 
         #region BidEscrow
         [HttpGet("GetJobByBidId", Name = "GetJobByBidId")]
-        public SuccessResponse<JobOffer> GetJobByBidId(int bidid)
+        public SuccessResponse<Job> GetJobByBidId(int bidid)
         {
-            SuccessResponse<JobOffer> response = new SuccessResponse<JobOffer>();
+            SuccessResponse<Job> response = new SuccessResponse<Job>();
 
             try
             {
                 string jobOfferJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/bids/" + bidid + "/job");
                 //Parse response
-                response = Helpers.Serializers.DeserializeJson<SuccessResponse<JobOffer>>(jobOfferJson);
+                response = Helpers.Serializers.DeserializeJson<SuccessResponse<Job>>(jobOfferJson);
             }
             catch (Exception ex)
             {
                 Program.monitizer.AddException(ex, LogTypes.ApplicationError, false);
-                response = new SuccessResponse<JobOffer> { error = new ErrorResult { message = "Request Error" } };
+                response = new SuccessResponse<Job> { error = new ErrorResult { message = "Request Error" } };
             }
 
             return response;

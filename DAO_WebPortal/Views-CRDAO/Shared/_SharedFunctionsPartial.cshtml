@@ -500,6 +500,11 @@
     }
 
     function StartDeploy(requestUrl, sendDeployFunction, accountPublicKey) {
+        @if (httpContextAccessor.HttpContext.Session.GetInt32("ChainSign") == -1)
+        {
+            @Html.Raw("toastr.warning('Please connect your wallet from the top menu.');return;")
+        }
+
         const CasperWalletProvider = window.CasperWalletProvider;
         const CasperWalletEventTypes = window.CasperWalletEventTypes;
 

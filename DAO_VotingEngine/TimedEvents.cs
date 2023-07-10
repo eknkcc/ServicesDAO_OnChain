@@ -281,6 +281,8 @@ namespace DAO_VotingEngine
                                 Request.Get(Program._settings.Service_Reputation_Url + "/UserReputationStake/ReleaseStakes?referenceProcessID=" + informalVoting.VotingID + "&reftype=" + Enums.StakeType.For);
 
                                 Program.monitizer.AddConsole("Informal voting finished without quorum #" + informalVoting.VotingID);
+
+                                return;
                             }
                         }
 

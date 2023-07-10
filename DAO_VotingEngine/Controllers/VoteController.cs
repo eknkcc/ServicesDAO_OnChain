@@ -12,6 +12,7 @@ using PagedList.Core;
 using DAO_VotingEngine.Mapping;
 using Helpers.Models.SharedModels;
 using Helpers.Models.DtoModels.ReputationDbDto;
+using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace DAO_VotingEngine.Controllers
 {
@@ -244,7 +245,7 @@ namespace DAO_VotingEngine.Controllers
                         vote.Direction = Direction;
                         vote.VotingID = VotingID;
                         vote.UserID = UserID;
-                        if(!string.IsNullOrEmpty(DeployHash))
+                        if (!string.IsNullOrEmpty(DeployHash))
                         {
                             vote.DeployHash = DeployHash;
                         }
@@ -255,19 +256,26 @@ namespace DAO_VotingEngine.Controllers
                         db.Votes.Add(vote);
                         db.SaveChanges();
 
-                        UserReputationStakeDto repModel = new UserReputationStakeDto();
-                        repModel.ReferenceID = vote.VoteID;
-                        repModel.ReferenceProcessID = vote.VotingID;
-                        repModel.UserID = vote.UserID;
-                        repModel.Amount = Convert.ToDouble(ReputationStake);
-                        repModel.Type = Direction;
-                        repModel.CreateDate = DateTime.Now;
+                        SimpleResponse reputationStakeResult = new SimpleResponse() { Success = true };
 
-                        var jsonResult = Helpers.Request.Post(Program._settings.Service_Reputation_Url + "/UserReputationStake/SubmitStake", Helpers.Serializers.SerializeJson(repModel));
+                        //Only in offchain version
+                        if (string.IsNullOrEmpty(DeployHash))
+                        {
+                            UserReputationStakeDto repModel = new UserReputationStakeDto();
+                            repModel.ReferenceID = vote.VoteID;
+                            repModel.ReferenceProcessID = vote.VotingID;
+                            repModel.UserID = vote.UserID;
+                            repModel.Amount = Convert.ToDouble(ReputationStake);
+                            repModel.Type = Direction;
+                            repModel.CreateDate = DateTime.Now;
 
-                        SimpleResponse parsedResult = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResult);
+                            var jsonResult = Helpers.Request.Post(Program._settings.Service_Reputation_Url + "/UserReputationStake/SubmitStake", Helpers.Serializers.SerializeJson(repModel));
 
-                        if (parsedResult.Success == false)
+                            reputationStakeResult = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResult);
+                        }
+
+
+                        if (reputationStakeResult.Success == false)
                         {
                             //If staking fails for some reasoın remove vote.
                             db.Votes.Remove(vote);
@@ -277,13 +285,13 @@ namespace DAO_VotingEngine.Controllers
                         {
                             //If staking is successfull update voting model
                             voteProcess.VoteCount += 1;
-                            if (repModel.Type == StakeType.For)
+                            if (Direction == StakeType.For)
                             {
-                                voteProcess.StakedFor += repModel.Amount;
+                                voteProcess.StakedFor += ReputationStake;
                             }
-                            else if (repModel.Type == StakeType.Against)
+                            else if (Direction == StakeType.Against)
                             {
-                                voteProcess.StakedAgainst += repModel.Amount;
+                                voteProcess.StakedAgainst += ReputationStake;
                             }
                             db.SaveChanges();
                         }
@@ -296,7 +304,7 @@ namespace DAO_VotingEngine.Controllers
 
                         Program.monitizer.AddUserLog(UserID, UserLogType.Request, "User submitted vote. Voting # " + VotingID);
 
-                        return parsedResult;
+                        return reputationStakeResult;
                     }
                 }
             }
