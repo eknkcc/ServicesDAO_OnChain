@@ -2369,7 +2369,7 @@ namespace DAO_WebPortal.Controllers
             try
             {
                 //User input controls
-                SimpleResponse controlResult = UserInputControls.ControlVaOnboardingVoteRequest(model.newvausername, model.newvaaddress, model.reason, HttpContext.Session.GetString("Token"));
+                SimpleResponse controlResult = UserInputControls.ControlVaOnboardingVoteRequest(model.newvausername, model.newvaaddress, model.reason, HttpContext.Session.GetString("Token"), HttpContext.Session.GetString("UserType"));
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 
