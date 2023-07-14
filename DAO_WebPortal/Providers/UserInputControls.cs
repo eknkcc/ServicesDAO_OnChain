@@ -19,11 +19,16 @@ namespace DAO_WebPortal.Providers
 
             return new SimpleResponse { Success = true };
         }
-        public static SimpleResponse ControlVaOnboardingVoteRequest(string newvausername, string newvaaddress, string reason, string token)
+        public static SimpleResponse ControlVaOnboardingVoteRequest(string newvausername, string newvaaddress, string reason, string token, string usertype)
         {
             if (string.IsNullOrEmpty(newvausername) && string.IsNullOrEmpty(newvaaddress))
             {
                 return new SimpleResponse { Success = false, Message = "Username OR public key must be filled." };
+            }
+
+            if (usertype == "VotingAssociate")
+            {
+                return new SimpleResponse { Success = false, Message = "You are already a VA so you can't start this vote." };
             }
 
             UserDto profileModel = new UserDto();
@@ -295,15 +300,15 @@ namespace DAO_WebPortal.Providers
 
             return new SimpleResponse { Success = true };
         }
-        public static SimpleResponse ControlSubmitJobProofRequest(uint jobid, string documenthash)
+        public static SimpleResponse ControlSubmitJobProofRequest(uint bidid, string documenthash)
         {
             if (string.IsNullOrEmpty(documenthash))
             {
                 return new SimpleResponse { Success = false, Message = "Document proof cannot be empty." };
             }
-            if (jobid < 0)
+            if (bidid < 0)
             {
-                return new SimpleResponse { Success = false, Message = "Job ID must be a positive number" };
+                return new SimpleResponse { Success = false, Message = "Bid ID must be a positive number" };
             }
 
             return new SimpleResponse { Success = true };

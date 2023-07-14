@@ -7,11 +7,13 @@ function ShareJobPost() {
 //Start informal voting process, only job doer is authorized for this action
 var selectedJobId = 0;
 var selectedBlockchainJobId = 0;
+var selectedBlockchainBidId = 0;
 var reviewcomment = "";
 
-function SubmitJobProof(JobId, ChainJobId, blockchain) {
+function SubmitJobProof(JobId, BlockchainBidId, ChainJobId, blockchain) {
     selectedJobId = JobId; 
     selectedBlockchainJobId = ChainJobId;
+    selectedBlockchainBidId = BlockchainBidId;
 
     $.confirm({
         title: 'Confirmation',
@@ -64,7 +66,7 @@ function SubmitJobProof(JobId, ChainJobId, blockchain) {
                     reviewcomment = comment;
 
                     if (blockchain == "Casper") {
-                        CheckWalletAndSendDeploy("../CasperChain/GetSubmitJobProofDeploy?jobid=" + selectedBlockchainJobId + "&documenthash=" + $('#prLink').val(), CompleteSubmitJobProof);
+                        CheckWalletAndSendDeploy("../CasperChain/GetSubmitJobProofDeploy?bidid=" + selectedBlockchainBidId + "&documenthash=" + $('#prLink').val(), CompleteSubmitJobProof);
                     }
                     else {
                         CompleteSubmitJobProof("")

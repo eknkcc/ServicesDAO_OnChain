@@ -480,15 +480,18 @@ namespace DAO_CasperChainService.Controllers
         }
 
         [HttpGet("BidEscrowSubmitJobProof", Name = "BidEscrowSubmitJobProof")]
-        public SimpleResponse BidEscrow_SubmitJobProof(uint jobid, string documenthash, string userwallet)
+        public SimpleResponse BidEscrow_SubmitJobProof(uint bidid, string documenthash, string userwallet)
         {
             try
             {
+                CasperMiddlewareController cont = new CasperMiddlewareController();
+                var job = cont.GetJobByBidId(Convert.ToInt32(bidid));
+               
                 PublicKey myAccountPK = PublicKey.FromHexString(userwallet);
 
                 var namedArgs = new List<NamedArg>()
                 {
-                    new NamedArg("job_id", CLValue.U32(jobid)),
+                    new NamedArg("job_id", CLValue.U32(Convert.ToUInt32(job.data.job_id))),
                     new NamedArg("proof", CLValue.String(documenthash))
                 };
 
@@ -925,7 +928,7 @@ namespace DAO_CasperChainService.Controllers
                 var namedArgs = new List<NamedArg>()
                 {
                     new NamedArg("account", CLValue.Key(subjectAddress)),
-                    new NamedArg("action", CLValue.U8(action)),
+                    new NamedArg("action", CLValue.U32(action)),
                     new NamedArg("amount", CLValue.U512(amount)),
                     new NamedArg("document_hash", CLValue.String(documenthash)),
                     new NamedArg("stake", CLValue.U512(stake))

@@ -10,6 +10,7 @@ namespace Helpers.Models.CasperServiceModels
     public class Job
     {
         public int bid_id { get; set; }
+        public int job_id { get; set; }
         public string caller { get; set; }
         public string deploy_hash { get; set; }
         public long finish_time { get; set; }

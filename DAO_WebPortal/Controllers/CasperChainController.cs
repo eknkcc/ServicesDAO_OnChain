@@ -297,16 +297,16 @@ namespace DAO_WebPortal.Controllers
                 return base.Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
             }
         }
-        public JsonResult GetSubmitJobProofDeploy(uint jobid, string documenthash)
+        public JsonResult GetSubmitJobProofDeploy(uint bidid, string documenthash)
         {
             try
             {
-                SimpleResponse controlResult = UserInputControls.ControlSubmitJobProofRequest(jobid, documenthash);
+                SimpleResponse controlResult = UserInputControls.ControlSubmitJobProofRequest(bidid, documenthash);
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 
                 //Get model from ApiGateway
-                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/BidEscrowSubmitJobProof?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&documenthash=" + documenthash + "&jobid=" + jobid);
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/BidEscrowSubmitJobProof?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&documenthash=" + documenthash + "&bidid=" + bidid);
                 //Parse response
                 SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
 
@@ -434,7 +434,7 @@ namespace DAO_WebPortal.Controllers
         {
             try
             {
-                SimpleResponse controlResult = UserInputControls.ControlVaOnboardingVoteRequest(username, vaaddress, reason, HttpContext.Session.GetString("Token"));
+                SimpleResponse controlResult = UserInputControls.ControlVaOnboardingVoteRequest(username, vaaddress, reason, HttpContext.Session.GetString("Token"), HttpContext.Session.GetString("UserType"));
 
                 if (controlResult.Success == false) return base.Json(controlResult);
 

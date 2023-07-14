@@ -532,7 +532,7 @@
                     return;
                 }
 
-                CheckWalletAndSendDeploy("../CasperChain/GetVaOnboardingVoteDeploy?username=&newvaaddress=" + $("#vaaddress").val() + "&reason=" + $("#reason").val(), startVaOnboardingVote);
+                CheckWalletAndSendDeploy("../CasperChain/GetVaOnboardingVoteDeploy?username=&vaaddress=" + $("#vaaddress").val() + "&reason=" + $("#reason").val(), startVaOnboardingVote);
             }
 
             async function startOnchainRepoVote() {
