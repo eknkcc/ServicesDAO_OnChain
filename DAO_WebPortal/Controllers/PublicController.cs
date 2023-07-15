@@ -27,7 +27,20 @@ namespace DAO_WebPortal.Controllers
         #region Views
         public IActionResult Index()
         {
-            return View();
+            List<AuctionViewModel> auctionsModel = new List<AuctionViewModel>();
+
+            try
+            {
+                //Get model from ApiGateway
+                var auctionsJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/PublicActions/GetAuctions");
+                //Parse response
+                auctionsModel = Helpers.Serializers.DeserializeJson<List<AuctionViewModel>>(auctionsJson);
+            }
+            catch (Exception ex)
+            {
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+            }
+            return View(auctionsModel);
         }
 
         [Route("Privacy-Policy")]

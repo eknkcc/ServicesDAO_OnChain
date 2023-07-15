@@ -74,6 +74,12 @@ namespace DAO_DbService
             }
             else if (Program._settings.DaoBlockchain == Enums.Blockchain.Casper)
             {
+                CheckAuctionStatusOffChain(null, null);
+                auctionStatusTimer = new System.Timers.Timer(10000);
+                auctionStatusTimer.Elapsed += CheckAuctionStatusOffChain;
+                auctionStatusTimer.AutoReset = true;
+                auctionStatusTimer.Enabled = true;
+
                 SyncDaoSettingsCasperChain(null, null);
                 daoSettingsTimer = new System.Timers.Timer(300000);
                 daoSettingsTimer.Elapsed += SyncDaoSettingsCasperChain;

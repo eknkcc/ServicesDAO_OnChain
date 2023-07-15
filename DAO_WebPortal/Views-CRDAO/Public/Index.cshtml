@@ -5,6 +5,8 @@
     Layout = "../Shared/_PublicLayout.cshtml";
 }
 
+@model List<Helpers.Models.WebsiteViewModels.AuctionViewModel>
+
 <header class="nk-header page-header is-transparent is-sticky is-shrink" id="header">
     <!-- Header  -->
     <div class="header-main">
@@ -39,7 +41,7 @@
                                 <div class="menu-sub menu-drop">
                                     <div class="menu-mega-innr">
                                         <ul class="menu-mega-list">
-                                            <li class="menu-item"><a  target="_blank" href="../Public/ossagtc-v2.pdf">GTC</a></li>
+                                            <li class="menu-item"><a target="_blank" href="../Public/ossagtc-v2.pdf">GTC</a></li>
                                             <li class="menu-item"><a target="_blank" href="../Public/Disclaimer.pdf">Disclaimer</a></li>
                                         </ul>
                                     </div>
@@ -158,6 +160,39 @@
     </section>
     <!-- // -->
 
+    <section style="padding-bottom:50px;padding-top:50px">
+        <div class="container">
+            <ul class="partner-list-s3 row align-items-center justify-content-center">
+                <li class="col-12 col-md-2 text-center text-md-left">
+                    <h6 class="title title-xs tc-primary mb-md-0 mb-4 animated fadeInUp" data-animate="fadeInUp" data-delay="1.65" style="visibility: visible; animation-delay: 1.65s;">Our <br> Partners</h6>
+                </li>
+                <li class="col-4 col-md-2 animated fadeInUp" data-animate="fadeInUp" data-delay="1.7" style="visibility: visible; animation-delay: 1.7s;">
+                    <a href="#">
+                        <img src="~/public/images/partners/casperlabs.png" alt="partner" style="padding-right:20px;padding-left:20px">
+                    </a>
+                </li>
+
+                <li class="col-4 col-md-2 animated fadeInUp" data-animate="fadeInUp" data-delay="1.75" style="visibility: visible; animation-delay: 1.75s;">
+                    <a href="#">
+                        <img src="~/public/images/partners/eta.png" alt="partner">
+                    </a>
+                </li>
+                <li class="col-4 col-md-2 animated fadeInUp" data-animate="fadeInUp" data-delay="1.8" style="visibility: visible; animation-delay: 1.8s;">
+                    <a href="#">
+                        <img src="~/public/images/partners/acquirefi.png" alt="partner">
+                    </a>
+                </li>
+                <li class="col-4 col-md-2 animated fadeInUp" data-animate="fadeInUp" data-delay="1.85" style="visibility: visible; animation-delay: 1.85s;padding-bottom:15px;padding-top:15px">
+                    <a href="#">
+                        <img src="~/public/images/partners/dxd.png" alt="partner">
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+    </section>
+    <!-- // -->
+
     <section id="about-us" class="pdt-0 ov-v">
         <div class="ui-mask-left ui-mask-s9"></div>
         <div class="container">
@@ -184,7 +219,6 @@
     <!-- // -->
 
     <section class="section">
-
         <div class="container">
             <h3 class="title title-dark title-regular animated" data-animate="fadeInUp" data-delay=".1">Client Benefits</h3>
             <h5 class="animated" data-animate="fadeInUp" data-delay=".1">The CRDAO offers several key comparative advantages in the code review process: </h5>
@@ -273,13 +307,11 @@
                         </div>
                     </div>
                     <div class="col-lg-3">
-
                     </div>
                 </div>
 
             </div><!-- .block -->
         </div>
-
     </section>
     <!-- // -->
 
@@ -297,7 +329,7 @@
                     <div class="col-xl-10">
                         <div class="roadmap-wrap">
                             <div class="roadmap-line"></div>
-                  
+
                             <div class="roadmap roadmap-left">
                                 <i class="fas fa-file-invoice" style="position: absolute;left: 539px;top: 55px;font-size: 70px;color: #8ca2e5;"></i>
                                 <div class="roadmap-step p-4 mt-5">
@@ -307,7 +339,7 @@
                                     <p>Internal or public job poster posts a code review job.</p>
                                 </div>
                             </div>
-                    
+
                             <div class="roadmap roadmap-right">
                                 <i class="fas fa-gavel" style="position: absolute; left: 300px; top: 15px; font-size: 70px; color: #8ca2e5;"></i>
 
@@ -318,8 +350,8 @@
                                     <p class="text-justify">Any external, non-CRDAO person is eligible to bid to provide a functionality review for the CRDAO via the open bidding portal on the CRDAO webpage.</p>
                                 </div>
                             </div>
-                     
-                            <div class="roadmap roadmap-left">
+
+                            <div class="roadmap roadmap-left" id="scrollTriggerDiv">
                                 <div class="roadmap-step">
                                     <div class="roadmap-head">
                                         <span class="roadmap-title">CODE REVIEW</span>
@@ -335,7 +367,7 @@
                                     </ul>
                                 </div>
                             </div>
-                   
+
                             <div class="roadmap roadmap-right">
                                 <i class="fas fa-vote-yea" style="position: absolute; left: 300px; top: 15px; font-size: 70px; color: #8ca2e5;"></i>
 
@@ -358,11 +390,44 @@
                         </div>
                     </div><!-- .col -->
                 </div><!-- .row -->
-      
+
             </div>
             <!-- Block -->
         </div>
 
+    </section>
+    <!-- // -->
+
+    <section class="section">
+        @{
+            var completedjobs = Model.Where(x => x.Status == Helpers.Constants.Enums.AuctionStatusTypes.Completed);
+            int linesReviewed = completedjobs.Count() * 5746;
+            int averageCost = Convert.ToInt32(completedjobs.Average(x => x.JobPrice));
+            int maxCost = Convert.ToInt32(completedjobs.Max(x => x.JobPrice));
+            int averageTime = Convert.ToInt32(completedjobs.Average(x => Convert.ToInt32(x.ExpectedTimeframe)));
+        }
+
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3">
+                    <h4 class="title-dark title-regular animated fadeInUp">Code Reviewed</h4>
+                    <span style="color: #0a1992;font-weight: 600;font-size:34px" class="value" akhi="@linesReviewed">0</span><b style="margin-left:7px">lines</b>
+                </div>
+                <div class="col-md-3">
+                    <h4 class="title-dark title-regular animated fadeInUp">Average Cost</h4>
+                    <span style="color: #0a1992;font-weight: 600;font-size:34px" class="value" akhi="@averageCost">0</span><b style="margin-left:7px">Euros</b>
+                </div>
+                <div class="col-md-3">
+                    <h4 class="title-dark title-regular animated fadeInUp">Max Cost</h4>
+                    <span style="color: #0a1992;font-weight: 600;font-size:34px" class="value" akhi="@maxCost">0</span><b style="margin-left:7px">Euros</b>
+                </div>
+                <div class="col-md-3">
+                    <h4 class="title-dark title-regular animated fadeInUp">Average Time</h4>
+
+                    <span style="color: #0a1992;font-weight: 600;font-size:34px" class="value" akhi="@averageTime">0</span><b style="margin-left:7px">Days</b>
+                </div>
+            </div>
+        </div>
     </section>
     <!-- // -->
 </main>
@@ -393,15 +458,15 @@
                         </form>
                     </div>
                 </div>
-                  <div class="contact-social">                          
-                                    <ul class="social-links">
-                                        <li><a href="https://github.com/CodeReviewDAO/dxd_codereview" target="_blank"><em class="social-icon social-icon-transparent fab fa-github"></em></a></li>
-                                        <li><a href="https://www.youtube.com/channel/UCRcvfCJVbb7SfNOodi461xw/videos" target="_blank"><em class="social-icon social-icon-transparent fab fa-youtube"></em></a></li>
-                                        <li><a href="https://twitter.com/crdao_dev" target="_blank"><em class="social-icon social-icon-transparent fab fa-twitter"></em></a></li>
-                                        <li><a href="https://www.linkedin.com/company/crdao" target="_blank"><em class="social-icon social-icon-transparent fab fa-linkedin"></em></a></li>
-                                        <li><a href="https://t.me/CodeReviewDAO" target="_blank"><em class="social-icon social-icon-transparent fab fa-telegram"></em></a></li>
-                                    </ul>
-                                </div>
+                <div class="contact-social">
+                    <ul class="social-links">
+                        <li><a href="https://github.com/CodeReviewDAO/dxd_codereview" target="_blank"><em class="social-icon social-icon-transparent fab fa-github"></em></a></li>
+                        <li><a href="https://www.youtube.com/channel/UCRcvfCJVbb7SfNOodi461xw/videos" target="_blank"><em class="social-icon social-icon-transparent fab fa-youtube"></em></a></li>
+                        <li><a href="https://twitter.com/crdao_dev" target="_blank"><em class="social-icon social-icon-transparent fab fa-twitter"></em></a></li>
+                        <li><a href="https://www.linkedin.com/company/crdao" target="_blank"><em class="social-icon social-icon-transparent fab fa-linkedin"></em></a></li>
+                        <li><a href="https://t.me/CodeReviewDAO" target="_blank"><em class="social-icon social-icon-transparent fab fa-telegram"></em></a></li>
+                    </ul>
+                </div>
             </div><!-- .block  -->
         </div>
     </section>
@@ -428,3 +493,57 @@
 
 <!-- Loading Spinner -->
 <div class="preloader preloader-alt no-split"><span class="spinner spinner-alt"><img class="spinner-brand" src="../Public/images/crdao-newlogo-light.png" alt=""></span></div>
+
+<script>
+    var scrollReached = false;
+
+    // Get a reference to the target div element
+    const targetDiv = document.getElementById('scrollTriggerDiv');
+
+    // Function to be triggered when scroll reaches the div
+    function onScrollReachedDiv() {
+        if (scrollReached == true) return;
+
+        scrollReached = true;
+
+        const counters = document.querySelectorAll('.value');
+        const speed = 500;
+
+        counters.forEach(counter => {
+            const animate = () => {
+                const value = +counter.getAttribute('akhi');
+                const data = +counter.innerText;
+
+                const time = value / speed;
+                if (data < value) {
+                    counter.innerText = Math.ceil(data + time);
+                    setTimeout(animate, 1);
+                } else {
+                    counter.innerText = value;
+                }
+
+            }
+
+            animate();
+        });
+    }
+
+    // Event listener for the scroll event
+    window.addEventListener('scroll', function () {
+        // Get the position of the target div relative to the viewport
+        const targetRect = targetDiv.getBoundingClientRect();
+
+        // Calculate the scroll position when the top of the div is in view
+        const scrollPosition = window.pageYOffset + targetRect.top;
+
+        // Calculate the threshold position for triggering the function
+        const threshold = scrollPosition + targetRect.height;
+
+        // Check if the scroll position has reached the threshold
+        if (window.pageYOffset >= threshold) {
+            // Call the function when scroll reaches the div
+            onScrollReachedDiv();
+        }
+    });
+
+</script>
