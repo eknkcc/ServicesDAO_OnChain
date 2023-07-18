@@ -166,12 +166,12 @@ namespace DAO_WebPortal.Controllers
             {
                 // Check captcha only after 3 failed requests
                 int failCount = Convert.ToInt32(HttpContext.Session.GetInt32("FailCount"));
-                if (failCount > 3 && !Utility.Captcha.ValidateCaptchaCode("securityCodeLogin", usercode, HttpContext))
-                {
-                    failCount++;
-                    HttpContext.Session.SetInt32("FailCount", failCount);
-                    return base.Json(new SimpleResponse { Success = false, Message = Lang.WrongErrorCodeEntered });
-                }
+                //if (failCount > 3 && !Utility.Captcha.ValidateCaptchaCode("securityCodeLogin", usercode, HttpContext))
+                //{
+                //    failCount++;
+                //    HttpContext.Session.SetInt32("FailCount", failCount);
+                //    return base.Json(new SimpleResponse { Success = false, Message = Lang.WrongErrorCodeEntered });
+                //}
 
                 //Get client Ip and Port
                 string ip = IpHelper.GetClientIpAddress(HttpContext);
@@ -246,12 +246,12 @@ namespace DAO_WebPortal.Controllers
             {
                 // Check captcha only after 3 failed requests
                 int failCount = Convert.ToInt32(HttpContext.Session.GetInt32("FailCount"));
-                if (failCount > 3 && !Captcha.ValidateCaptchaCode("securityCodeRegister", usercode, HttpContext))
-                {
-                    failCount++;
-                    HttpContext.Session.SetInt32("FailCount", failCount);
-                    return base.Json(new SimpleResponse { Success = false, Message = Lang.WrongErrorCodeEntered });
-                }
+                //if (failCount > 3 && !Captcha.ValidateCaptchaCode("securityCodeRegister", usercode, HttpContext))
+                //{
+                //    failCount++;
+                //    HttpContext.Session.SetInt32("FailCount", failCount);
+                //    return base.Json(new SimpleResponse { Success = false, Message = Lang.WrongErrorCodeEntered });
+                //}
 
                 //Password match control
                 if (password != repass)
@@ -360,12 +360,12 @@ namespace DAO_WebPortal.Controllers
             {
                 // Check captcha only after 3 failed requests
                 int failCount = Convert.ToInt32(HttpContext.Session.GetInt32("FailCount"));
-                if (failCount > 3 && !Captcha.ValidateCaptchaCode("securityCodeResetPass", usercode, HttpContext))
-                {
-                    failCount++;
-                    HttpContext.Session.SetInt32("FailCount", failCount);
-                    return base.Json(new SimpleResponse { Success = false, Message = Lang.WrongErrorCodeEntered });
-                }
+                //if (failCount > 3 && !Captcha.ValidateCaptchaCode("securityCodeResetPass", usercode, HttpContext))
+                //{
+                //    failCount++;
+                //    HttpContext.Session.SetInt32("FailCount", failCount);
+                //    return base.Json(new SimpleResponse { Success = false, Message = Lang.WrongErrorCodeEntered });
+                //}
 
                 //Post model to ApiGateway
                 var resetJson = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/PublicActions/ResetPassword", Helpers.Serializers.SerializeJson(new ResetPasswordModel() { email = email }));
@@ -452,12 +452,12 @@ namespace DAO_WebPortal.Controllers
             {
                 // Check captcha only after 3 failed requests
                 int failCount = Convert.ToInt32(HttpContext.Session.GetInt32("FailCount"));
-                if (failCount > 3 && !Captcha.ValidateCaptchaCode("securityCodeResetPassComplete", usercode, HttpContext))
-                {
-                    failCount++;
-                    HttpContext.Session.SetInt32("FailCount", failCount);
-                    return base.Json(new SimpleResponse { Success = false, Message = Lang.WrongErrorCodeEntered });
-                }
+                //if (failCount > 3 && !Captcha.ValidateCaptchaCode("securityCodeResetPassComplete", usercode, HttpContext))
+                //{
+                //    failCount++;
+                //    HttpContext.Session.SetInt32("FailCount", failCount);
+                //    return base.Json(new SimpleResponse { Success = false, Message = Lang.WrongErrorCodeEntered });
+                //}
 
                 //Password match control
                 if (newpass != newpassagain)

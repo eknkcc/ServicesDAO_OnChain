@@ -112,7 +112,7 @@
                                                 if (httpContextAccessor.HttpContext.Session.GetInt32("UserID") != item.JobDoerUserID && httpContextAccessor.HttpContext.Session.GetString("UserType") == Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString())
                                                 {
                                                                 <td>
-                                                                    <a class="btn btn-sm btn-primary btn-shine me-2" onclick="OpenVoteModal(@item.VotingID, @item.JobID)">
+                                                                    <a class="btn btn-sm btn-primary btn-shine me-2" onclick="OpenVoteModal(@item.VotingID, @item.JobID)" id="submitvote_@item.VotingID">
                                                                         <svg class="icon">
                                                                             <use xlink:href="/Home/images/svg/free.svg#cil-send"></use>
                                                                         </svg> Submit Vote
@@ -591,6 +591,7 @@
                 if ($("#counter_" + id).html().indexOf("Finish Voting") == -1)
                 {
                     $("#counter_" + id).html('<button type="button" class="btn btn-primary btn-sm" onclick="finishOnchainVote(' + id + ');" class="finishVoteBtn">Finish Voting</button>');
+                    $("#submitvote_"+ id).css("display","none");
                 }
             }
 

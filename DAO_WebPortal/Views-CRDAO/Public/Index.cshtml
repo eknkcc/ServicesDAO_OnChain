@@ -74,6 +74,7 @@
             </div>
         </div>
     </div><!-- .header-main  -->
+
     <!-- Banner  -->
     <div class="header-banner bg-theme-grad">
         <div class="nk-banner">
@@ -105,6 +106,37 @@
                                 </div>
                             </div><!-- .col -->
                         </div><!-- .row -->
+                  
+                                    @{
+            var completedjobs = Model.Where(x => x.Status == Helpers.Constants.Enums.AuctionStatusTypes.Completed);
+            int linesReviewed = completedjobs.Count() * 5746;
+            int averageCost = Convert.ToInt32(completedjobs.Average(x => x.JobPrice));
+            int maxCost = Convert.ToInt32(completedjobs.Max(x => x.JobPrice));
+            int averageTime = Convert.ToInt32(completedjobs.Average(x => Convert.ToInt32(x.ExpectedTimeframe)));
+        }
+
+ 
+            <div class="row">
+                <div class="col-md-3" style="text-align: center;">
+                    <h4 class="title-regular animated fadeInUp" style="color: white;">Code Reviewed</h4>
+                    <span style="color: #adb0cb;font-weight: 600;font-size:34px" class="value" akhi="@linesReviewed">0</span><b style="margin-left:7px">lines</b>
+                </div>
+                <div class="col-md-3" style="text-align: center;">
+                    <h4 class="title-regular animated fadeInUp" style="color: white;">Average Cost</h4>
+                    <span style="color: #adb0cb;font-weight: 600;font-size:34px" class="value" akhi="@averageCost">0</span><b style="margin-left:7px">Euros</b>
+                </div>
+                <div class="col-md-3" style="text-align: center;">
+                    <h4 class="title-regular animated fadeInUp" style="color: white;">Max Cost</h4>
+                    <span style="color: #adb0cb;font-weight: 600;font-size:34px" class="value" akhi="@maxCost">0</span><b style="margin-left:7px">Euros</b>
+                </div>
+                <div class="col-md-3" style="text-align: center;">
+                    <h4 class="title-regular animated fadeInUp" style="color: white;">Average Time</h4>
+
+                    <span style="color: #adb0cb;font-weight: 600;font-size:34px" class="value" akhi="@averageTime">0</span><b style="margin-left:7px">Days</b>
+                </div>
+            </div>
+    
+                  
                     </div>
                 </div>
             </div>
@@ -115,6 +147,7 @@
 </header>
 
 <main class="nk-pages">
+        
     <section class="bg-transparent over-up over-up-xl-s2 pdt-0 pb-5">
         <div class="ui-mask-right ui-mask-s8"></div>
         <div class="container">
@@ -351,7 +384,7 @@
                                 </div>
                             </div>
 
-                            <div class="roadmap roadmap-left" id="scrollTriggerDiv">
+                            <div class="roadmap roadmap-left">
                                 <div class="roadmap-step">
                                     <div class="roadmap-head">
                                         <span class="roadmap-title">CODE REVIEW</span>
@@ -398,38 +431,6 @@
     </section>
     <!-- // -->
 
-    <section class="section">
-        @{
-            var completedjobs = Model.Where(x => x.Status == Helpers.Constants.Enums.AuctionStatusTypes.Completed);
-            int linesReviewed = completedjobs.Count() * 5746;
-            int averageCost = Convert.ToInt32(completedjobs.Average(x => x.JobPrice));
-            int maxCost = Convert.ToInt32(completedjobs.Max(x => x.JobPrice));
-            int averageTime = Convert.ToInt32(completedjobs.Average(x => Convert.ToInt32(x.ExpectedTimeframe)));
-        }
-
-        <div class="container">
-            <div class="row">
-                <div class="col-md-3">
-                    <h4 class="title-dark title-regular animated fadeInUp">Code Reviewed</h4>
-                    <span style="color: #0a1992;font-weight: 600;font-size:34px" class="value" akhi="@linesReviewed">0</span><b style="margin-left:7px">lines</b>
-                </div>
-                <div class="col-md-3">
-                    <h4 class="title-dark title-regular animated fadeInUp">Average Cost</h4>
-                    <span style="color: #0a1992;font-weight: 600;font-size:34px" class="value" akhi="@averageCost">0</span><b style="margin-left:7px">Euros</b>
-                </div>
-                <div class="col-md-3">
-                    <h4 class="title-dark title-regular animated fadeInUp">Max Cost</h4>
-                    <span style="color: #0a1992;font-weight: 600;font-size:34px" class="value" akhi="@maxCost">0</span><b style="margin-left:7px">Euros</b>
-                </div>
-                <div class="col-md-3">
-                    <h4 class="title-dark title-regular animated fadeInUp">Average Time</h4>
-
-                    <span style="color: #0a1992;font-weight: 600;font-size:34px" class="value" akhi="@averageTime">0</span><b style="margin-left:7px">Days</b>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- // -->
 </main>
 
 <footer class="nk-footer bg-theme-grad ov-h">
@@ -495,16 +496,6 @@
 <div class="preloader preloader-alt no-split"><span class="spinner spinner-alt"><img class="spinner-brand" src="../Public/images/crdao-newlogo-light.png" alt=""></span></div>
 
 <script>
-    var scrollReached = false;
-
-    // Get a reference to the target div element
-    const targetDiv = document.getElementById('scrollTriggerDiv');
-
-    // Function to be triggered when scroll reaches the div
-    function onScrollReachedDiv() {
-        if (scrollReached == true) return;
-
-        scrollReached = true;
 
         const counters = document.querySelectorAll('.value');
         const speed = 500;
@@ -526,24 +517,4 @@
 
             animate();
         });
-    }
-
-    // Event listener for the scroll event
-    window.addEventListener('scroll', function () {
-        // Get the position of the target div relative to the viewport
-        const targetRect = targetDiv.getBoundingClientRect();
-
-        // Calculate the scroll position when the top of the div is in view
-        const scrollPosition = window.pageYOffset + targetRect.top;
-
-        // Calculate the threshold position for triggering the function
-        const threshold = scrollPosition + targetRect.height;
-
-        // Check if the scroll position has reached the threshold
-        if (window.pageYOffset >= threshold) {
-            // Call the function when scroll reaches the div
-            onScrollReachedDiv();
-        }
-    });
-
 </script>

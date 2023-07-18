@@ -111,10 +111,10 @@
                     failCount++;
                     toastr.warning(result.message);
                     //Show captcha image after failed request attempts
-                    if (failCount > 3) {
-                        resetCaptchaImage("#img-captcha-login", "securityCodeLogin");
-                        $(".captchaDiv").removeClass("d-none");
-                    }
+                    //if (failCount > 3) {
+                    //    resetCaptchaImage("#img-captcha-login", "securityCodeLogin");
+                    //    $(".captchaDiv").removeClass("d-none");
+                    //}
                     HideLoader();
                 }
             },
@@ -174,10 +174,10 @@
                                 failCount++;
                                 toastr.warning(result.message);
                                 //Show captcha image after failed request attempts
-                                if (failCount > 3) {
-                                    resetCaptchaImage("#img-captcha-login", "securityCodeLogin");
-                                    $(".captchaDiv").removeClass("d-none");
-                                }
+                                //if (failCount > 3) {
+                                //    resetCaptchaImage("#img-captcha-login", "securityCodeLogin");
+                                //    $(".captchaDiv").removeClass("d-none");
+                                //}
                                 HideLoader();
                             }
                         },
@@ -238,10 +238,10 @@
                     failCount++;
                     toastr.error(result.message);
                     //Show captcha image after failed request attempts
-                    if (failCount > 3) {
-                        resetCaptchaImage("#img-captcha-register", "securityCodeRegister");
-                        $(".captchaDiv").removeClass("d-none");
-                    }
+                    //if (failCount > 3) {
+                    //    resetCaptchaImage("#img-captcha-register", "securityCodeRegister");
+                    //    $(".captchaDiv").removeClass("d-none");
+                    //}
                 }
             },
             failure: function (response) {
@@ -283,10 +283,10 @@
                 }
 
                 //Show captcha image after failed request attempts
-                if (failCount > 3) {
-                    resetCaptchaImage("#img-captcha-resetpass", "securityCodeResetPass");
-                    $(".captchaDiv").removeClass("d-none");
-                }
+                //if (failCount > 3) {
+                //    resetCaptchaImage("#img-captcha-resetpass", "securityCodeResetPass");
+                //    $(".captchaDiv").removeClass("d-none");
+                //}
             },
             failure: function (response) {
                 HideLoader();
@@ -330,10 +330,10 @@
                     toastr.error(result.message);
                 }
 
-                if (failCount > 3) {
-                    resetCaptchaImage("#img-captcha-resetpasscomplete", "securityCodeResetPassComplete");
-                    $(".captchaDiv").removeClass("d-none");
-                }
+                //if (failCount > 3) {
+                //    resetCaptchaImage("#img-captcha-resetpasscomplete", "securityCodeResetPassComplete");
+                //    $(".captchaDiv").removeClass("d-none");
+                //}
             },
             failure: function (response) {
                 toastr.warning("Server connection error");
