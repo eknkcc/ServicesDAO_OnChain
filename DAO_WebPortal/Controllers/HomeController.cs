@@ -1839,19 +1839,23 @@ namespace DAO_WebPortal.Controllers
 
                 for (int i = 0; i < votes.Count; i++)
                 {
-                    VoteItemModel vt = new VoteItemModel();
-                    vt.UserID = votes[i].UserID;
-                    vt.Date = votes[i].Date;
-                    vt.Direction = votes[i].Direction;
-                    vt.VoteID = votes[i].VoteID;
-                    vt.VotingID = votes[i].VotingID;
-                    vt.UserName = usernames[i];
-                    vt.DeployHash = votes[i].DeployHash;
-                    if (reputations.Count(x => x.UserID == vt.UserID) > 0)
+                    if(!string.IsNullOrEmpty(usernames[i]))
                     {
-                        vt.ReputationStake = reputations.First(x => x.UserID == vt.UserID).Amount;
+                        VoteItemModel vt = new VoteItemModel();
+                        vt.UserID = votes[i].UserID;
+                        vt.Date = votes[i].Date;
+                        vt.Direction = votes[i].Direction;
+                        vt.VoteID = votes[i].VoteID;
+                        vt.VotingID = votes[i].VotingID;
+                        vt.UserName = usernames[i];
+                        vt.DeployHash = votes[i].DeployHash;
+                        if (reputations.Count(x => x.UserID == vt.UserID) > 0)
+                        {
+                            vt.ReputationStake = reputations.First(x => x.UserID == vt.UserID).Amount;
+                        }
+                        voteItems.Add(vt);
                     }
-                    voteItems.Add(vt);
+
                 }
 
                 //Parse response

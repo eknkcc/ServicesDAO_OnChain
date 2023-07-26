@@ -258,21 +258,17 @@ namespace DAO_VotingEngine.Controllers
 
                         SimpleResponse reputationStakeResult = new SimpleResponse() { Success = true };
 
-                        //Only in offchain version
-                        if (string.IsNullOrEmpty(DeployHash))
-                        {
-                            UserReputationStakeDto repModel = new UserReputationStakeDto();
-                            repModel.ReferenceID = vote.VoteID;
-                            repModel.ReferenceProcessID = vote.VotingID;
-                            repModel.UserID = vote.UserID;
-                            repModel.Amount = Convert.ToDouble(ReputationStake);
-                            repModel.Type = Direction;
-                            repModel.CreateDate = DateTime.Now;
+                        UserReputationStakeDto repModel = new UserReputationStakeDto();
+                        repModel.ReferenceID = vote.VoteID;
+                        repModel.ReferenceProcessID = vote.VotingID;
+                        repModel.UserID = vote.UserID;
+                        repModel.Amount = Convert.ToDouble(ReputationStake);
+                        repModel.Type = Direction;
+                        repModel.CreateDate = DateTime.Now;
 
-                            var jsonResult = Helpers.Request.Post(Program._settings.Service_Reputation_Url + "/UserReputationStake/SubmitStake", Helpers.Serializers.SerializeJson(repModel));
+                        var jsonResult = Helpers.Request.Post(Program._settings.Service_Reputation_Url + "/UserReputationStake/SubmitStake", Helpers.Serializers.SerializeJson(repModel));
 
-                            reputationStakeResult = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResult);
-                        }
+                        reputationStakeResult = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResult);
 
 
                         if (reputationStakeResult.Success == false)

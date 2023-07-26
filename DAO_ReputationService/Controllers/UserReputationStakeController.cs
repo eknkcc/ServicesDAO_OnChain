@@ -263,9 +263,12 @@ namespace DAO_ReputationService.Controllers
                     UserReputationHistoryDto lastHst = cont.GetLastReputation(model.UserID);
                     
                     //Check if user have sufficient reputation unless it's a minting request
-                    if (model.Type != StakeType.Mint && (lastHst == null || lastHst.LastUsableTotal < model.Amount))
+                    if(Program._settings.DaoBlockchain == null)
                     {
-                        return new SimpleResponse() { Success = false, Message = "User does not have sufficient reputation." };
+                        if (model.Type != StakeType.Mint && (lastHst == null || lastHst.LastUsableTotal < model.Amount))
+                        {
+                            return new SimpleResponse() { Success = false, Message = "User does not have sufficient reputation." };
+                        }
                     }
 
                     //Add record to ReputationHistory

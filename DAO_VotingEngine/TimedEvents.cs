@@ -377,40 +377,40 @@ namespace DAO_VotingEngine
             {
                 if (blockchain == Enums.Blockchain.Casper)
                 {
-                    using (dao_votesdb_context db = new dao_votesdb_context())
-                    {
-                        var chainVotes = Serializers.DeserializeJson<PaginatedResponse<Helpers.Models.CasperServiceModels.Vote>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetVotesListbyVotingId?page=1&page_size=1000&voting_id=" + voting_chain_id));
+                    //using (dao_votesdb_context db = new dao_votesdb_context())
+                    //{
+                    //    var chainVotes = Serializers.DeserializeJson<PaginatedResponse<Helpers.Models.CasperServiceModels.Vote>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetVotesListbyVotingId?page=1&page_size=1000&voting_id=" + voting_chain_id));
 
-                        var dbVotes = db.Votes.Where(x => x.VotingID == votingId).ToList();
+                    //    var dbVotes = db.Votes.Where(x => x.VotingID == votingId).ToList();
 
-                        var voting = db.Votings.Find(votingId);
+                    //    var voting = db.Votings.Find(votingId);
 
-                        foreach (var item in chainVotes.data.Where(x => x.is_formal == voting.IsFormal))
-                        {
-                            if (dbVotes.Count(x => x.DeployHash == item.deploy_hash) == 0)
-                            {
-                                Models.Vote vote = new Models.Vote();
-                                if (Convert.ToBoolean(item.is_in_favour) == true)
-                                {
-                                    vote.Direction = StakeType.For;
-                                    voting.StakedFor += item.amount;
-                                }
-                                else
-                                {
-                                    vote.Direction = StakeType.Against;
-                                    voting.StakedAgainst += item.amount;
-                                }
-                                vote.DeployHash = item.deploy_hash;
-                                vote.Date = Convert.ToDateTime(item.timestamp);
-                                vote.UserID = 0;
-                                vote.VotingID = votingId;
-                                vote.WalletAddress = item.address;
-                                db.Votes.Add(vote);
+                    //    foreach (var item in chainVotes.data.Where(x => x.is_formal == voting.IsFormal))
+                    //    {
+                    //        if (dbVotes.Count(x => x.DeployHash == item.deploy_hash) == 0)
+                    //        {
+                    //            Models.Vote vote = new Models.Vote();
+                    //            if (Convert.ToBoolean(item.is_in_favour) == true)
+                    //            {
+                    //                vote.Direction = StakeType.For;
+                    //                voting.StakedFor += item.amount;
+                    //            }
+                    //            else
+                    //            {
+                    //                vote.Direction = StakeType.Against;
+                    //                voting.StakedAgainst += item.amount;
+                    //            }
+                    //            vote.DeployHash = item.deploy_hash;
+                    //            vote.Date = Convert.ToDateTime(item.timestamp);
+                    //            vote.UserID = 0;
+                    //            vote.VotingID = votingId;
+                    //            vote.WalletAddress = item.address;
+                    //            db.Votes.Add(vote);
 
-                                db.SaveChanges();
-                            }
-                        }
-                    }
+                    //            db.SaveChanges();
+                    //        }
+                    //    }
+                    //}
                 }
             }
             catch (Exception ex)

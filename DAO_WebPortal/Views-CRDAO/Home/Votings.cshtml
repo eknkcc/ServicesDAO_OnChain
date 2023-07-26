@@ -70,69 +70,69 @@
                                 @{
                                     var informalVotings = Model.Where(x => x.Status == Helpers.Constants.Enums.VoteStatusTypes.Active && x.IsFormal == false).ToList();
 
-                                                @foreach (var item in informalVotings)
+                                    @foreach (var item in informalVotings)
                                     {
-                                                    <tr>
-                                                        <td>@item.JobID</td>
-                                                        <td><a href="../Job-Detail/@item.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(item.Title, 25)</a></td>
-                                                        <td>@item.VoteType.ToString()</td>
-                                                        <td>
-                                                            @if (!string.IsNullOrWhiteSpace(item.JobDoerUsername))
+                                        <tr>
+                                            <td>@item.JobID</td>
+                                            <td><a href="../Job-Detail/@item.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(item.Title, 25)</a></td>
+                                            <td>@item.VoteType.ToString()</td>
+                                            <td>
+                                                @if (!string.IsNullOrWhiteSpace(item.JobDoerUsername))
                                                 {
-                                                                <span>@DAO_WebPortal.Utility.StringHelper.FormatPrice(item.WinnerBidPrice)</span>
+                                                    <span>@DAO_WebPortal.Utility.StringHelper.FormatPrice(item.WinnerBidPrice)</span>
                                                 }
                                                 else
                                                 {
-                                                                <span>-</span>
+                                                    <span>-</span>
                                                 }
-                                                        </td>
-                                                        <td><b id="counter_@item.VotingID"></b></td>
-                                                        <td>
-                                                            @if (item.VoteCount >= item.QuorumCount)
+                                            </td>
+                                            <td><b id="counter_@item.VotingID"></b></td>
+                                            <td>
+                                                @if (item.VoteCount >= item.QuorumCount)
                                                 {
-                                                                <i data-toggle="tooltip" data-placement="top" title="Quorum reached" class="fas fa-check-circle mr-2 text-success"></i>
+                                                    <i data-toggle="tooltip" data-placement="top" title="Quorum reached" class="fas fa-check-circle mr-2 text-success"></i>
                                                 }
                                                 else
                                                 {
-                                                                <i data-toggle="tooltip" data-placement="top" title="Quorum not reached" class="fas fa-times-circle mr-2 text-danger"></i>
+                                                    <i data-toggle="tooltip" data-placement="top" title="Quorum not reached" class="fas fa-times-circle mr-2 text-danger"></i>
                                                 }
-                                                            @item.VoteCount / @item.EligibleUserCount
-                                                        </td>
-                                                        @if (item.UserVote == Helpers.Constants.Enums.StakeType.For)
+                                                @item.VoteCount / @item.EligibleUserCount
+                                            </td>
+                                            @if (item.UserVote == Helpers.Constants.Enums.StakeType.For)
                                             {
-                                                            <td class="informal-noneligible"><button class="btn btn-sm btn-success disabled text-white w-100"><b>FOR</b></button></td>
+                                                <td class="informal-noneligible"><button class="btn btn-sm btn-success disabled text-white w-100"><b>FOR</b></button></td>
                                             }
                                             else if (item.UserVote == Helpers.Constants.Enums.StakeType.Against)
                                             {
-                                                            <td class="informal-noneligible"><button class="btn btn-sm btn-danger disabled text-white w-100"><b>AGAINST</b></button></td>
+                                                <td class="informal-noneligible"><button class="btn btn-sm btn-danger disabled text-white w-100"><b>AGAINST</b></button></td>
                                             }
                                             else
                                             {
 
                                                 if (httpContextAccessor.HttpContext.Session.GetInt32("UserID") != item.JobDoerUserID && httpContextAccessor.HttpContext.Session.GetString("UserType") == Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString())
                                                 {
-                                                                <td>
-                                                                    <a class="btn btn-sm btn-primary btn-shine me-2" onclick="OpenVoteModal(@item.VotingID, @item.JobID)" id="submitvote_@item.VotingID">
-                                                                        <svg class="icon">
-                                                                            <use xlink:href="/Home/images/svg/free.svg#cil-send"></use>
-                                                                        </svg> Submit Vote
-                                                                    </a>
-                                                                </td>
+                                                    <td>
+                                                        <a class="btn btn-sm btn-primary btn-shine me-2" onclick="OpenVoteModal(@item.VotingID, @item.JobID)" id="submitvote_@item.VotingID">
+                                                            <svg class="icon">
+                                                                <use xlink:href="/Home/images/svg/free.svg#cil-send"></use>
+                                                            </svg> Submit Vote
+                                                        </a>
+                                                    </td>
                                                 }
                                                 else
                                                 {
-                                                                <td class="informal-noneligible">
-                                                                    <a class="btn btn-sm btn-dark me-2" disabled>
-                                                                        <svg class="icon">
-                                                                            <use xlink:href="/Home/images/svg/free.svg#cil-minus"></use>
-                                                                        </svg> Not Eligible
-                                                                    </a>
-                                                                </td>
+                                                    <td class="informal-noneligible">
+                                                        <a class="btn btn-sm btn-dark me-2" disabled>
+                                                            <svg class="icon">
+                                                                <use xlink:href="/Home/images/svg/free.svg#cil-minus"></use>
+                                                            </svg> Not Eligible
+                                                        </a>
+                                                    </td>
                                                 }
 
                                             }
 
-                                                    </tr>
+                                        </tr>
                                     }
                                 }
 
@@ -176,47 +176,47 @@
                                 @{
                                     var formalVotings = Model.Where(x => x.Status == Helpers.Constants.Enums.VoteStatusTypes.Active && x.IsFormal == true).ToList();
 
-                                                @foreach (var item in formalVotings)
+                                    @foreach (var item in formalVotings)
                                     {
-                                                    <tr>
-                                                        <th>@item.JobID</th>
-                                                        <td><a href="../Job-Detail/@item.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(item.Title, 25)</a></td>
-                                                        <td>@item.VoteType.ToString()</td>
-                                                        <td>
-                                                            @if (!string.IsNullOrWhiteSpace(item.JobDoerUsername))
+                                        <tr>
+                                            <th>@item.JobID</th>
+                                            <td><a href="../Job-Detail/@item.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(item.Title, 25)</a></td>
+                                            <td>@item.VoteType.ToString()</td>
+                                            <td>
+                                                @if (!string.IsNullOrWhiteSpace(item.JobDoerUsername))
                                                 {
-                                                                <span>@DAO_WebPortal.Utility.StringHelper.FormatPrice(item.WinnerBidPrice)</span>
+                                                    <span>@DAO_WebPortal.Utility.StringHelper.FormatPrice(item.WinnerBidPrice)</span>
                                                 }
-                                                        </td>
-                                                        <td><b id="counter_@item.VotingID"></b></td>
-                                                        <td>
-                                                            @if (item.VoteCount >= item.QuorumCount)
+                                            </td>
+                                            <td><b id="counter_@item.VotingID"></b></td>
+                                            <td>
+                                                @if (item.VoteCount >= item.QuorumCount)
                                                 {
-                                                                <i data-toggle="tooltip" data-placement="top" title="Quorum reached" class="fas fa-check-circle mr-2 text-success"></i>
+                                                    <i data-toggle="tooltip" data-placement="top" title="Quorum reached" class="fas fa-check-circle mr-2 text-success"></i>
                                                 }
                                                 else
                                                 {
-                                                                <i data-toggle="tooltip" data-placement="top" title="Quorum not reached" class="fas fa-times-circle mr-2 text-danger"></i>
+                                                    <i data-toggle="tooltip" data-placement="top" title="Quorum not reached" class="fas fa-times-circle mr-2 text-danger"></i>
                                                 }
-                                                            @item.VoteCount / @item.EligibleUserCount
-                                                        </td>
-                                                        <td>
-                                                            @{
+                                                @item.VoteCount / @item.EligibleUserCount
+                                            </td>
+                                            <td>
+                                                @{
                     //double informalPerc = Math.Round(Convert.ToDouble(item.StakedForInformal) / Convert.ToDouble(item.StakedForInformal + item.StakedAgainstInformal) * 100, 2);
                                                     //<div><i class="fas fa-caret-up text-success font-lg"></i> <small>@informalPerc</small></div>
                                                     //<div><i class="fas fa-caret-down text-danger font-lg"></i> <small>@Math.Round(100-informalPerc,2)</small></div>
 
-                                                                            <div><i class="fas fa-caret-up text-success font-lg"></i> <small>@item.StakedForInformal</small></div>
-                                                                            <div><i class="fas fa-caret-down text-danger font-lg"></i> <small>@item.StakedAgainstInformal</small></div>
-                                                            }
-                                                        </td>
-                                                        @if (item.UserVote == Helpers.Constants.Enums.StakeType.For)
+                                                    <div><i class="fas fa-caret-up text-success font-lg"></i> <small>@item.StakedForInformal</small></div>
+                                                    <div><i class="fas fa-caret-down text-danger font-lg"></i> <small>@item.StakedAgainstInformal</small></div>
+                                                }
+                                            </td>
+                                            @if (item.UserVote == Helpers.Constants.Enums.StakeType.For)
                                             {
-                                                            <td class="formal-noneligible"><button class="btn btn-sm btn-success disabled text-white w-100"><b>FOR</b></button></td>
+                                                <td class="formal-noneligible"><button class="btn btn-sm btn-success disabled text-white w-100"><b>FOR</b></button></td>
                                             }
                                             else if (item.UserVote == Helpers.Constants.Enums.StakeType.Against)
                                             {
-                                                            <td class="formal-noneligible"><button class="btn btn-sm btn-danger disabled text-white w-100"><b>AGAINST</b></button></td>
+                                                <td class="formal-noneligible"><button class="btn btn-sm btn-danger disabled text-white w-100"><b>AGAINST</b></button></td>
                                             }
                                             else
                                             {
@@ -225,27 +225,27 @@
 
                                                 if (informalVoted && httpContextAccessor.HttpContext.Session.GetInt32("UserID") != item.JobDoerUserID && httpContextAccessor.HttpContext.Session.GetString("UserType") == Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString())
                                                 {
-                                                                <td>
-                                                                    <a class="btn btn-sm btn-primary btn-shine me-2" onclick="OpenVoteModal(@item.VotingID, @item.JobID)">
-                                                                        <svg class="icon">
-                                                                            <use xlink:href="/Home/images/svg/free.svg#cil-send"></use>
-                                                                        </svg> Submit Vote
-                                                                    </a>
-                                                                </td>
+                                                    <td>
+                                                        <a class="btn btn-sm btn-primary btn-shine me-2" onclick="OpenVoteModal(@item.VotingID, @item.JobID)">
+                                                            <svg class="icon">
+                                                                <use xlink:href="/Home/images/svg/free.svg#cil-send"></use>
+                                                            </svg> Submit Vote
+                                                        </a>
+                                                    </td>
                                                 }
                                                 else
                                                 {
-                                                                <td class="formal-noneligible">
-                                                                    <a class="btn btn-sm btn-dark me-2" disabled>
-                                                                        <svg class="icon">
-                                                                            <use xlink:href="/Home/images/svg/free.svg#cil-minus"></use>
-                                                                        </svg> Not Eligible
-                                                                    </a>
-                                                                </td>
+                                                    <td class="formal-noneligible">
+                                                        <a class="btn btn-sm btn-dark me-2" disabled>
+                                                            <svg class="icon">
+                                                                <use xlink:href="/Home/images/svg/free.svg#cil-minus"></use>
+                                                            </svg> Not Eligible
+                                                        </a>
+                                                    </td>
                                                 }
 
                                             }
-                                                    </tr>
+                                        </tr>
                                     }
                                 }
 
@@ -289,66 +289,66 @@
                                 @{
                                     var informalVotings = Model.Where(x => (x.Status == Helpers.Constants.Enums.VoteStatusTypes.Completed || x.Status == Helpers.Constants.Enums.VoteStatusTypes.Expired) && x.IsFormal == false).OrderByDescending(x => x.EndDate).ToList();
 
-                                                @foreach (var item in informalVotings)
+                                    @foreach (var item in informalVotings)
                                     {
-                                                    <tr>
-                                                        <th>@item.JobID</th>
-                                                        <td><a href="../Job-Detail/@item.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(item.Title, 25)</a></td>
-                                                        <td>@item.VoteType.ToString()</td>
-                                                        <td>
-                                                            @if (!string.IsNullOrWhiteSpace(item.JobDoerUsername))
+                                        <tr>
+                                            <th>@item.JobID</th>
+                                            <td><a href="../Job-Detail/@item.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(item.Title, 25)</a></td>
+                                            <td>@item.VoteType.ToString()</td>
+                                            <td>
+                                                @if (!string.IsNullOrWhiteSpace(item.JobDoerUsername))
                                                 {
-                                                                <span>@DAO_WebPortal.Utility.StringHelper.FormatPrice(item.WinnerBidPrice)</span>
+                                                    <span>@DAO_WebPortal.Utility.StringHelper.FormatPrice(item.WinnerBidPrice)</span>
                                                 }
-                                                        </td>
-                                                        <td>
-                                                            @if (item.VoteCount >= item.QuorumCount)
+                                            </td>
+                                            <td>
+                                                @if (item.VoteCount >= item.QuorumCount)
                                                 {
-                                                                <i data-toggle="tooltip" data-placement="top" title="Quorum reached" class="fas fa-check-circle mr-2 text-success"></i>
+                                                    <i data-toggle="tooltip" data-placement="top" title="Quorum reached" class="fas fa-check-circle mr-2 text-success"></i>
                                                 }
                                                 else
                                                 {
-                                                                <i data-toggle="tooltip" data-placement="top" title="Quorum not reached" class="fas fa-times-circle mr-2 text-danger"></i>
+                                                    <i data-toggle="tooltip" data-placement="top" title="Quorum not reached" class="fas fa-times-circle mr-2 text-danger"></i>
                                                 }
-                                                            @item.VoteCount / @item.EligibleUserCount
-                                                        </td>
+                                                @item.VoteCount / @item.EligibleUserCount
+                                            </td>
 
-                                                        @*User's Vote*@
-                                                        @if (item.UserVote == Helpers.Constants.Enums.StakeType.For)
+                                            @*User's Vote*@
+                                            @if (item.UserVote == Helpers.Constants.Enums.StakeType.For)
                                             {
-                                                            <td><button class="btn btn-sm btn-success disabled text-white w-100"><b>FOR</b></button></td>
+                                                <td><button class="btn btn-sm btn-success disabled text-white w-100"><b>FOR</b></button></td>
                                             }
                                             else if (item.UserVote == Helpers.Constants.Enums.StakeType.Against)
                                             {
-                                                            <td><button class="btn btn-sm btn-danger disabled text-white w-100"><b>AGAINST</b></button></td>
+                                                <td><button class="btn btn-sm btn-danger disabled text-white w-100"><b>AGAINST</b></button></td>
                                             }
                                             else
                                             {
-                                                            <td><button class="btn btn-sm btn-secondary disabled text-white w-100"><b>NONE</b></button></td>
+                                                <td><button class="btn btn-sm btn-secondary disabled text-white w-100"><b>NONE</b></button></td>
                                             }
 
-                                                        @*Voting Result*@
-                                                        @if (item.Status == Helpers.Constants.Enums.VoteStatusTypes.Expired || (item.StakedFor == 0 && item.StakedAgainst == 0))
+                                            @*Voting Result*@
+                                            @if (item.Status == Helpers.Constants.Enums.VoteStatusTypes.Expired || (item.StakedFor == 0 && item.StakedAgainst == 0))
                                             {
-                                                            <td><button class="btn btn-sm btn-warning disabled text-white w-100"><b>EXPIRED</b></button></td>
+                                                <td><button class="btn btn-sm btn-warning disabled text-white w-100"><b>EXPIRED</b></button></td>
                                             }
                                             else if (item.StakedFor > item.StakedAgainst)
                                             {
-                                                            <td><button class="btn btn-sm btn-success disabled text-white w-100"><b>FOR</b></button></td>
+                                                <td><button class="btn btn-sm btn-success disabled text-white w-100"><b>FOR</b></button></td>
                                             }
                                             else
                                             {
-                                                            <td><button class="btn btn-sm btn-danger disabled text-white w-100"><b>AGAINST</b></button></td>
+                                                <td><button class="btn btn-sm btn-danger disabled text-white w-100"><b>AGAINST</b></button></td>
                                             }
 
-                                                        <td>
-                                                            <a class="btn btn-sm btn-primary me-2 float-right" href="../Vote-Detail/@item.VotingID">
-                                                                <svg class="icon">
-                                                                    <use xlink:href="/Home/images/svg/free.svg#cil-bar-chart"></use>
-                                                                </svg> Show Votes
-                                                            </a>
-                                                        </td>
-                                                    </tr>
+                                            <td>
+                                                <a class="btn btn-sm btn-primary me-2 float-right" href="../Vote-Detail/@item.VotingID">
+                                                    <svg class="icon">
+                                                        <use xlink:href="/Home/images/svg/free.svg#cil-bar-chart"></use>
+                                                    </svg> Show Votes
+                                                </a>
+                                            </td>
+                                        </tr>
                                     }
                                 }
                             </tbody>
@@ -387,75 +387,75 @@
                                 @{
                                     var formalVotings = Model.Where(x => (x.Status == Helpers.Constants.Enums.VoteStatusTypes.Completed || x.Status == Helpers.Constants.Enums.VoteStatusTypes.Expired) && x.IsFormal == true).OrderByDescending(x => x.EndDate).ToList();
 
-                                                @foreach (var item in formalVotings)
+                                    @foreach (var item in formalVotings)
                                     {
-                                                    <tr>
-                                                        <th>@item.JobID</th>
-                                                        <td><a href="../Job-Detail/@item.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(item.Title, 25)</a></td>
-                                                        <td>@item.VoteType.ToString()</td>
-                                                        <td>
-                                                            @if (!string.IsNullOrWhiteSpace(item.JobDoerUsername))
+                                        <tr>
+                                            <th>@item.JobID</th>
+                                            <td><a href="../Job-Detail/@item.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(item.Title, 25)</a></td>
+                                            <td>@item.VoteType.ToString()</td>
+                                            <td>
+                                                @if (!string.IsNullOrWhiteSpace(item.JobDoerUsername))
                                                 {
-                                                                <span>@DAO_WebPortal.Utility.StringHelper.FormatPrice(item.WinnerBidPrice)</span>
+                                                    <span>@DAO_WebPortal.Utility.StringHelper.FormatPrice(item.WinnerBidPrice)</span>
                                                 }
-                                                        </td>
-                                                        <td>
-                                                            @if (item.VoteCount >= item.QuorumCount)
+                                            </td>
+                                            <td>
+                                                @if (item.VoteCount >= item.QuorumCount)
                                                 {
-                                                                <i data-toggle="tooltip" data-placement="top" title="Quorum reached" class="fas fa-check-circle mr-2 text-success"></i>
+                                                    <i data-toggle="tooltip" data-placement="top" title="Quorum reached" class="fas fa-check-circle mr-2 text-success"></i>
                                                 }
                                                 else
                                                 {
-                                                                <i data-toggle="tooltip" data-placement="top" title="Quorum not reached" class="fas fa-times-circle mr-2 text-danger"></i>
+                                                    <i data-toggle="tooltip" data-placement="top" title="Quorum not reached" class="fas fa-times-circle mr-2 text-danger"></i>
                                                 }
-                                                            @item.VoteCount / @item.EligibleUserCount
-                                                        </td>
-                                                        <td>
-                                                            @{
+                                                @item.VoteCount / @item.EligibleUserCount
+                                            </td>
+                                            <td>
+                                                @{
                     //double informalPerc = Math.Round(Convert.ToDouble(item.StakedForInformal) / Convert.ToDouble(item.StakedForInformal + item.StakedAgainstInformal) * 100, 2);
                                                     //<div><i class="fas fa-caret-up text-success font-lg"></i> <small>@informalPerc</small></div>
                                                     //<div><i class="fas fa-caret-down text-danger font-lg"></i> <small>@Math.Round(100-informalPerc,2)</small></div>
 
-                                                                            <div><i class="fas fa-caret-up text-success font-lg"></i> <small>@item.StakedForInformal</small></div>
-                                                                            <div><i class="fas fa-caret-down text-danger font-lg"></i> <small>@item.StakedAgainstInformal</small></div>
-                                                            }
-                                                        </td>
-                                                        @*User's Vote*@
-                                                        @if (item.UserVote == Helpers.Constants.Enums.StakeType.For)
+                                                    <div><i class="fas fa-caret-up text-success font-lg"></i> <small>@item.StakedForInformal</small></div>
+                                                    <div><i class="fas fa-caret-down text-danger font-lg"></i> <small>@item.StakedAgainstInformal</small></div>
+                                                }
+                                            </td>
+                                            @*User's Vote*@
+                                            @if (item.UserVote == Helpers.Constants.Enums.StakeType.For)
                                             {
-                                                            <td><button class="btn btn-sm btn-success disabled text-white w-100"><b>FOR</b></button></td>
+                                                <td><button class="btn btn-sm btn-success disabled text-white w-100"><b>FOR</b></button></td>
                                             }
                                             else if (item.UserVote == Helpers.Constants.Enums.StakeType.Against)
                                             {
-                                                            <td><button class="btn btn-sm btn-danger disabled text-white w-100"><b>AGAINST</b></button></td>
+                                                <td><button class="btn btn-sm btn-danger disabled text-white w-100"><b>AGAINST</b></button></td>
                                             }
                                             else
                                             {
-                                                            <td><button class="btn btn-sm btn-secondary disabled text-white w-100"><b>NONE</b></button></td>
+                                                <td><button class="btn btn-sm btn-secondary disabled text-white w-100"><b>NONE</b></button></td>
                                             }
 
-                                                        @*Voting Result*@
-                                                        @if (item.Status == Helpers.Constants.Enums.VoteStatusTypes.Expired || (item.StakedFor == 0 && item.StakedAgainst == 0))
+                                            @*Voting Result*@
+                                            @if (item.Status == Helpers.Constants.Enums.VoteStatusTypes.Expired || (item.StakedFor == 0 && item.StakedAgainst == 0))
                                             {
-                                                            <td><button class="btn btn-sm btn-warning disabled text-white w-100"><b>EXPIRED</b></button></td>
+                                                <td><button class="btn btn-sm btn-warning disabled text-white w-100"><b>EXPIRED</b></button></td>
                                             }
                                             else if (item.StakedFor > item.StakedAgainst)
                                             {
-                                                            <td><button class="btn btn-sm btn-success disabled text-white w-100"><b>FOR</b></button></td>
+                                                <td><button class="btn btn-sm btn-success disabled text-white w-100"><b>FOR</b></button></td>
                                             }
                                             else
                                             {
-                                                            <td><button class="btn btn-sm btn-danger disabled text-white w-100"><b>AGAINST</b></button></td>
+                                                <td><button class="btn btn-sm btn-danger disabled text-white w-100"><b>AGAINST</b></button></td>
                                             }
 
-                                                        <td>
-                                                            <a class="btn btn-sm btn-primary me-2 float-right" href="../Vote-Detail/@item.VotingID">
-                                                                <svg class="icon">
-                                                                    <use xlink:href="/Home/images/svg/free.svg#cil-bar-chart"></use>
-                                                                </svg> Show Votes
-                                                            </a>
-                                                        </td>
-                                                    </tr>
+                                            <td>
+                                                <a class="btn btn-sm btn-primary me-2 float-right" href="../Vote-Detail/@item.VotingID">
+                                                    <svg class="icon">
+                                                        <use xlink:href="/Home/images/svg/free.svg#cil-bar-chart"></use>
+                                                    </svg> Show Votes
+                                                </a>
+                                            </td>
+                                        </tr>
                                     }
                                 }
                             </tbody>
@@ -588,10 +588,9 @@
                     + minutes.toString().padStart(2, '0') + "</span>:<span>" + seconds.toString().padStart(2, '0') + "</span>";
             }
             else {
-                if ($("#counter_" + id).html().indexOf("Finish Voting") == -1)
-                {
+                if ($("#counter_" + id).html().indexOf("Finish Voting") == -1) {
                     $("#counter_" + id).html('<button type="button" class="btn btn-primary btn-sm" onclick="finishOnchainVote(' + id + ');" class="finishVoteBtn">Finish Voting</button>');
-                    $("#submitvote_"+ id).css("display","none");
+                    $("#submitvote_" + id).css("display", "none");
                 }
             }
 
