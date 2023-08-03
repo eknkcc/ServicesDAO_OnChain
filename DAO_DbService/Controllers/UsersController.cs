@@ -386,6 +386,25 @@ namespace DAO_DbService.Controllers
             }
             return model;
         }
-    
+
+        [Route("GetByWallet")]
+        [HttpGet]
+        public List<UserDto> GetByWallet(string wallet)
+        {
+            List<UserDto> model = new List<UserDto>();
+            try
+            {
+                using (dao_maindb_context db = new dao_maindb_context())
+                {
+                    model = _mapper.Map<List<User>, List<UserDto>>(db.Users.Where(x => x.WalletAddress == wallet).ToList());
+                }
+            }
+            catch (Exception ex)
+            {
+                model = new List<UserDto>();
+                Program.monitizer.AddException(ex, LogTypes.ApplicationError, true);
+            }
+            return model;
+        }
     }
 }

@@ -12,6 +12,7 @@ using Helpers;
 using static Helpers.Constants.Enums;
 using Helpers.Models.CasperServiceModels;
 using Ubiety.Dns.Core.Common;
+using Helpers.Models.DtoModels.MainDbDto;
 
 namespace DAO_VotingEngine
 {
@@ -193,7 +194,12 @@ namespace DAO_VotingEngine
                 {
                     dbActiveVotings = db.Votings.Where(x => x.Status == Enums.VoteStatusTypes.Active).ToList();
                     dbFinishedVotings = db.Votings.Where(x => x.Status == Enums.VoteStatusTypes.BlockchainFinish).ToList();
+                }
 
+                //Syncronize votes
+                foreach (var item in dbActiveVotings.Where(x=>x.BlockchainVotingID != null && x.BlockchainVotingID >= 0))
+                {                    
+                    SyncronizeVotesFromChain(Enums.Blockchain.Casper, Convert.ToInt32(item.BlockchainVotingID), item.VotingID);
                 }
 
                 int informalWaitingCount = dbActiveVotings.Count(x => x.IsFormal == false && x.DeployHash != null && x.BlockchainVotingID == null);
@@ -377,40 +383,66 @@ namespace DAO_VotingEngine
             {
                 if (blockchain == Enums.Blockchain.Casper)
                 {
-                    //using (dao_votesdb_context db = new dao_votesdb_context())
-                    //{
-                    //    var chainVotes = Serializers.DeserializeJson<PaginatedResponse<Helpers.Models.CasperServiceModels.Vote>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetVotesListbyVotingId?page=1&page_size=1000&voting_id=" + voting_chain_id));
+                    using (dao_votesdb_context db = new dao_votesdb_context())
+                    {
+                        var chainVotes = Serializers.DeserializeJson<PaginatedResponse<Helpers.Models.CasperServiceModels.Vote>>(Request.Get(Program._settings.Service_CasperChain_Url + "/CasperMiddleware/GetVotesListbyVotingId?page=1&page_size=1000&voting_id=" + voting_chain_id));
 
-                    //    var dbVotes = db.Votes.Where(x => x.VotingID == votingId).ToList();
+                        var dbVotes = db.Votes.Where(x => x.VotingID == votingId).ToList();
 
-                    //    var voting = db.Votings.Find(votingId);
+                        var voting = db.Votings.Find(votingId);
 
-                    //    foreach (var item in chainVotes.data.Where(x => x.is_formal == voting.IsFormal))
-                    //    {
-                    //        if (dbVotes.Count(x => x.DeployHash == item.deploy_hash) == 0)
-                    //        {
-                    //            Models.Vote vote = new Models.Vote();
-                    //            if (Convert.ToBoolean(item.is_in_favour) == true)
-                    //            {
-                    //                vote.Direction = StakeType.For;
-                    //                voting.StakedFor += item.amount;
-                    //            }
-                    //            else
-                    //            {
-                    //                vote.Direction = StakeType.Against;
-                    //                voting.StakedAgainst += item.amount;
-                    //            }
-                    //            vote.DeployHash = item.deploy_hash;
-                    //            vote.Date = Convert.ToDateTime(item.timestamp);
-                    //            vote.UserID = 0;
-                    //            vote.VotingID = votingId;
-                    //            vote.WalletAddress = item.address;
-                    //            db.Votes.Add(vote);
+                        foreach (var item in chainVotes.data.Where(x => x.is_formal == voting.IsFormal))
+                        {
+                            if (dbVotes.Count(x => x.DeployHash == item.deploy_hash) == 0)
+                            {
 
-                    //            db.SaveChanges();
-                    //        }
-                    //    }
-                    //}
+                                List<UserDto> walletUser = Helpers.Serializers.DeserializeJson<List<UserDto>>(Helpers.Request.Get(Program._settings.Service_Db_Url + "/User/GetByWallet?wallet=" + item.address));
+
+
+                                Models.Vote vote = new Models.Vote();
+                                if (Convert.ToBoolean(item.is_in_favour) == true)
+                                {
+                                    vote.Direction = StakeType.For;
+                                    voting.StakedFor += item.amount;
+                                }
+                                else
+                                {
+                                    vote.Direction = StakeType.Against;
+                                    voting.StakedAgainst += item.amount;
+                                }
+                                vote.DeployHash = item.deploy_hash;
+                                vote.Date = Convert.ToDateTime(item.timestamp);
+                                if (walletUser.Count > 0)
+                                {
+                                    vote.UserID = walletUser.First().UserId;
+                                }                           
+                                vote.VotingID = votingId;
+                                vote.WalletAddress = item.address;
+                                db.Votes.Add(vote);
+
+                                db.SaveChanges();
+
+                                UserReputationStakeDto repModel = new UserReputationStakeDto();
+                                repModel.ReferenceID = vote.VoteID;
+                                repModel.ReferenceProcessID = vote.VotingID;
+                                repModel.UserID = vote.UserID;
+                                repModel.Amount = Convert.ToDouble(item.amount);
+                                if (Convert.ToBoolean(item.is_in_favour) == true)
+                                {
+                                    repModel.Type = StakeType.For;
+                                }
+                                else
+                                {
+                                    repModel.Type = StakeType.Against;
+                                }
+                                repModel.CreateDate = DateTime.Now;
+
+                                var jsonResult = Helpers.Request.Post(Program._settings.Service_Reputation_Url + "/UserReputationStake/SubmitStake", Helpers.Serializers.SerializeJson(repModel));
+
+                                var reputationStakeResult = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResult);
+                            }
+                        }
+                    }
                 }
             }
             catch (Exception ex)

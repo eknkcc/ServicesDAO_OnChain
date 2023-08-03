@@ -23,6 +23,8 @@ namespace DAO_VotingEngine
             public string Service_Reputation_Url { get; set; }
             public string Service_CasperChain_Url { get; set; }
 
+            public string Service_Db_Url { get; set; }
+
             //CHAIN SETTINGS
             public Blockchain? DaoBlockchain { get; set; }
         }

@@ -327,10 +327,10 @@ namespace DAO_CasperChainService.Controllers
                 runtimeArgs.Add(new NamedArg("contract_package_hash", CLValue.ByteArray(Program._settings.BidEscrowContractPackageHash)));
                 runtimeArgs.Add(new NamedArg("entry_point", CLValue.String("submit_bid")));
                 runtimeArgs.Add(new NamedArg("args", CLValue.List(clVals.ToArray())));
-                runtimeArgs.Add(new NamedArg("attached_value", CLValue.U512(150_000_000_000)));
+                runtimeArgs.Add(new NamedArg("attached_value", CLValue.Option(CLValue.U512(150_000_000_000))));
                 runtimeArgs.Add(new NamedArg("amount", CLValue.U512(150_000_000_000)));
 
-                var session = new ModuleBytesDeployItem(wasmBytes, runtimeBidArgs);
+                var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
 
                 var deploy = new Deploy(header, payment, session);
 
@@ -359,7 +359,7 @@ namespace DAO_CasperChainService.Controllers
                     new NamedArg("payment", CLValue.U512(userpayment)),
                     new NamedArg("reputation_stake", CLValue.U512(repstake)),
                     new NamedArg("onboard", CLValue.Bool(false)),
-                    new NamedArg("cspr_stake", CLValue.Option(CLValue.U512(150_000_000_000)))
+                    new NamedArg("cspr_stake", CLValue.OptionNone(new CLTypeInfo(CLType.U512)))
                 };
 
                 //Create deploy object

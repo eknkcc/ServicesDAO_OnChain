@@ -107,6 +107,7 @@
                                             <td><b id="counter_@auction.AuctionID"></b></td>
                                             <td>@auction.BidCount</td>
                                             <td>
+
                                                 @*If user is job poster*@
                                                 @if (auction.JobPosterUserId == userid || userType == Enums.UserIdentityType.Admin.ToString())
                                                 {
