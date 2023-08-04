@@ -123,6 +123,20 @@ namespace DAO_WebPortal.Controllers
                 myJobsModel = Helpers.Serializers.DeserializeJson<MyJobsViewModel>(jobsJson);
                 myJobsModel.doerJobs = myJobsModel.doerJobs.OrderByDescending(x => x.CreateDate).ToList();
                 myJobsModel.ownedJobs = myJobsModel.ownedJobs.OrderByDescending(x => x.CreateDate).ToList();
+
+                if(Program._settings.DaoBlockchain != null)
+                {
+                    foreach (var item in myJobsModel.doerJobs)
+                    {
+                        item.AuctionBids = item.AuctionBids.Where(x => x.BlockchainBidId != null).ToList();
+                    }
+
+                    foreach (var item in myJobsModel.ownedJobs)
+                    {
+                        item.AuctionBids = item.AuctionBids.Where(x => x.BlockchainBidId != null).ToList();
+                    }
+                }
+
             }
             catch (Exception ex)
             {
@@ -529,6 +543,10 @@ namespace DAO_WebPortal.Controllers
                 var votingJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Voting/GetByJobId?jobid=" + JobID, HttpContext.Session.GetString("Token"));
                 model.JobPostWebsiteModel.Voting = Helpers.Serializers.DeserializeJson<List<VotingDto>>(votingJson);
 
+                if (Program._settings.DaoBlockchain != null)
+                {
+                    model.JobPostWebsiteModel.AuctionBids = model.JobPostWebsiteModel.AuctionBids.Where(x => x.BlockchainBidId != null).ToList();
+                }
 
                 //Get review result comment if exists
                 // try
