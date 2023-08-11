@@ -274,7 +274,8 @@ namespace DAO_DbService.Controllers
                                             Tags = job.Tags,
                                             IsUserFlagged = userflagged,
                                             FlagCount = flagcount,
-                                            TimeFrame = job.TimeFrame
+                                            TimeFrame = job.TimeFrame,
+                                            BlockchainJobID = job.BlockchainJobPostID
                                         }).ToList();
 
                     result.doerJobs = (from job in db.JobPosts
@@ -373,7 +374,8 @@ namespace DAO_DbService.Controllers
                            Status = job.Status,
                            JobDoerUserID = job.JobDoerUserID,
                            Tags = job.Tags,
-                           CodeUrl = job.CodeUrl
+                           CodeUrl = job.CodeUrl,
+                           BlockchainJobPostID = job.BlockchainJobPostID
                        }).ToList();
             }
             return res;
