@@ -247,11 +247,11 @@ namespace DAO_ReputationService.Controllers
                             repChange.Title = "";
                             if (chainRepChange.voting_id != null && chainRepChange.voting_id != 0)
                             {
-                                repChange.Explanation = "Reason: " + chainRepChange.reason.ToString() + " (Vote #" + chainRepChange.voting_id + ")";
+                                repChange.Explanation = chainRepChange.reason.ToString() + " (Vote #" + chainRepChange.voting_id + ")";
                             }
                             else
                             {
-                                repChange.Explanation = "Reason: " + chainRepChange.reason.ToString();
+                                repChange.Explanation = chainRepChange.reason.ToString();
                             }
                             repChange.EarnedAmount = Convert.ToDouble(chainRepChange.voting_earned_reputation);
                             repChange.LostAmount = Convert.ToDouble(chainRepChange.voting_lost_reputation);
