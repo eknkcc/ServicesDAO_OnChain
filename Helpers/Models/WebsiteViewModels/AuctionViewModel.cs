@@ -24,7 +24,7 @@ namespace Helpers.Models.WebsiteViewModels
         public string ExpectedTimeframe { get; set; }
         public int? BlockChainJobID { get; set; }
         public int? UsersChainBidId { get; set; }
-        public double CsprPrice { get; set; }
+        public double? CsprPrice { get; set; }
 
     }
 }
