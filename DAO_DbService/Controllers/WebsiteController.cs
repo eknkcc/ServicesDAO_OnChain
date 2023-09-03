@@ -464,6 +464,7 @@ namespace DAO_DbService.Controllers
                                   Title = job.Title,
                                   BidCount = bidcount,
                                   JobPrice = job.Amount,
+                                  CsprPrice = job.CsprAmount,
                                   JobPosterUsername = userPoster.UserName,
                                   ExpectedTimeframe = job.TimeFrame,
                                   BlockChainJobID = job.BlockchainJobPostID

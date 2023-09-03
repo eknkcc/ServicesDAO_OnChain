@@ -100,7 +100,7 @@
                                         <tr class="internal-@rowclass">
                                             <th scope="row">@auction.JobID</th>
                                             <td><a href="../Job-Detail/@auction.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(auction.Title, 25)</a></td>
-                                            <td>@DAO_WebPortal.Utility.StringHelper.FormatPrice(auction.JobPrice) €</td>
+                                            <td>@auction.CsprPrice CSPR</td>
                                             <td>@auction.JobPosterUsername</td>
                                             <td>@auction.ExpectedTimeframe days</td>
                                             <td>@auction.CreateDate.ToString("MM/dd/yyyy HH:mm")</td>
@@ -197,7 +197,7 @@
                                         <tr class="public-@rowclass">
                                             <th scope="row">@auction.JobID</th>
                                             <td><a href="../Job-Detail/@auction.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(auction.Title, 25)</a></td>
-                                            <td>@DAO_WebPortal.Utility.StringHelper.FormatPrice(auction.JobPrice) €</td>
+                                             <td>@auction.CsprPrice CSPR</td>
                                             <td>@auction.JobPosterUsername</td>
                                             <td>@auction.ExpectedTimeframe days</td>
                                             <td>@auction.InternalAuctionEndDate.ToString("MM/dd/yyyy HH:mm")</td>
@@ -283,7 +283,7 @@
                                         <tr>
                                             <th scope="row">@auction.JobID</th>
                                             <td><a href="../Job-Detail/@auction.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(auction.Title, 25)</a></td>
-                                            <td>@DAO_WebPortal.Utility.StringHelper.FormatPrice(auction.JobPrice)</td>
+                                             <td>@auction.CsprPrice CSPR</td>
                                             <td>@auction.JobPosterUsername</td>
                                             <td>@auction.ExpectedTimeframe</td>
                                             <td>@auction.WinnerUserName</td>
@@ -337,7 +337,7 @@
                                         <tr>
                                             <th scope="row">@auction.JobID</th>
                                             <td><a href="../Job-Detail/@auction.JobID">@DAO_WebPortal.Utility.StringHelper.ShortenString(auction.Title, 25)</a></td>
-                                            <td>@DAO_WebPortal.Utility.StringHelper.FormatPrice(auction.JobPrice)</td>
+                                             <td>@auction.CsprPrice CSPR</td>
                                             <td>@auction.JobPosterUsername</td>
                                             <td>@auction.ExpectedTimeframe</td>
                                             <td>-</td>
