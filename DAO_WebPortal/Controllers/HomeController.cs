@@ -124,7 +124,7 @@ namespace DAO_WebPortal.Controllers
                 myJobsModel.doerJobs = myJobsModel.doerJobs.OrderByDescending(x => x.CreateDate).ToList();
                 myJobsModel.ownedJobs = myJobsModel.ownedJobs.OrderByDescending(x => x.CreateDate).ToList();
 
-                if(Program._settings.DaoBlockchain != null)
+                if (Program._settings.DaoBlockchain != null)
                 {
                     foreach (var item in myJobsModel.doerJobs)
                     {
@@ -199,7 +199,7 @@ namespace DAO_WebPortal.Controllers
                 var closeList = candles.Select(x => x.Close).ToList();
                 HttpContext.Session.SetString("cspr_price", closeList[closeList.Count - 1].ToString());
             }
-            
+
             // Check if user signed with traditional db account. If not opens signin popup.
             if (CheckDbSignIn() == "Unauthorized")
             {
@@ -1857,7 +1857,7 @@ namespace DAO_WebPortal.Controllers
 
                 for (int i = 0; i < votes.Count; i++)
                 {
-                    if(!string.IsNullOrEmpty(usernames[i]))
+                    if (!string.IsNullOrEmpty(usernames[i]))
                     {
                         VoteItemModel vt = new VoteItemModel();
                         vt.UserID = votes[i].UserID;
@@ -1927,10 +1927,12 @@ namespace DAO_WebPortal.Controllers
                 string token = HttpContext.Session.GetString("Token");
                 string ip = Utility.IpHelper.GetClientIpAddress(HttpContext);
                 string port = Utility.IpHelper.GetClientPort(HttpContext);
+                string wallet = HttpContext.Session.GetString("WalletAddress");
+                string usertype = HttpContext.Session.GetString("UserType");
 
                 if (Program._settings.DaoBlockchain == Blockchain.Casper)
                 {
-                    ChainActionDto chainAction = CreateChainActionRecord(signedDeployJson, HttpContext.Session.GetString("WalletAddress"), ChainActionTypes.Submit_JobProof);
+                    ChainActionDto chainAction = CreateChainActionRecord(signedDeployJson, wallet, ChainActionTypes.Submit_JobProof);
 
                     new Thread(() =>
                     {
@@ -1943,7 +1945,7 @@ namespace DAO_WebPortal.Controllers
                         //Central db operations
                         if (!string.IsNullOrEmpty(deployResult.DeployHash) && deployResult.Status == Enums.ChainActionStatus.Completed.ToString())
                         {
-                            CompleteSubmitJobProof(winnerBid, jobid, deployResult.DeployHash, userid, token, ip, port);
+                            CompleteSubmitJobProof(winnerBid, jobid, deployResult.DeployHash, wallet, usertype, userid, token, ip, port);
                         }
                         else
                         {
@@ -1963,7 +1965,7 @@ namespace DAO_WebPortal.Controllers
                 }
                 else
                 {
-                    res = CompleteSubmitJobProof(winnerBid, jobid, "", userid, token, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
+                    res = CompleteSubmitJobProof(winnerBid, jobid, "","", usertype, userid, token, Utility.IpHelper.GetClientIpAddress(HttpContext), Utility.IpHelper.GetClientPort(HttpContext));
 
                     return Json(res);
                 }
@@ -1978,7 +1980,7 @@ namespace DAO_WebPortal.Controllers
             return Json(new SimpleResponse { Success = false, Message = Lang.ErrorNote });
         }
 
-        public SimpleResponse CompleteSubmitJobProof(AuctionBidDto winnerBid, int jobid, string deployhash, int userid, string token, string ip, string port)
+        public SimpleResponse CompleteSubmitJobProof(AuctionBidDto winnerBid, int jobid, string deployhash, string wallet, string usertype, int userid, string token, string ip, string port)
         {
             SimpleResponse res = new SimpleResponse();
 
@@ -2023,6 +2025,20 @@ namespace DAO_WebPortal.Controllers
 
             string jsonResult = Helpers.Request.Post(Program._settings.Service_ApiGateway_Url + "/Voting/Voting/StartInformalVoting", Helpers.Serializers.SerializeJson(informalVoting), token);
             res = Helpers.Serializers.DeserializeJson<SimpleResponse>(jsonResult);
+
+            if(usertype == "VotingAssociate")
+            {
+                try
+                {
+                    //If job doer is VA submit vote in favor
+                    string voteResponse = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Voting/Vote/SubmitVote?VotingID=" + ((dynamic)res.Content).VotingID + "&UserID=" + userid + "&Direction=" + StakeType.For + "&ReputationStake=" + winnerBid.ReputationStake.ToString().Replace(",", ".") + "&DeployHash=" + deployhash + "&WalletAddress=" + wallet, token);
+                }
+                catch
+                {
+
+                }
+            }
+
             res.Content = null;
 
             //Change job status 
@@ -3975,7 +3991,7 @@ namespace DAO_WebPortal.Controllers
             Program.monitizer.AddApplicationLog(LogTypes.ChainLog, "Sending Deploy: " + signedDeployJson);
 
             int userid = 0;
-            if(HttpContext.Session.GetInt32("UserID") != null)
+            if (HttpContext.Session.GetInt32("UserID") != null)
             {
                 userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
             }

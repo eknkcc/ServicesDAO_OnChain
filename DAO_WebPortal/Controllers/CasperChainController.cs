@@ -117,6 +117,7 @@ namespace DAO_WebPortal.Controllers
                 userModel.WalletAddress = publicAddress;
 
                 HttpContext.Session.SetInt32("ChainSign", 1);
+                HttpContext.Session.SetString("WalletAddress", publicAddress);
 
                 //Get user balance, reputation and VA Status from chain
                 var chainProfile = GetUserChainProfile(publicAddress);
@@ -142,7 +143,6 @@ namespace DAO_WebPortal.Controllers
                 HttpContext.Session.SetString("Balance", chainProfile.Balance.ToString());
                 HttpContext.Session.SetString("Reputation", (Convert.ToInt32(chainProfile.AvailableReputation) + Convert.ToInt32(chainProfile.StakedReputation)).ToString());
                 HttpContext.Session.SetString("LastUsableReputation", chainProfile.AvailableReputation.ToString());
-
 
                 var updatemodel = Helpers.Serializers.DeserializeJson<UserDto>(Helpers.Request.Put(Program._settings.Service_ApiGateway_Url + "/Db/Users/Update", Helpers.Serializers.SerializeJson(userModel), HttpContext.Session.GetString("Token")));
 
