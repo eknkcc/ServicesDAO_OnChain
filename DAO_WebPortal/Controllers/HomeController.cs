@@ -2555,8 +2555,8 @@ namespace DAO_WebPortal.Controllers
                 string port = Utility.IpHelper.GetClientPort(HttpContext);
 
 
-                string title = "Slashing vote for account '" + model.addresstoslash + "'";
-                string description = "Slashing vote details <br><br> Account: " + model.addresstoslash + " <br> Slash Ratio: " + model.slashratio + " <br> Stake: " + model.stake;
+                string title = "Slashing vote for account " + model.slashusername + "(" +model.addresstoslash + ")";
+                string description = "Slashing vote details <br><br> Account: " + model.addresstoslash + " <br> Username: " + model.slashusername + " <br> Slash Ratio: " + model.slashratio + " <br> Stake: " + model.stake;
 
                 SimpleResponse res = StartVoteFlow(title, description, VoteTypes.Slashing, ChainActionTypes.Slashing_Vote, model.signedDeployJson, userid, token, ip, port);
 
