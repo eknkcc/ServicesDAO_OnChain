@@ -937,27 +937,27 @@
                 },
                 success: function (result) {
                     if (result.success) {
-                        window.location = window.location.href.split("?")[0];
                         HideLoader();
+                        window.location = window.location.href.split("?")[0];            
                     }
                     else {
+                        HideLoader();
                         toastr.warning(result.message);
                         $(e).prop("disabled", false);
                         $(e).html('Delete Bid');
-                        HideLoader();
                     }
                 },
                 failure: function (response) {
+                    HideLoader();
                     toastr.warning("@Lang.ConnectionError");
                     $(e).prop("disabled", false);
                     $(e).html('Delete Bid');
-                    HideLoader();
                 },
                 error: function (response) {
+                    HideLoader();
                     toastr.error("@Lang.UnexpectedError");
                     $(e).prop("disabled", false);
                     $(e).html('Delete Bid');
-                    HideLoader();
                 }
             });
         }
