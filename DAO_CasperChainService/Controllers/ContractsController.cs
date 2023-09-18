@@ -827,7 +827,7 @@ namespace DAO_CasperChainService.Controllers
         }
 
         [HttpGet("RepoVoterCreateVoting", Name = "RepoVoterCreateVoting")]
-        public SimpleResponse RepoVoter_CreateVoting(string userwallet, string repo, string key, string value, ulong activationtime, int stake)
+        public SimpleResponse RepoVoter_CreateVoting(string userwallet, string repo, string key, string value, ulong activationtime, int stake)  
         {
             try
             {
@@ -835,7 +835,7 @@ namespace DAO_CasperChainService.Controllers
 
                 if (string.IsNullOrEmpty(repo))
                 {
-                    repo = Program._settings.RepoVoterContractPackageHash;
+                    repo = Program._settings.VariableRepositoryContract;
                 }
 
                 var repoKey = GlobalStateKey.FromString(repo);
