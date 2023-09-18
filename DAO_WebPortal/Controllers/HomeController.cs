@@ -1444,6 +1444,19 @@ namespace DAO_WebPortal.Controllers
 
                 if (Program._settings.DaoBlockchain == Blockchain.Casper)
                 {
+                    //Get auction model from ApiGateway
+                    var auctionJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/Db/Auction/GetId?id=" + auctionBid.AuctionID, HttpContext.Session.GetString("Token"));
+                    //Parse response
+                    AuctionDto auction = Helpers.Serializers.DeserializeJson<AuctionDto>(auctionJson);
+                    //Check VABidAcceptanceTimeout for deleting bid
+                    if(auction.Status == AuctionStatusTypes.InternalBidding)
+                    {
+                        if (auction.CreateDate.AddMilliseconds(Convert.ToInt32(Program._settings.DaoSettings.First(x => x.Key == "VABidAcceptanceTimeout").Value)) > DateTime.Now)
+                        {
+                            return Json(new SimpleResponse { Success = false, Message = "Cannot cancel bid before acceptance timeout. Please try again later." });
+                        }
+                    }
+
                     ChainActionDto chainAction = CreateChainActionRecord(signedDeployJson, HttpContext.Session.GetString("WalletAddress"), ChainActionTypes.Cancel_Bid);
 
                     int userid = Convert.ToInt32(HttpContext.Session.GetInt32("UserID"));
