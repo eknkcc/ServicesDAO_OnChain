@@ -3107,7 +3107,7 @@ namespace DAO_WebPortal.Controllers
             {
                 //Send files to Identity server          
 
-                model = Helpers.Request.Upload(Program._settings.Service_ApiGateway_Url + "/Identity/Kyc/SubmitKYCFile?Type=" + File.Type + "&Name=" + File.Name + "&Surname=" + File.Surname + "&Dob=" + File.DoB + "&Email=" + File.Email + "&Country=" + File.Country + "&DocumentNumber=" + File.DocumentNumber + "&IssueDate=" + File.IssueDate + "&ExpiryDate=" + File.ExpiryDate + "&UserID=" + HttpContext.Session.GetInt32("UserID"), HttpContext.Session.GetString("Token"), File.UploadedFile1, File.UploadedFile2);
+                model = Helpers.Request.Upload("https://localhost:44391/Kyc/SubmitKYCFile?Type=" + File.Type + "&Name=" + File.Name + "&Surname=" + File.Surname + "&Dob=" + File.DoB + "&Email=" + File.Email + "&Country=" + File.Country + "&DocumentNumber=" + File.DocumentNumber + "&IssueDate=" + File.IssueDate + "&ExpiryDate=" + File.ExpiryDate + "&UserID=" + HttpContext.Session.GetInt32("UserID"), HttpContext.Session.GetString("Token"), File.UploadedFile1, File.UploadedFile2);
             }
             catch (Exception ex)
             {
