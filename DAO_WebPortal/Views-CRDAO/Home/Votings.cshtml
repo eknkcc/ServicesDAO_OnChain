@@ -435,7 +435,7 @@
                                             }
 
                                             @*Voting Result*@
-                                            @if (item.Status == Helpers.Constants.Enums.VoteStatusTypes.Expired || (item.StakedFor == 0 && item.StakedAgainst == 0))
+                                            @if (item.Status == Helpers.Constants.Enums.VoteStatusTypes.Expired)
                                             {
                                                 <td><button class="btn btn-sm btn-warning disabled text-white w-100"><b>EXPIRED</b></button></td>
                                             }

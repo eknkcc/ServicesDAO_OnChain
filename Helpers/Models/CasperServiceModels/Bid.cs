@@ -16,7 +16,7 @@ namespace Helpers.Models.CasperServiceModels
         public bool picked_by_job_poster { get; set; }
         public long proposed_payment { get; set; }
         public long proposed_time_frame { get; set; }
-        public long reputation_stake { get; set; }
+        public long? reputation_stake { get; set; }
         public string timestamp { get; set; }
         public string worker { get; set; }
 

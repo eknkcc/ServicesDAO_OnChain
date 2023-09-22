@@ -407,12 +407,12 @@
     }
 
     <!-- Display "Start Informal Voting" button for job doer if auction is completed -->
-    @if (Model.Status == Helpers.Constants.Enums.JobStatusTypes.AuctionCompleted && Model.JobDoerUserID == httpContextAccessor.HttpContext.Session.GetInt32("UserID"))
+@*     @if (Model.Status == Helpers.Constants.Enums.JobStatusTypes.AuctionCompleted && Model.JobDoerUserID == httpContextAccessor.HttpContext.Session.GetInt32("UserID"))
     {
         <button onclick="SubmitJobProof(@Model.JobID, @Model.AuctionBids.First(x=>x.UserId == httpContextAccessor.HttpContext.Session.GetInt32("UserID")).BlockchainBidId, @Model.BlockchainJobID == null ? 0 : @Model.BlockchainJobID, '@Program._settings.DaoBlockchain.ToString()');" class="btn btn-sm btn-primary btn-shine float-right">
             Submit Job Proof
         </button>
-    }
+    } *@
 
     <!-- Display "Submit KYC" button for job poster if auction is completed -->
     @if (Model.Status == Helpers.Constants.Enums.JobStatusTypes.KYCPending && Model.JobPosterUserID == httpContextAccessor.HttpContext.Session.GetInt32("UserID"))
