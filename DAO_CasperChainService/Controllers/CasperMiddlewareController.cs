@@ -53,7 +53,7 @@ namespace DAO_CasperChainService.Controllers
                 {
                     profile.AvailableReputation = totalRep.data[totalRep.data.Count - 1].total_liquid_reputation.ToString();
                     profile.StakedReputation = totalRep.data[totalRep.data.Count - 1].total_staked_reputation.ToString();
-                    profile.Reputation = (profile.AvailableReputation + profile.StakedReputation).ToString();
+                    profile.Reputation = (Convert.ToInt32(profile.AvailableReputation) + Convert.ToInt32(profile.StakedReputation)).ToString();
                 }
 
                 SuccessResponse<Account> account = GetAccountByAddress(publicAddress);
