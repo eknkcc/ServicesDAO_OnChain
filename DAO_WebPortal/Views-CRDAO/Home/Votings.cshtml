@@ -188,7 +188,17 @@
                                                     <span>@DAO_WebPortal.Utility.StringHelper.FormatPrice(item.WinnerBidPrice)</span>
                                                 }
                                             </td>
-                                            <td><b id="counter_@item.VotingID"></b></td>
+                                            <td>
+                                                @if (item.StartDate <= DateTime.Now)
+                                                {
+                                                    <b id="counter_@item.VotingID"></b>
+                                                }
+                                                else
+                                                {
+                                                    <b>PENDING</b>
+                                                }
+
+                                            </td>
                                             <td>
                                                 @if (item.VoteCount >= item.QuorumCount)
                                                 {
@@ -225,13 +235,16 @@
 
                                                 if (informalVoted && httpContextAccessor.HttpContext.Session.GetInt32("UserID") != item.JobDoerUserID && httpContextAccessor.HttpContext.Session.GetString("UserType") == Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString())
                                                 {
-                                                    <td>
-                                                        <a class="btn btn-sm btn-primary btn-shine me-2" onclick="OpenVoteModal(@item.VotingID, @item.JobID)">
-                                                            <svg class="icon">
-                                                                <use xlink:href="/Home/images/svg/free.svg#cil-send"></use>
-                                                            </svg> Submit Vote
-                                                        </a>
-                                                    </td>
+                                                    if(item.StartDate <= DateTime.Now)
+                                                    {
+                                                        <td>
+                                                            <a class="btn btn-sm btn-primary btn-shine me-2" onclick="OpenVoteModal(@item.VotingID, @item.JobID)">
+                                                                <svg class="icon">
+                                                                    <use xlink:href="/Home/images/svg/free.svg#cil-send"></use>
+                                                                </svg> Submit Vote
+                                                            </a>
+                                                        </td>
+                                                    }                    
                                                 }
                                                 else
                                                 {
