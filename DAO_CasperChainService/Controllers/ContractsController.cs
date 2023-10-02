@@ -835,7 +835,7 @@ namespace DAO_CasperChainService.Controllers
 
                 if (string.IsNullOrEmpty(repo))
                 {
-                    repo = Program._settings.VariableRepositoryContract;
+                    repo = Program._settings.VariableRepositoryPackageHash;
                 }
 
                 var repoKey = GlobalStateKey.FromString(repo);

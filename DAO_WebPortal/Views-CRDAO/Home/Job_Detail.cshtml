@@ -166,21 +166,14 @@
                                 </tr>
                             }
 
-                            @if (Model.JobPostWebsiteModel.Voting.Count(x => x.IsFormal == false && x.DeployHash != null) > 0)
+                            @if (Model.JobPostWebsiteModel.Voting.Count(x => x.DeployHash != null) > 0)
                             {
                                 <tr>
-                                    <td><i class="fas fa-link me-2"></i><i>Informal Deploy Hash</i></td>
-                                    <td>@Model.JobPostWebsiteModel.Voting.First(x=>x.IsFormal == false).DeployHash</td>
+                                    <td><i class="fas fa-link me-2"></i><i>Deploy Hash</i></td>
+                                    <td>@Model.JobPostWebsiteModel.Voting.First().DeployHash</td>
                                 </tr>
                             }
 
-                            @if (Model.JobPostWebsiteModel.Voting.Count(x => x.IsFormal == true && x.DeployHash != null) > 0)
-                            {
-                                <tr>
-                                    <td><i class="fas fa-link me-2"></i><i>Formal Deploy Hash</i></td>
-                                    <td>@Model.JobPostWebsiteModel.Voting.First(x=>x.IsFormal == true).DeployHash</td>
-                                </tr>
-                            }
                         </table>
 
                         @if (Model.JobPostWebsiteModel.BlockchainJobID == null)

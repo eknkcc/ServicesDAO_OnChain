@@ -535,7 +535,7 @@ namespace DAO_DbService
                                 job.Status = Enums.JobStatusTypes.Completed;
                                 db.SaveChanges();
 
-                                if (onchain) continue;
+                                //if (onchain) continue;
 
                                 //Job completion formal vote passed
                                 if (voting.Type == VoteTypes.JobCompletion)

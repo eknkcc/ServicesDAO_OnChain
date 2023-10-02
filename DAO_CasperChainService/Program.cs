@@ -43,6 +43,7 @@ namespace DAO_CasperChainService
             public string VAOnboardingPackageHash { get; set; }
             public string BidEscrowContractPackageHash { get; set; }
             public string RepoVoterContractPackageHash { get; set; }
+            public string VariableRepositoryPackageHash { get; set; }
         }
 
         public static Monitizer monitizer;
