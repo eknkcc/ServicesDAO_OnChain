@@ -462,7 +462,7 @@ namespace DAO_WebPortal.Controllers
                 if (controlResult.Success == false) return base.Json(controlResult);
 
                 DateTime currentDateTime = DateTime.Now;
-                long activationTime = ((DateTimeOffset)currentDateTime).AddDays(1).ToUnixTimeMilliseconds();
+                long activationTime = ((DateTimeOffset)currentDateTime).AddDays(7).ToUnixTimeMilliseconds();
 
                 //Get model from ApiGateway
                 var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/RepoVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&key=" + key + "&value=" + value + "&stake=" + stake + "&activationtime=" + activationTime);

@@ -2064,7 +2064,7 @@ namespace DAO_WebPortal.Controllers
             Program.monitizer.AddUserLog(userid, Helpers.Constants.Enums.UserLogType.Request, "User started informal voting . Job #" + jobid, ip, port);
 
             //Send email notification to VAs
-            SendEmailModel emailModel = new SendEmailModel() { Subject = "Informal Voting Started For Job #" + jobid, Content = "Informal voting process started for job #" + jobid + "<br><br>Please submit your vote until " + informalVoting.EndDate.ToString(), TargetGroup = Enums.UserIdentityType.VotingAssociate };
+            SendEmailModel emailModel = new SendEmailModel() { Subject = "Informal Voting Started For Job #" + jobid, Content = "Informal voting process started for job #" + jobid + "<br", TargetGroup = Enums.UserIdentityType.VotingAssociate };
             Program.rabbitMq.Publish(Helpers.Constants.FeedNames.NotificationFeed, "email", Helpers.Serializers.Serialize(emailModel));
 
             return res;
@@ -2654,7 +2654,7 @@ namespace DAO_WebPortal.Controllers
                         Program.monitizer.AddUserLog(userid, Helpers.Constants.Enums.UserLogType.Request, "User started new simple vote.", ip, port);
 
                         //Send email notification to VAs
-                        SendEmailModel emailModel = new SendEmailModel() { Subject = "New Vote Submitted #" + jobPostModel.JobID, Content = "New vote started. Title:" + jobPostModel.Title + "<br><br>Please submit your vote until " + informalVoting.EndDate.ToString(), TargetGroup = Enums.UserIdentityType.VotingAssociate };
+                        SendEmailModel emailModel = new SendEmailModel() { Subject = "New Vote Submitted #" + jobPostModel.JobID, Content = "New vote started. Title:" + jobPostModel.Title + "<br>", TargetGroup = Enums.UserIdentityType.VotingAssociate };
                         Program.rabbitMq.Publish(Helpers.Constants.FeedNames.NotificationFeed, "email", Helpers.Serializers.Serialize(emailModel));
 
 
