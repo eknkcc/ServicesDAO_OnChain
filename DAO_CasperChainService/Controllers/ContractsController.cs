@@ -25,6 +25,7 @@ using Org.BouncyCastle.Utilities;
 using System.Diagnostics.Metrics;
 using Casper.Network.SDK.JsonRpc;
 using Casper.Network.SDK.JsonRpc.ResultTypes;
+using System.Numerics;
 
 namespace DAO_CasperChainService.Controllers
 {
@@ -827,7 +828,7 @@ namespace DAO_CasperChainService.Controllers
         }
 
         [HttpGet("RepoVoterCreateVoting", Name = "RepoVoterCreateVoting")]
-        public SimpleResponse RepoVoter_CreateVoting(string userwallet, string repo, string key, string value, ulong activationtime, int stake)  
+        public SimpleResponse RepoVoter_CreateVoting(string userwallet, string repo, string key, string value, ulong activationtime, int stake, string valuetype)  
         {
             try
             {
@@ -841,9 +842,40 @@ namespace DAO_CasperChainService.Controllers
                 var repoKey = GlobalStateKey.FromString(repo);
 
                 List<CLValue> valueBytes = new List<CLValue>();
-                foreach (var byt in Encoding.ASCII.GetBytes(value))
+
+                if(valuetype == "Balance")
                 {
-                    valueBytes.Add(CLValue.U8(byt));
+                    BigInteger bigIntValue = BigInteger.Parse(value);
+
+                    var parsedValue = CLValue.U512(bigIntValue);
+                    
+                    foreach (var byt in parsedValue.ToBigInteger().ToByteArray())
+                    {
+                        valueBytes.Add(CLValue.U8(byt));
+                    }
+                }
+                else if (valuetype == "U64")
+                {
+                    foreach (var byt in BitConverter.GetBytes(Convert.ToUInt64(value)))
+                    {
+                        valueBytes.Add(CLValue.U8(byt));
+                    }
+                }
+                else if (valuetype == "Bool")
+                {
+                    foreach (var byt in BitConverter.GetBytes(Convert.ToBoolean(value)))
+                    {
+                        valueBytes.Add(CLValue.U8(byt));
+                    }
+                }
+                else if (valuetype == "Key")
+                {
+                    var parsedValue = GlobalStateKey.FromString(value);
+
+                    foreach (var byt in Encoding.ASCII.GetBytes(parsedValue.ToString()))
+                    {
+                        valueBytes.Add(CLValue.U8(byt));
+                    }
                 }
 
                 var namedArgs = new List<NamedArg>()
@@ -851,7 +883,7 @@ namespace DAO_CasperChainService.Controllers
                     new NamedArg("variable_repo_to_edit", CLValue.Key(repoKey)),
                     new NamedArg("key", CLValue.String(key)),
                     new NamedArg("value", CLValue.List(valueBytes.ToArray())),
-                    new NamedArg("activation_time", CLValue.Option(activationtime)),
+                    new NamedArg("activation_time", CLValue.OptionNone(new CLTypeInfo(CLType.U64))),
                     new NamedArg("stake", CLValue.U512(stake))
                 };
 

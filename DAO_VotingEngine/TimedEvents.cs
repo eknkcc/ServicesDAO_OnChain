@@ -396,7 +396,7 @@ namespace DAO_VotingEngine
                             if (dbVotes.Count(x => x.DeployHash == item.deploy_hash) == 0)
                             {
 
-                                List<UserDto> walletUser = Helpers.Serializers.DeserializeJson<List<UserDto>>(Helpers.Request.Get(Program._settings.Service_Db_Url + "/User/GetByWallet?wallet=" + item.address));
+                                List<UserDto> walletUser = Helpers.Serializers.DeserializeJson<List<UserDto>>(Helpers.Request.Get(Program._settings.Service_Db_Url + "/Users/GetByWallet?wallet=" + item.address));
 
 
                                 Models.Vote vote = new Models.Vote();

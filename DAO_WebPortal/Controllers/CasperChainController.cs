@@ -464,8 +464,14 @@ namespace DAO_WebPortal.Controllers
                 DateTime currentDateTime = DateTime.Now;
                 long activationTime = ((DateTimeOffset)currentDateTime).AddDays(7).ToUnixTimeMilliseconds();
 
+                var valueType = "U64";
+                if(Program._settings.DaoSettings.Count(x=>x.Key == key) > 0)
+                {
+                    valueType = Program._settings.DaoSettings.First(x => x.Key == key).ValueType;
+                }
+
                 //Get model from ApiGateway
-                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/RepoVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&key=" + key + "&value=" + value + "&stake=" + stake + "&activationtime=" + activationTime);
+                var deployJson = Helpers.Request.Get(Program._settings.Service_ApiGateway_Url + "/CasperChainService/Contracts/RepoVoterCreateVoting?userwallet=" + HttpContext.Session.GetString("WalletAddress") + "&key=" + key + "&value=" + value + "&stake=" + stake + "&activationtime=" + activationTime + "&valueType=" + valueType);
                 //Parse response
                 SimpleResponse deployModel = Helpers.Serializers.DeserializeJson<SimpleResponse>(deployJson);
 
