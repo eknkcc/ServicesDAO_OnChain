@@ -2009,7 +2009,7 @@ namespace DAO_WebPortal.Controllers
             //Start informal voting
             VotingDto informalVoting = new VotingDto();
             informalVoting.JobID = jobid;
-            informalVoting.StartDate = DateTime.Now;
+            informalVoting.StartDate = DateTime.Now.AddMilliseconds(Convert.ToDouble(Program._settings.DaoSettings.First(x => x.Key == "VotingStartAfterJobSubmission").Value));
             if (winnerBid.VaOnboarding == false && userModel.UserType == Enums.UserIdentityType.Associate.ToString())
             {
                 //Job doer wont earn any reputations

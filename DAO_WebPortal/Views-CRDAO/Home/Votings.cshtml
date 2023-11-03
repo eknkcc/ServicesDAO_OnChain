@@ -86,7 +86,15 @@
                                                     <span>-</span>
                                                 }
                                             </td>
-                                            <td><b id="counter_@item.VotingID"></b></td>
+                                            @if (item.StartDate <= DateTime.Now)
+                                            {
+                                                <b id="counter_@item.VotingID"></b>
+                                            }
+                                            else
+                                            {
+                                                <b id="counter_@item.VotingID" style="display:none"></b>
+                                                <b>PENDING</b>
+                                            }
                                             <td>
                                                 @if (item.VoteCount >= item.QuorumCount)
                                                 {
@@ -111,13 +119,17 @@
 
                                                 if (httpContextAccessor.HttpContext.Session.GetInt32("UserID") != item.JobDoerUserID && httpContextAccessor.HttpContext.Session.GetString("UserType") == Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString() && httpContextAccessor.HttpContext.Session.GetInt32("UserID") != item.JobOwnerUserID)
                                                 {
-                                                    <td>
-                                                        <a class="btn btn-sm btn-primary btn-shine me-2" onclick="OpenVoteModal(@item.VotingID, @item.JobID)" id="submitvote_@item.VotingID">
-                                                            <svg class="icon">
-                                                                <use xlink:href="/Home/images/svg/free.svg#cil-send"></use>
-                                                            </svg> Submit Vote
-                                                        </a>
-                                                    </td>
+
+                                                    if (item.StartDate <= DateTime.Now)
+                                                    {
+                                                        <td>
+                                                            <a class="btn btn-sm btn-primary btn-shine me-2" onclick="OpenVoteModal(@item.VotingID, @item.JobID)" id="submitvote_@item.VotingID">
+                                                                <svg class="icon">
+                                                                    <use xlink:href="/Home/images/svg/free.svg#cil-send"></use>
+                                                                </svg> Submit Vote
+                                                            </a>
+                                                        </td>
+                                                    }
                                                 }
                                                 else
                                                 {
@@ -236,7 +248,7 @@
 
                                                 if (informalVoted && httpContextAccessor.HttpContext.Session.GetInt32("UserID") != item.JobDoerUserID && httpContextAccessor.HttpContext.Session.GetString("UserType") == Helpers.Constants.Enums.UserIdentityType.VotingAssociate.ToString())
                                                 {
-                                                    if(item.StartDate <= DateTime.Now)
+                                                    if (item.StartDate <= DateTime.Now)
                                                     {
                                                         <td>
                                                             <a class="btn btn-sm btn-primary btn-shine me-2" onclick="OpenVoteModal(@item.VotingID, @item.JobID)">
@@ -245,7 +257,7 @@
                                                                 </svg> Submit Vote
                                                             </a>
                                                         </td>
-                                                    }                    
+                                                    }
                                                 }
                                                 else
                                                 {
