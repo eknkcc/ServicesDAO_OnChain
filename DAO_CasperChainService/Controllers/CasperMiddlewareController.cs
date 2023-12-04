@@ -139,6 +139,14 @@ namespace DAO_CasperChainService.Controllers
                 string reputationChangesJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/accounts/" + address + "/aggregated-reputation-changes" + additionalParametersStr);
                 //Parse response
                 reputationChanges = Helpers.Serializers.DeserializeJson<PaginatedResponse<AggregatedReputationChange>>(reputationChangesJson);
+                foreach (var item in reputationChanges.data)
+                {
+                    if (item.earned_amount != null && item.earned_amount > 0) item.earned_amount /= 1_000_000_000;
+                    if (item.staked_amount != null && item.staked_amount > 0) item.staked_amount /= 1_000_000_000;
+                    if (item.lost_amount != null && item.lost_amount > 0) item.lost_amount /= 1_000_000_000;
+                    if (item.released_amount != null && item.released_amount > 0) item.released_amount /= 1_000_000_000;
+                }
+
             }
             catch (Exception ex)
             {
@@ -160,6 +168,9 @@ namespace DAO_CasperChainService.Controllers
                 string TotalReputationJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/accounts/" + address + "/total-reputation");
                 //Parse response
                 totalReputation = Helpers.Serializers.DeserializeJson<SuccessResponse<TotalReputation>>(TotalReputationJson);
+                if (totalReputation.data.available_amount != null && totalReputation.data.available_amount > 0) totalReputation.data.available_amount /= 1_000_000_000;
+                if (totalReputation.data.staked_amount != null && totalReputation.data.staked_amount > 0) totalReputation.data.staked_amount /= 1_000_000_000;
+
             }
             catch (Exception ex)
             {
@@ -181,6 +192,13 @@ namespace DAO_CasperChainService.Controllers
                 string reputationSnapshotsJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/accounts/" + address + "/total-reputation-snapshots");
                 //Parse response
                 reputationSnapshots = Helpers.Serializers.DeserializeJson<PaginatedResponse<ReputationSnapshot>>(reputationSnapshotsJson);
+                foreach (var item in reputationSnapshots.data)
+                {
+                    if (item.total_liquid_reputation != null && item.total_liquid_reputation > 0) item.total_liquid_reputation /= 1_000_000_000;
+                    if (item.total_staked_reputation != null && item.total_staked_reputation > 0) item.total_staked_reputation /= 1_000_000_000;
+                    if (item.voting_lost_reputation != null && item.voting_lost_reputation > 0) item.voting_lost_reputation /= 1_000_000_000;
+                    if (item.voting_earned_reputation != null && item.voting_earned_reputation > 0) item.voting_earned_reputation /= 1_000_000_000;
+                }
             }
             catch (Exception ex)
             {

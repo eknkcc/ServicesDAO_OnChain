@@ -358,7 +358,7 @@ namespace DAO_CasperChainService.Controllers
                     new NamedArg("job_offer_id", CLValue.U32(jobofferid)),
                     new NamedArg("time", CLValue.U64(time)),
                     new NamedArg("payment", CLValue.U512(userpayment)),
-                    new NamedArg("reputation_stake", CLValue.U512(repstake)),
+                    new NamedArg("reputation_stake", CLValue.U512(repstake * 1_000_000_000)),
                     new NamedArg("onboard", CLValue.Bool(false)),
                     new NamedArg("cspr_stake", CLValue.OptionNone(new CLTypeInfo(CLType.U512)))
                 };
@@ -541,7 +541,7 @@ namespace DAO_CasperChainService.Controllers
                 runtimeJobArgs.Add(new NamedArg("bid_escrow_address", CLValue.Key(bidEscrowAddress)));
                 runtimeJobArgs.Add(new NamedArg("job_id", CLValue.U32(jobid)));
                 runtimeJobArgs.Add(new NamedArg("proof", CLValue.String(proof)));
-                runtimeJobArgs.Add(new NamedArg("reputation_stake", CLValue.U512(repstake)));
+                runtimeJobArgs.Add(new NamedArg("reputation_stake", CLValue.U512(repstake * 1_000_000_000)));
                 runtimeJobArgs.Add(new NamedArg("onboard", CLValue.Bool(onboard)));
 
                 List<CLValue> clVals = new List<CLValue>();
@@ -634,7 +634,7 @@ namespace DAO_CasperChainService.Controllers
                     new NamedArg("voting_id", CLValue.U32(votingid)),
                     new NamedArg("voting_type", CLValue.U32(isFormal)),
                     new NamedArg("choice", CLValue.U32(choice)),
-                    new NamedArg("stake", CLValue.U512(stake))
+                    new NamedArg("stake", CLValue.U512(stake * 1_000_000_000))
                 };
 
                 //Create deploy object
@@ -734,7 +734,7 @@ namespace DAO_CasperChainService.Controllers
                 var namedArgs = new List<NamedArg>()
                 {
                     new NamedArg("document_hash", CLValue.String(documenthash)),
-                    new NamedArg("stake", CLValue.U512(stake))
+                    new NamedArg("stake", CLValue.U512(stake * 1_000_000_000))
                 };
 
                 //Create deploy object
@@ -884,7 +884,7 @@ namespace DAO_CasperChainService.Controllers
                     new NamedArg("key", CLValue.String(key)),
                     new NamedArg("value", CLValue.List(valueBytes.ToArray())),
                     new NamedArg("activation_time", CLValue.OptionNone(new CLTypeInfo(CLType.U64))),
-                    new NamedArg("stake", CLValue.U512(stake))
+                    new NamedArg("stake", CLValue.U512(stake * 1_000_000_000))
                 };
 
                 //Create deploy object
@@ -923,7 +923,7 @@ namespace DAO_CasperChainService.Controllers
                     //new NamedArg("document_hash", CLValue.String(verificationId)),
                     //new NamedArg("document_hash", CLValue.U256(13455)),
                     new NamedArg("document_hash", CLValue.String(documenthash)),
-                    new NamedArg("stake", CLValue.U512(stake))
+                    new NamedArg("stake", CLValue.U512(stake * 1_000_000_000))
                 };
 
                 //Create deploy object
@@ -963,7 +963,7 @@ namespace DAO_CasperChainService.Controllers
                     new NamedArg("action", CLValue.U32(action)),
                     new NamedArg("amount", CLValue.U512(amount)),
                     new NamedArg("document_hash", CLValue.String(documenthash)),
-                    new NamedArg("stake", CLValue.U512(stake))
+                    new NamedArg("stake", CLValue.U512(stake * 1_000_000_000))
                 };
 
                 //Create deploy object
@@ -1000,7 +1000,7 @@ namespace DAO_CasperChainService.Controllers
                 {
                     new NamedArg("address_to_slash", CLValue.Key(subjectAddress)),
                     new NamedArg("slash_ratio", CLValue.U32(slashratio)),
-                    new NamedArg("stake", CLValue.U512(stake))
+                    new NamedArg("stake", CLValue.U512(stake * 1_000_000_000))
                 };
 
                 //Create deploy object
