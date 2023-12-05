@@ -86,6 +86,7 @@
                                                     <span>-</span>
                                                 }
                                             </td>
+                                            <td>
                                             @if (item.StartDate <= DateTime.Now)
                                             {
                                                 <b id="counter_@item.VotingID"></b>
@@ -95,6 +96,7 @@
                                                 <b id="counter_@item.VotingID" style="display:none"></b>
                                                 <b>PENDING</b>
                                             }
+                                            </td>
                                             <td>
                                                 @if (item.VoteCount >= item.QuorumCount)
                                                 {
