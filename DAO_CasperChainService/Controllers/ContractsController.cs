@@ -517,7 +517,7 @@ namespace DAO_CasperChainService.Controllers
         }
 
         [HttpGet("BidEscrowSubmitJobProofGracePeriod", Name = "BidEscrowSubmitJobProofGracePeriod")]
-        public SimpleResponse BidEscrow_SubmitJobProofGracePeriod(uint jobid, string proof, uint repstake, bool onboard, string userwallet)
+        public SimpleResponse BidEscrow_SubmitJobProofGracePeriod(uint jobid, string proof, ulong repstake, bool onboard, string userwallet)
         {
             try
             {
@@ -589,7 +589,7 @@ namespace DAO_CasperChainService.Controllers
         #region Voters
 
         [HttpGet("SubmitVote", Name = "SubmitVote")]
-        public SimpleResponse SubmitVote(Enums.VoteTypes votetype, byte isFormal, uint votingid, byte choice, int stake, string userwallet)
+        public SimpleResponse SubmitVote(Enums.VoteTypes votetype, byte isFormal, uint votingid, byte choice, ulong stake, string userwallet)
         {
             try
             {
@@ -725,7 +725,7 @@ namespace DAO_CasperChainService.Controllers
         }
 
         [HttpGet("SimpleVoterCreateVoting", Name = "SimpleVoterCreateVoting")]
-        public SimpleResponse SimpleVoter_CreateVoting(string userwallet, string documenthash, int stake)
+        public SimpleResponse SimpleVoter_CreateVoting(string userwallet, string documenthash, ulong stake)
         {
             try
             {
@@ -828,7 +828,7 @@ namespace DAO_CasperChainService.Controllers
         }
 
         [HttpGet("RepoVoterCreateVoting", Name = "RepoVoterCreateVoting")]
-        public SimpleResponse RepoVoter_CreateVoting(string userwallet, string repo, string key, string value, ulong activationtime, int stake, string valuetype)  
+        public SimpleResponse RepoVoter_CreateVoting(string userwallet, string repo, string key, string value, ulong activationtime, ulong stake, string valuetype)  
         {
             try
             {
@@ -908,7 +908,7 @@ namespace DAO_CasperChainService.Controllers
         }
 
         [HttpGet("KYCVoterCreateVoting", Name = "KYCVoterCreateVoting")]
-        public SimpleResponse KYCVoter_CreateVoting(string userwallet, string kycUserAddress, string documenthash, int stake)
+        public SimpleResponse KYCVoter_CreateVoting(string userwallet, string kycUserAddress, string documenthash, ulong stake)
         {
             try
             {
@@ -947,7 +947,7 @@ namespace DAO_CasperChainService.Controllers
         }
 
         [HttpGet("ReputationVoterCreateVoting", Name = "ReputationVoterCreateVoting")]
-        public SimpleResponse ReputationVoter_CreateVoting(string userwallet, string subjectaddress, byte action, int amount, string documenthash, int stake)
+        public SimpleResponse ReputationVoter_CreateVoting(string userwallet, string subjectaddress, byte action, ulong amount, string documenthash, ulong stake)
         {
             try
             {
@@ -987,7 +987,7 @@ namespace DAO_CasperChainService.Controllers
         }
 
         [HttpGet("SlashingVoterCreateVoting", Name = "SlashingVoterCreateVoting")]
-        public SimpleResponse SlashingVoter_CreateVoting(string userwallet, string addresstoslash, uint slashratio, int stake)
+        public SimpleResponse SlashingVoter_CreateVoting(string userwallet, string addresstoslash, uint slashratio, ulong stake)
         {
             try
             {

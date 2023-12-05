@@ -259,6 +259,11 @@ namespace DAO_CasperChainService.Controllers
                 string votesListJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/accounts/" + address + "/votes" + additionalParametersStr);
                 //Parse response
                 votesList = Helpers.Serializers.DeserializeJson<PaginatedResponse<Vote>>(votesListJson);
+
+                foreach (var item in votesList.data)
+                {
+                    if (item.amount != null && item.amount > 0) item.amount /= 1_000_000_000;
+                }
             }
             catch (Exception ex)
             {
@@ -314,6 +319,11 @@ namespace DAO_CasperChainService.Controllers
                 string votesListJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/votings/" + voting_id + "/votes" + additionalParametersStr);
                 //Parse response
                 votesList = Helpers.Serializers.DeserializeJson<PaginatedResponse<Vote>>(votesListJson);
+
+                foreach (var item in votesList.data)
+                {
+                    if (item.amount != null && item.amount > 0) item.amount /= 1_000_000_000;
+                }
             }
             catch (Exception ex)
             {
@@ -627,6 +637,11 @@ namespace DAO_CasperChainService.Controllers
                 string bidsJson = Helpers.Request.Get(Program._settings.CasperMiddlewareUrl + "/job-offers/" + jobid + "/bids" + additionalParametersStr);
                 //Parse response
                 response = Helpers.Serializers.DeserializeJson<PaginatedResponse<Bid>>(bidsJson);
+
+                foreach (var item in response.data)
+                {
+                    if (item.reputation_stake != null && item.reputation_stake > 0) item.reputation_stake /= 1_000_000_000;
+                }
             }
             catch (Exception ex)
             {
