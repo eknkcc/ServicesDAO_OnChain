@@ -74,7 +74,6 @@
             </div>
         </div>
     </div><!-- .header-main  -->
-
     <!-- Banner  -->
     <div class="header-banner bg-theme-grad">
         <div class="nk-banner">
@@ -106,37 +105,36 @@
                                 </div>
                             </div><!-- .col -->
                         </div><!-- .row -->
-                  
-                                    @{
-            var completedjobs = Model.Where(x => x.Status == Helpers.Constants.Enums.AuctionStatusTypes.Completed);
-            int linesReviewed = completedjobs.Count() * 5746;
-            int averageCost = Convert.ToInt32(completedjobs.Average(x => x.JobPrice));
-            int maxCost = Convert.ToInt32(completedjobs.Max(x => x.JobPrice));
-            int averageTime = Convert.ToInt32(completedjobs.Average(x => Convert.ToInt32(x.ExpectedTimeframe)));
-        }
+                        @{
+                            var completedjobs = Model.Where(x => x.Status == Helpers.Constants.Enums.AuctionStatusTypes.Completed);
+                            int linesReviewed = completedjobs.Count() * 5746;
+                            int averageCost = Convert.ToInt32(completedjobs.Average(x => x.JobPrice));
+                            int maxCost = Convert.ToInt32(completedjobs.Max(x => x.JobPrice));
+                            int averageTime = Convert.ToInt32(completedjobs.Average(x => Convert.ToInt32(x.ExpectedTimeframe)));
+                        }
 
- 
-            <div class="row">
-                <div class="col-md-3" style="text-align: center;">
-                    <h4 class="title-regular animated fadeInUp" style="color: white;">Code Reviewed</h4>
-                    <span style="color: #adb0cb;font-weight: 600;font-size:34px" class="value" akhi="@linesReviewed">0</span><b style="margin-left:7px">lines</b>
-                </div>
-                <div class="col-md-3" style="text-align: center;">
-                    <h4 class="title-regular animated fadeInUp" style="color: white;">Average Cost</h4>
-                    <span style="color: #adb0cb;font-weight: 600;font-size:34px" class="value" akhi="@averageCost">0</span><b style="margin-left:7px">Euros</b>
-                </div>
-                <div class="col-md-3" style="text-align: center;">
-                    <h4 class="title-regular animated fadeInUp" style="color: white;">Max Cost</h4>
-                    <span style="color: #adb0cb;font-weight: 600;font-size:34px" class="value" akhi="@maxCost">0</span><b style="margin-left:7px">Euros</b>
-                </div>
-                <div class="col-md-3" style="text-align: center;">
-                    <h4 class="title-regular animated fadeInUp" style="color: white;">Average Time</h4>
 
-                    <span style="color: #adb0cb;font-weight: 600;font-size:34px" class="value" akhi="@averageTime">0</span><b style="margin-left:7px">Days</b>
-                </div>
-            </div>
-    
-                  
+                        <div class="row">
+                            <div class="col-md-3" style="text-align: center;">
+                                <h4 class="title-regular animated fadeInUp" style="color: white;">Code Reviewed</h4>
+                                <span style="color: #adb0cb;font-weight: 600;font-size:34px" class="value" akhi="@linesReviewed">0</span><b style="margin-left:7px">lines</b>
+                            </div>
+                            <div class="col-md-3" style="text-align: center;">
+                                <h4 class="title-regular animated fadeInUp" style="color: white;">Average Cost</h4>
+                                <span style="color: #adb0cb;font-weight: 600;font-size:34px" class="value" akhi="@averageCost">0</span><b style="margin-left:7px">Euros</b>
+                            </div>
+                            <div class="col-md-3" style="text-align: center;">
+                                <h4 class="title-regular animated fadeInUp" style="color: white;">Max Cost</h4>
+                                <span style="color: #adb0cb;font-weight: 600;font-size:34px" class="value" akhi="@maxCost">0</span><b style="margin-left:7px">Euros</b>
+                            </div>
+                            <div class="col-md-3" style="text-align: center;">
+                                <h4 class="title-regular animated fadeInUp" style="color: white;">Average Time</h4>
+
+                                <span style="color: #adb0cb;font-weight: 600;font-size:34px" class="value" akhi="@averageTime">0</span><b style="margin-left:7px">Days</b>
+                            </div>
+                        </div>
+
+
                     </div>
                 </div>
             </div>
@@ -147,7 +145,7 @@
 </header>
 
 <main class="nk-pages">
-        
+
     <section class="bg-transparent over-up over-up-xl-s2 pdt-0 pb-5">
         <div class="ui-mask-right ui-mask-s8"></div>
         <div class="container">
@@ -199,17 +197,16 @@
                 <li class="col-12 col-md-2 text-center text-md-left">
                     <h6 class="title title-xs tc-primary mb-md-0 mb-4 animated fadeInUp" data-animate="fadeInUp" data-delay="1.65" style="visibility: visible; animation-delay: 1.65s;">Our <br> Partners</h6>
                 </li>
+                <li class="col-4 col-md-2 col-sm-6 animated fadeInUp" data-animate="fadeInUp" data-delay="1.7" style="visibility: visible; animation-delay: 1.7s;">
+                    <a href="#">
+                        <img src="../Public/images/partners/xprize.png" alt="partner" style="padding-right:10px;padding-left:10px;padding-top:20px">
+                    </a>
+                </li>
                 <li class="col-4 col-md-2 col-sm-6 animated fadeInUp" data-animate="fadeInUp" data-delay="1.65" style="visibility: visible; animation-delay: 1.7s;">
                     <a href="#">
                         <img src="../Public/images/partners/casperlabs.png" alt="partner" style="padding-right:20px;padding-left:20px;padding-top:20px">
                     </a>
                 </li>
-                <li class="col-4 col-md-2 col-sm-6 animated fadeInUp" data-animate="fadeInUp" data-delay="1.7" style="visibility: visible; animation-delay: 1.7s;">
-                    <a href="#">
-                        <img src="../Public/images/partners/xprize.png" alt="partner" style="padding-right:20px;padding-left:20px;padding-top:20px">
-                    </a>
-                </li>
-
                 <li class="col-4 col-md-2 col-sm-6 animated fadeInUp" data-animate="fadeInUp" data-delay="1.75" style="visibility: visible; animation-delay: 1.75s;">
                     <a href="#">
                         <img src="../Public/images/partners/eta.png" alt="partner" style="padding-top:20px">
@@ -498,24 +495,24 @@
 
 <script>
 
-        const counters = document.querySelectorAll('.value');
-        const speed = 500;
+    const counters = document.querySelectorAll('.value');
+    const speed = 500;
 
-        counters.forEach(counter => {
-            const animate = () => {
-                const value = +counter.getAttribute('akhi');
-                const data = +counter.innerText;
+    counters.forEach(counter => {
+        const animate = () => {
+            const value = +counter.getAttribute('akhi');
+            const data = +counter.innerText;
 
-                const time = value / speed;
-                if (data < value) {
-                    counter.innerText = Math.ceil(data + time);
-                    setTimeout(animate, 1);
-                } else {
-                    counter.innerText = value;
-                }
-
+            const time = value / speed;
+            if (data < value) {
+                counter.innerText = Math.ceil(data + time);
+                setTimeout(animate, 1);
+            } else {
+                counter.innerText = value;
             }
 
-            animate();
-        });
+        }
+
+        animate();
+    });
 </script>
